@@ -1,0 +1,30 @@
+import type { OpenManualConfig } from '../config/schema.js';
+
+export function generatePackageJson(_ctx: {
+  config: OpenManualConfig;
+  projectDir: string;
+}): string {
+  const pkg = {
+    name: 'openmanual-app',
+    type: 'module',
+    private: true,
+    scripts: {
+      dev: 'next dev',
+      build: 'next build',
+      start: 'next start',
+    },
+    dependencies: {
+      '@tailwindcss/postcss': '^4.1.15',
+      'fumadocs-core': '^16.7.7',
+      'fumadocs-mdx': '^14.2.11',
+      'fumadocs-ui': '^16.7.7',
+      next: '^16.2.1',
+      postcss: '^8.5.8',
+      react: '^19.1.0',
+      'react-dom': '^19.1.0',
+      tailwindcss: '^4.1.15',
+    },
+  };
+
+  return `${JSON.stringify(pkg, null, 2)}\n`;
+}

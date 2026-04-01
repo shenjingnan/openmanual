@@ -1,0 +1,27 @@
+---
+title: 部署
+description: 部署 My Project 到生产环境
+---
+
+# 部署
+
+## Docker
+
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY . .
+RUN npm ci --production
+CMD ["node", "server.js"]
+```
+
+## Vercel
+
+直接连接 Git 仓库，自动部署。
+
+## 自托管
+
+```bash
+npm run build
+npm start
+```

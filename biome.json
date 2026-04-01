@@ -52,7 +52,10 @@
       "!!**/dist",
       "!!**/coverage",
       "!!**/*.min.js",
-      "!!**/.husky"
+      "!!**/.husky",
+      "!!**/.openmanual",
+      "!!**/.next",
+      "!!**/.source"
     ]
   }
 }
