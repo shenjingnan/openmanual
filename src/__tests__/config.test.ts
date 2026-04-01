@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../core/config/loader.js';
 import { OpenManualConfigSchema } from '../core/config/schema.js';
 import { getContentTree, scanContentDir } from '../core/content/scanner.js';
-import { buildPageTree } from '../core/content/tree.js';
+import { buildPageTree, generateSourceConfigContent } from '../core/content/tree.js';
 
 describe('OpenManualConfigSchema', () => {
   it('should validate a minimal valid config', () => {
@@ -201,5 +201,164 @@ describe('page tree builder', () => {
     expect(tree).toHaveLength(1);
     expect(tree[0]?.type).toBe('page');
     expect(tree[0]?.name).toBe('Home');
+  });
+
+  it('should auto-build multi-level nested tree from file system', () => {
+    const files = [
+      {
+        filePath: '/test/index.mdx',
+        slug: 'index',
+        name: 'index',
+        frontmatter: { title: 'Home' },
+        content: '',
+        segments: ['index'],
+      },
+      {
+        filePath: '/test/guide/intro.mdx',
+        slug: 'guide/intro',
+        name: 'intro',
+        frontmatter: { title: 'Introduction' },
+        content: '',
+        segments: ['guide', 'intro'],
+      },
+      {
+        filePath: '/test/guide/advanced/config.mdx',
+        slug: 'guide/advanced/config',
+        name: 'config',
+        frontmatter: { title: 'Configuration' },
+        content: '',
+        segments: ['guide', 'advanced', 'config'],
+      },
+    ];
+
+    const tree = buildPageTree(files);
+    expect(tree).toHaveLength(2);
+    const guideFolder = tree.find((item) => item.type === 'folder');
+    expect(guideFolder).toBeDefined();
+    expect(guideFolder?.name).toBe('Guide');
+    expect(guideFolder?.children).toHaveLength(2);
+
+    const advancedFolder = guideFolder?.children?.find((c) => c.type === 'folder');
+    expect(advancedFolder?.type).toBe('folder');
+    expect(advancedFolder?.name).toBe('Advanced');
+    expect(advancedFolder?.children).toHaveLength(1);
+    expect(advancedFolder?.children?.[0]?.name).toBe('Configuration');
+  });
+
+  it('should use formatTitle when no frontmatter title', () => {
+    const files = [
+      {
+        filePath: '/test/my-page.mdx',
+        slug: 'my-page',
+        name: 'my-page',
+        frontmatter: {},
+        content: '',
+        segments: ['my-page'],
+      },
+    ];
+
+    const tree = buildPageTree(files);
+    expect(tree[0]?.name).toBe('My Page');
+  });
+
+  it('should set index property for directories with index file', () => {
+    const files = [
+      {
+        filePath: '/test/guide/index.mdx',
+        slug: 'guide/index',
+        name: 'index',
+        frontmatter: { title: 'Guide' },
+        content: '',
+        segments: ['guide', 'index'],
+      },
+      {
+        filePath: '/test/guide/detail.mdx',
+        slug: 'guide/detail',
+        name: 'detail',
+        frontmatter: { title: 'Detail' },
+        content: '',
+        segments: ['guide', 'detail'],
+      },
+    ];
+
+    const tree = buildPageTree(files);
+    const guideFolder = tree.find((item) => item.type === 'folder');
+    expect(guideFolder).toBeDefined();
+    expect(guideFolder?.index).toBe(true);
+    expect(guideFolder?.slug).toBe('guide');
+  });
+
+  it('should use page icon from sidebar config', () => {
+    const files = [
+      {
+        filePath: '/test/index.mdx',
+        slug: 'index',
+        name: 'index',
+        frontmatter: { title: 'Home' },
+        content: '',
+        segments: ['index'],
+      },
+    ];
+
+    const sidebar = [
+      {
+        group: 'Getting Started',
+        icon: 'home',
+        pages: [{ slug: 'index', title: 'Home', icon: 'file' }],
+      },
+    ];
+
+    const tree = buildPageTree(files, sidebar);
+    expect(tree[0]?.icon).toBe('home');
+    expect(tree[0]?.children?.[0]?.icon).toBe('file');
+  });
+
+  it('should fallback to file frontmatter title when page title not in config', () => {
+    const files = [
+      {
+        filePath: '/test/guide.mdx',
+        slug: 'guide',
+        name: 'guide',
+        frontmatter: { title: 'Frontmatter Title' },
+        content: '',
+        segments: ['guide'],
+      },
+    ];
+
+    const sidebar = [
+      {
+        group: 'Docs',
+        pages: [{ slug: 'guide', title: '' }],
+      },
+    ];
+
+    const tree = buildPageTree(files, sidebar);
+    expect(tree[0]?.children?.[0]?.name).toBe('Frontmatter Title');
+  });
+});
+
+describe('generateSourceConfigContent', () => {
+  it('should generate source config with custom content dir', () => {
+    const result = generateSourceConfigContent('docs');
+    expect(result).toContain("dir: 'docs'");
+    expect(result).toContain('defineDocs');
+    expect(result).toContain('defineConfig');
+  });
+});
+
+describe('loadConfig validation errors', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-validation');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should include field paths in validation error message', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'Test', siteUrl: 'not-a-url' })
+    );
+    await expect(loadConfig(tmpDir)).rejects.toThrow('siteUrl');
   });
 });
