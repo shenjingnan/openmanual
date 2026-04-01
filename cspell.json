@@ -18,7 +18,8 @@
     "dependabot",
     "shenjingnan",
     "openmanual",
-    "fumadocs"
+    "fumadocs",
+    "frontmatter"
   ],
   "ignorePaths": [
     "node_modules",
