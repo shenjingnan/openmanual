@@ -1,0 +1,21 @@
+{
+  "name": "My Project",
+  "description": "我的项目文档",
+  "navbar": {
+    "logo": "My Project",
+    "github": "https://github.com/example/my-project"
+  },
+  "sidebar": [
+    {
+      "group": "开始",
+      "pages": [{ "slug": "index", "title": "介绍" }, { "slug": "quickstart", "title": "快速上手" }]
+    },
+    {
+      "group": "指南",
+      "pages": [
+        { "slug": "guide/configuration", "title": "配置" },
+        { "slug": "guide/deployment", "title": "部署" }
+      ]
+    }
+  ]
+}

@@ -150,6 +150,9 @@ coverage
 # Build output
 dist
 
+# OpenManual temp directory
+.openmanual
+
 # OS files
 .DS_Store
 Thumbs.db

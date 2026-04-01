@@ -16,7 +16,9 @@
     "conventionalcommits",
     "autorelease",
     "dependabot",
-    "shenjingnan"
+    "shenjingnan",
+    "openmanual",
+    "fumadocs"
   ],
   "ignorePaths": [
     "node_modules",
