@@ -1,0 +1,89 @@
+import { spawn } from 'node:child_process';
+import { cp, mkdir } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { Command } from 'commander';
+import { loadConfig } from '../../core/config/loader.js';
+import { generateAll } from '../../core/generator/index.js';
+import { installDeps } from '../../utils/install-deps.js';
+import { logger } from '../../utils/logger.js';
+import { cleanTempDir, createSymlink, ensureTempDir, getAppDir } from '../../utils/temp-dir.js';
+
+export const buildCommand = new Command('build').description('构建静态站点').action(async () => {
+  const cwd = process.cwd();
+
+  try {
+    logger.step('读取配置文件...');
+    const config = await loadConfig(cwd);
+
+    logger.step('生成临时应用...');
+    const appDir = getAppDir(cwd);
+    const contentDir = resolve(cwd, config.contentDir ?? 'content');
+
+    await ensureTempDir(cwd);
+
+    const ctx = {
+      config,
+      projectDir: cwd,
+      appDir,
+      contentDir: config.contentDir ?? 'content',
+    };
+
+    await generateAll(ctx);
+
+    // Symlink content directory
+    await createSymlink(contentDir, resolve(appDir, 'content'));
+
+    // Symlink public directory if exists
+    const publicDir = resolve(cwd, 'public');
+    try {
+      const { stat } = await import('node:fs/promises');
+      await stat(publicDir);
+      await createSymlink(publicDir, resolve(appDir, 'public'));
+    } catch {
+      // no public dir, that's fine
+    }
+
+    logger.step('安装依赖...');
+    await installDeps(appDir);
+
+    logger.step('构建静态站点...');
+    const buildResult = spawn('npx', ['next', 'build'], {
+      cwd: appDir,
+      stdio: 'inherit',
+      env: { ...process.env },
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      buildResult.on('error', reject);
+      buildResult.on('exit', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Build failed with code ${code}`));
+        }
+      });
+    });
+
+    // Copy output to user's output dir
+    const outputDir = resolve(cwd, config.outputDir ?? 'dist');
+    await mkdir(outputDir, { recursive: true });
+
+    const nextOutput = resolve(appDir, 'out');
+    try {
+      await cp(nextOutput, outputDir, { recursive: true });
+      logger.success(`静态站点已输出到: ${outputDir}`);
+    } catch {
+      // If no 'out' dir, check .next/static
+      logger.warn('未找到静态导出产物，请检查 next.config.mjs 中 output: "export" 配置');
+    }
+
+    logger.step('清理临时文件...');
+    await cleanTempDir(cwd);
+
+    logger.success('构建完成！');
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error(message);
+    process.exit(1);
+  }
+});
