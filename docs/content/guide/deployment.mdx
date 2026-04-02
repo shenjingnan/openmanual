@@ -1,0 +1,66 @@
+---
+title: 部署
+description: 学习如何构建和部署 OpenManual 文档站点到各种平台。
+---
+
+# 部署
+
+OpenManual 支持将文档构建为静态站点，可以部署到任何静态托管平台。
+
+## 构建站点
+
+```bash
+openmanual build
+```
+
+构建完成后，静态文件会输出到 `outputDir` 配置指定的目录（默认为 `dist`）。
+
+## 预览构建产物
+
+```bash
+openmanual preview
+```
+
+默认预览地址为 `http://localhost:8080`。可以指定端口和目录：
+
+```bash
+openmanual preview -p 3000 -d ./out
+```
+
+## 配置 siteUrl
+
+部署前建议在配置中设置 `siteUrl`，用于生成正确的 sitemap 和 canonical URL：
+
+```json
+{
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+## 部署到 Vercel
+
+1. 将项目推送到 GitHub
+2. 在 Vercel 中导入项目
+3. 配置构建命令为 `openmanual build`
+4. 配置输出目录为你的 `outputDir`
+
+## 部署到 Netlify
+
+1. 将项目推送到 GitHub
+2. 在 Netlify 中导入项目
+3. 配置构建命令为 `openmanual build`
+4. 配置发布目录为你的 `outputDir`
+
+## 部署到 GitHub Pages
+
+1. 构建站点：`openmanual build`
+2. 将 `outputDir` 中的文件推送到 `gh-pages` 分支
+3. 在仓库设置中启用 GitHub Pages
+
+也可以使用 GitHub Actions 自动化部署流程。
+
+## 注意事项
+
+- 确保构建前运行 `openmanual build` 生成静态文件
+- 如果使用自定义域名，需要配置 DNS 和 `siteUrl`
+- 静态资源（图片等）使用绝对路径引用

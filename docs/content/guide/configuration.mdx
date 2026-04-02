@@ -1,0 +1,115 @@
+---
+title: 配置参考
+description: OpenManual 配置文件的完整参考，包含所有可用的配置字段和说明。
+---
+
+# 配置参考
+
+在项目根目录创建 `openmanual.json` 来配置你的文档站点。配置文件使用 Zod Schema 严格校验，错误提示清晰友好。
+
+## 完整配置示例
+
+```json
+{
+  "name": "My Docs",
+  "description": "项目文档",
+  "contentDir": "content",
+  "outputDir": "dist",
+  "siteUrl": "https://docs.example.com",
+  "locale": "zh",
+  "navbar": {
+    "logo": "/logo.svg",
+    "github": "https://github.com/user/repo",
+    "links": [
+      { "label": "Blog", "href": "https://blog.example.com" }
+    ]
+  },
+  "footer": {
+    "text": "Built with OpenManual"
+  },
+  "sidebar": [
+    {
+      "group": "快速开始",
+      "icon": "Rocket",
+      "collapsed": false,
+      "pages": [
+        { "slug": "getting-started", "title": "安装指南", "icon": "Download" },
+        { "slug": "configuration", "title": "配置说明", "icon": "Settings" }
+      ]
+    }
+  ],
+  "theme": {
+    "primaryHue": 240,
+    "darkMode": true
+  },
+  "search": {
+    "enabled": true
+  },
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+## 字段说明
+
+### 基础配置
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `name` | string | 是 | — | 站点名称，显示在导航栏和页面标题 |
+| `description` | string | 否 | — | 站点描述，用于 SEO meta 标签 |
+| `contentDir` | string | 否 | `content` | 文档内容目录路径 |
+| `outputDir` | string | 否 | `dist` | 构建产物输出目录 |
+| `siteUrl` | string | 否 | — | 站点 URL，启用静态导出时需要 |
+| `locale` | string | 否 | — | 站点语言，如 `zh`、`en` |
+
+### 导航栏 (navbar)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `navbar.logo` | string | 否 | — | Logo 图片路径，相对于 `public` 目录 |
+| `navbar.github` | string | 否 | — | GitHub 仓库链接 |
+| `navbar.links` | array | 否 | — | 导航栏链接列表 |
+
+### 页脚 (footer)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `footer.text` | string | 否 | — | 页脚文本 |
+
+### 侧边栏 (sidebar)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `sidebar[].group` | string | 是 | — | 分组名称 |
+| `sidebar[].icon` | string | 否 | — | 分组图标名称 |
+| `sidebar[].collapsed` | boolean | 否 | `false` | 是否默认折叠 |
+| `sidebar[].pages[].slug` | string | 是 | — | 页面 slug，对应文件路径 |
+| `sidebar[].pages[].title` | string | 是 | — | 页面标题 |
+| `sidebar[].pages[].icon` | string | 否 | — | 页面图标名称 |
+
+### 主题 (theme)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `theme.primaryHue` | number | 否 | — | 主色调色相值（0-360） |
+| `theme.darkMode` | boolean | 否 | `true` | 是否启用暗色模式 |
+
+### 搜索 (search)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `search.enabled` | boolean | 否 | `true` | 是否启用搜索功能 |
+
+### MDX (mdx)
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `mdx.latex` | boolean | 否 | `false` | 是否启用 LaTeX 公式支持 |
+
+## 页面树生成规则
+
+- 未在 `sidebar` 配置中声明的 MDX 文件不会出现在导航中
+- `slug` 字段对应 `contentDir` 下的文件路径（不含扩展名）
+- 例如 `slug: "advanced/theme"` 对应 `content/advanced/theme.mdx`

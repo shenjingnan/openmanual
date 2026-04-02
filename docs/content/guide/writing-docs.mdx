@@ -1,0 +1,107 @@
+---
+title: 编写文档
+description: 学习如何使用 MDX 编写和组织 OpenManual 文档内容。
+---
+
+# 编写文档
+
+OpenManual 使用 MDX 作为文档格式，你可以在 Markdown 的基础上使用 React 组件。
+
+## 基本格式
+
+每个 MDX 文件可以包含 frontmatter 元数据：
+
+```mdx
+---
+title: 页面标题
+description: 页面描述（可选，用于 SEO）
+---
+
+# 页面标题
+
+这里是正文内容，支持标准 Markdown 语法。
+```
+
+### Frontmatter 字段
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | 是 | 页面标题，显示在导航和浏览器标签 |
+| `description` | string | 否 | 页面描述，用于 SEO meta 标签 |
+
+## Markdown 语法
+
+OpenManual 支持标准 Markdown 语法：
+
+### 标题
+
+```markdown
+# 一级标题
+## 二级标题
+### 三级标题
+```
+
+### 列表
+
+```markdown
+- 无序列表项
+- 另一个列表项
+
+1. 有序列表项
+2. 另一个列表项
+```
+
+### 代码块
+
+支持语法高亮：
+
+```typescript
+function hello(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+### 表格
+
+```markdown
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| name | string | 名称 |
+| age  | number | 年龄 |
+```
+
+### 链接和图片
+
+```markdown
+[链接文本](https://example.com)
+![图片描述](./image.png)
+```
+
+## 文件组织
+
+### 目录结构
+
+MDX 文件可以放在 `contentDir` 下的任意子目录中：
+
+```
+content/
+├── index.mdx           # slug: index
+├── guide.mdx           # slug: guide
+└── advanced/
+    ├── theme.mdx       # slug: advanced/theme
+    └── search.mdx      # slug: advanced/search
+```
+
+### Slug 映射规则
+
+`sidebar` 配置中的 `slug` 对应文件路径：
+
+- `slug: "index"` → `content/index.mdx`
+- `slug: "guide/setup"` → `content/guide/setup.mdx`
+- `slug: "advanced/search"` → `content/advanced/search.mdx`
+
+## 注意事项
+
+- 未在 `sidebar` 配置中声明的文件不会出现在导航中，但仍然可以通过 URL 访问
+- 建议每个文件都设置 `title` frontmatter
+- 文件名使用 kebab-case 命名（如 `writing-docs.mdx`）

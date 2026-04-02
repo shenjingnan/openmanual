@@ -55,7 +55,8 @@
       "!!**/.husky",
       "!!**/.openmanual",
       "!!**/.next",
-      "!!**/.source"
+      "!!**/.source",
+      "!!**/docs-dist"
     ]
   }
 }

@@ -1,0 +1,71 @@
+---
+title: MDX 增强
+description: 了解 OpenManual 中的 MDX 增强功能，包括 LaTeX 公式支持。
+---
+
+# MDX 增强
+
+MDX 是 Markdown 的超集，允许你在文档中使用 JSX/React 组件。OpenManual 在此基础上提供了更多增强功能。
+
+## LaTeX 公式
+
+在配置中启用 LaTeX 支持：
+
+```json
+{
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+启用后，你可以在文档中使用 LaTeX 语法：
+
+### 行内公式
+
+使用 `$...$` 语法：
+
+```markdown
+质能方程 $E = mc^2$ 是物理学的著名公式。
+```
+
+### 块级公式
+
+使用 `$$...$$` 语法：
+
+```markdown
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+## MDX 配置字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `mdx.latex` | boolean | `false` | 是否启用 LaTeX 公式支持 |
+
+## 标准 Markdown 支持
+
+OpenManual 支持所有标准 Markdown 语法：
+
+- 标题（h1-h6）
+- 列表（有序、无序）
+- 代码块（带语法高亮）
+- 表格
+- 链接和图片
+- 引用
+- 水平线
+- 粗体、斜体、删除线
+
+## 代码块
+
+支持语法高亮和行标记：
+
+````markdown
+```typescript showLineNumbers
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
