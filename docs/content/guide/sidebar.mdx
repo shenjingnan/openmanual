@@ -1,0 +1,118 @@
+---
+title: 侧边栏定制
+description: 学习如何定制 OpenManual 的侧边栏导航，包括分组、图标和折叠控制。
+---
+
+# 侧边栏定制
+
+侧边栏是文档站点的核心导航组件，通过 `openmanual.json` 中的 `sidebar` 字段配置。
+
+## 基本结构
+
+侧边栏由多个分组（group）组成，每个分组包含多个页面（page）：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "开始",
+      "pages": [
+        { "slug": "index", "title": "项目介绍" },
+        { "slug": "quickstart", "title": "快速上手" }
+      ]
+    },
+    {
+      "group": "指南",
+      "pages": [
+        { "slug": "guide/configuration", "title": "配置参考" }
+      ]
+    }
+  ]
+}
+```
+
+## 分组配置
+
+每个分组支持以下字段：
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `group` | string | 是 | — | 分组名称 |
+| `icon` | string | 否 | — | 分组图标 |
+| `collapsed` | boolean | 否 | `false` | 是否默认折叠 |
+| `pages` | array | 是 | — | 分组内的页面列表 |
+
+## 图标
+
+为分组或页面设置图标可以让导航更直观：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "开始",
+      "icon": "Rocket",
+      "pages": [
+        { "slug": "index", "title": "项目介绍", "icon": "Home" },
+        { "slug": "quickstart", "title": "快速上手", "icon": "Zap" }
+      ]
+    }
+  ]
+}
+```
+
+## 折叠控制
+
+设置 `collapsed: true` 可以让分组默认折叠，用户点击后展开：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "进阶",
+      "collapsed": true,
+      "pages": [
+        { "slug": "advanced/search", "title": "搜索配置" },
+        { "slug": "advanced/mdx", "title": "MDX 增强" }
+      ]
+    }
+  ]
+}
+```
+
+## 多级导航
+
+使用子目录组织文档可以实现多级导航：
+
+```
+content/
+├── index.mdx
+└── guide/
+    ├── configuration.mdx
+    ├── writing-docs.mdx
+    └── theme.mdx
+```
+
+对应配置：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "指南",
+      "pages": [
+        { "slug": "guide/configuration", "title": "配置参考" },
+        { "slug": "guide/writing-docs", "title": "编写文档" },
+        { "slug": "guide/theme", "title": "主题定制" }
+      ]
+    }
+  ]
+}
+```
+
+## 最佳实践
+
+- 按照主题或功能划分分组，保持逻辑清晰
+- 常用页面放在前面的分组，进阶内容使用折叠
+- 为分组和页面添加合适的图标，提升视觉体验
+- 页面数量较多的分组建议设置 `collapsed: true`

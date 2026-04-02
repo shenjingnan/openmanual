@@ -1,0 +1,107 @@
+---
+title: 快速上手
+description: 5 分钟创建你的第一个 OpenManual 文档站点。
+---
+
+# 快速上手
+
+本指南将帮助你在 5 分钟内创建一个完整的文档站点。
+
+## 安装
+
+```bash
+npm install -g openmanual
+```
+
+或者使用 pnpm：
+
+```bash
+pnpm add -g openmanual
+```
+
+## 创建项目
+
+### 1. 创建项目目录
+
+```bash
+mkdir my-docs && cd my-docs
+```
+
+### 2. 创建配置文件
+
+创建最小的 `openmanual.json` 配置：
+
+```json
+{
+  "name": "My Docs"
+}
+```
+
+### 3. 创建首页文档
+
+```bash
+mkdir content
+```
+
+创建 `content/index.mdx`：
+
+```mdx
+---
+title: 欢迎使用
+---
+
+# Hello OpenManual
+
+这是我的第一篇文档。
+```
+
+### 4. 启动开发服务器
+
+```bash
+openmanual dev
+```
+
+访问 `http://localhost:3000` 即可看到你的文档站点。
+
+## CLI 命令
+
+| 命令 | 说明 |
+|------|------|
+| `openmanual dev` | 启动开发服务器（默认端口 3000） |
+| `openmanual dev -p 8080` | 指定端口启动 |
+| `openmanual build` | 构建静态站点 |
+| `openmanual preview` | 预览构建产物（默认端口 8080） |
+| `openmanual preview -d ./out` | 指定产物目录预览 |
+
+## 添加更多页面
+
+创建新的 MDX 文件并在 `sidebar` 配置中注册即可：
+
+```json
+{
+  "name": "My Docs",
+  "sidebar": [
+    {
+      "group": "文档",
+      "pages": [
+        { "slug": "index", "title": "首页" },
+        { "slug": "guide", "title": "使用指南" }
+      ]
+    }
+  ]
+}
+```
+
+对应的文件结构：
+
+```
+content/
+├── index.mdx      # slug: index
+└── guide.mdx      # slug: guide
+```
+
+## 下一步
+
+- [配置参考](/guide/configuration) — 了解所有可用的配置选项
+- [编写文档](/guide/writing-docs) — 学习 MDX 文件的编写方式
+- [主题定制](/guide/theme) — 自定义站点外观

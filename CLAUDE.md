@@ -40,6 +40,16 @@ pnpm run check        # 完整检查
 
 # 发布
 pnpm run release      # 创建发布
+
+# 文档站点（docs/ 是独立的 OpenManual 示例项目）
+pnpm run docs:dev     # 启动文档开发服务器（等同于 cd docs && pnpm run dev）
+pnpm run docs:build   # 构建文档静态站点
+pnpm run docs:preview # 预览文档构建产物
+
+# 首次使用文档站点
+pnpm run build                      # 先构建 openmanual
+cd docs && pnpm install             # 安装 docs 依赖（link 到父目录）
+cd docs && pnpm run dev             # 启动文档开发服务器
 ```
 
 ## 代码风格规范

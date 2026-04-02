@@ -1,0 +1,12 @@
+{
+  "name": "openmanual-docs",
+  "private": true,
+  "scripts": {
+    "dev": "openmanual dev",
+    "build": "openmanual build",
+    "preview": "openmanual preview"
+  },
+  "dependencies": {
+    "openmanual": "file:.."
+  }
+}

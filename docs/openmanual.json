@@ -1,0 +1,62 @@
+{
+  "name": "OpenManual",
+  "description": "AI 友好的开源文档系统框架",
+  "contentDir": "content",
+  "outputDir": "docs-dist",
+  "locale": "zh",
+  "navbar": {
+    "logo": "/logo.svg",
+    "github": "https://github.com/shenjingnan/openmanual"
+  },
+  "sidebar": [
+    {
+      "group": "开始",
+      "icon": "Rocket",
+      "collapsed": false,
+      "pages": [
+        { "slug": "index", "title": "项目介绍", "icon": "Home" },
+        { "slug": "quickstart", "title": "快速上手", "icon": "Zap" }
+      ]
+    },
+    {
+      "group": "指南",
+      "icon": "BookOpen",
+      "collapsed": false,
+      "pages": [
+        { "slug": "guide/configuration", "title": "配置参考", "icon": "Settings" },
+        { "slug": "guide/writing-docs", "title": "编写文档", "icon": "FileText" },
+        { "slug": "guide/sidebar", "title": "侧边栏定制", "icon": "PanelLeft" },
+        { "slug": "guide/theme", "title": "主题定制", "icon": "Palette" },
+        { "slug": "guide/deployment", "title": "部署", "icon": "Cloud" }
+      ]
+    },
+    {
+      "group": "进阶",
+      "icon": "Wrench",
+      "collapsed": true,
+      "pages": [
+        { "slug": "advanced/search", "title": "搜索配置", "icon": "Search" },
+        { "slug": "advanced/mdx", "title": "MDX 增强", "icon": "Sparkles" }
+      ]
+    },
+    {
+      "group": "社区",
+      "icon": "Users",
+      "collapsed": false,
+      "pages": [
+        { "slug": "community/contributing", "title": "贡献指南", "icon": "Heart" },
+        { "slug": "community/changelog", "title": "更新日志", "icon": "Calendar" }
+      ]
+    }
+  ],
+  "theme": {
+    "primaryHue": 250,
+    "darkMode": true
+  },
+  "search": {
+    "enabled": true
+  },
+  "mdx": {
+    "latex": true
+  }
+}

@@ -3,4 +3,5 @@ export default {
   '*.js': ['biome check --write'],
   '*.json': ['biome check --write'],
   '*.md': ['cspell --no-gitignore'],
+  '*.mdx': ['cspell --no-gitignore'],
 };
