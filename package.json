@@ -32,7 +32,6 @@
     "check:fix": "pnpm run typecheck && pnpm run lint:fix && pnpm run format",
     "docs:dev": "cd docs && pnpm run dev",
     "docs:build": "cd docs && pnpm run build",
-    "docs:preview": "cd docs && pnpm run preview",
     "spellcheck": "cspell \"**/*.ts\" \"**/*.md\"",
     "prepare": "husky",
     "release": "release-it"
