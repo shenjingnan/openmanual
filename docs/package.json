@@ -3,8 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "openmanual dev",
-    "build": "openmanual build",
-    "preview": "openmanual preview"
+    "build": "openmanual build"
   },
   "dependencies": {
     "openmanual": "file:.."
