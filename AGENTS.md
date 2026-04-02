@@ -1,4 +1,4 @@
-# CLAUDE.md - AI 原生 TypeScript 启动模板
+# AI 原生 TypeScript 启动模板
 
 本文档为 Claude Code 提供项目上下文和开发规范。
 
