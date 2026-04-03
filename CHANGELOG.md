@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.7](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.6...v0.2.0-beta.7) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** pnpm publish 添加 --no-git-checks 参数 ([#27](https://github.com/shenjingnan/openmanual/issues/27)) ([5343337](https://github.com/shenjingnan/openmanual/commit/5343337f0da00ee07aa23ee4a8b9b18e87698e39))
+
 ## [0.2.0-beta.6](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.5...v0.2.0-beta.6) (2026-04-03)
 
 ### Bug Fixes
