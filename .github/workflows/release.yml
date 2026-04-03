@@ -38,7 +38,7 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           if [[ "$VERSION" == *"-"* ]]; then
             TAG=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
-            pnpm publish --provenance --access public --tag "$TAG"
+            pnpm publish --no-git-checks --provenance --access public --tag "$TAG"
           else
-            pnpm publish --provenance --access public
+            pnpm publish --no-git-checks --provenance --access public
           fi
