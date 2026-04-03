@@ -50,7 +50,7 @@
     "release:major": "release-it major --ci"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=24.0.0",
     "pnpm": ">=10.0.0"
   },
   "packageManager": "pnpm@10.30.3",
