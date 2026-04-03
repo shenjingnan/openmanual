@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.0-beta.0 (2026-04-03)
+
+### Features
+
+* **dev:** 添加 watch 模式、logo 图片支持及默认主题色调整 ([#14](https://github.com/shenjingnan/openmanual/issues/14)) ([0c447a1](https://github.com/shenjingnan/openmanual/commit/0c447a19d13a11b0a48de4b579212b785c3f15ba))
+* **theme:** 调整 Light 模式默认背景色为护眼暖色 ([#12](https://github.com/shenjingnan/openmanual/issues/12)) ([7faaf9f](https://github.com/shenjingnan/openmanual/commit/7faaf9fcb20131242b0d9c91f972d95ace6a10fd))
+* 初始化 openmanual 文档系统框架 ([#5](https://github.com/shenjingnan/openmanual/issues/5)) ([2c1912b](https://github.com/shenjingnan/openmanual/commit/2c1912b1a3c04c6c544b6303d98839de62cdd1ab))
+
+### Bug Fixes
+
+* **ci:** 统一 GitHub Actions 工作流命名为英文 ([#8](https://github.com/shenjingnan/openmanual/issues/8)) ([16b3cb8](https://github.com/shenjingnan/openmanual/commit/16b3cb816e17d51175b5c7aff54fb7859574a02d))
+* **generator:** 避免无条件覆盖用户自定义 logo.svg ([#15](https://github.com/shenjingnan/openmanual/issues/15)) ([d7e4faa](https://github.com/shenjingnan/openmanual/commit/d7e4faac2e2fae5a7b79d89d8bd574af775e8817))
+
+### Code Refactoring
+
+* **docs:** 将 docs/ 重构为独立的 OpenManual 示例项目 ([#9](https://github.com/shenjingnan/openmanual/issues/9)) ([5e41fb3](https://github.com/shenjingnan/openmanual/commit/5e41fb39da495d7261e597be083e62600062b0ae))
+
+### Documentation
+
+* 使用 SVG logo 替换纯文本标题并更新 npm 发布文件列表 ([#17](https://github.com/shenjingnan/openmanual/issues/17)) ([c8691d6](https://github.com/shenjingnan/openmanual/commit/c8691d68e4a0950be115f2c35b89e16729555485))
+* 更新 README 为 OpenManual 文档系统框架说明 ([#7](https://github.com/shenjingnan/openmanual/issues/7)) ([213d389](https://github.com/shenjingnan/openmanual/commit/213d389445164cb7c8f4c45459db920c43b5e2d5))
+
 ## 0.2.0 (2026-03-29)
 
 ### Features
