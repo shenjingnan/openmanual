@@ -42,7 +42,12 @@
     "docs:build": "cd docs && pnpm run build",
     "spellcheck": "cspell \"**/*.ts\" \"**/*.md\"",
     "prepare": "husky",
-    "release": "release-it"
+    "release": "release-it",
+    "release:beta": "release-it --preRelease=beta --ci",
+    "release:dry": "release-it --dry-run --ci",
+    "release:patch": "release-it patch --ci",
+    "release:minor": "release-it minor --ci",
+    "release:major": "release-it major --ci"
   },
   "engines": {
     "node": ">=20.0.0",
