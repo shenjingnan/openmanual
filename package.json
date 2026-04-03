@@ -1,6 +1,6 @@
 {
   "name": "openmanual",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "shenjingnan <sjn.code@gmail.com>",
   "description": "AI 友好的开源文档系统框架",
   "type": "module",

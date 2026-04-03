@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.1](https://github.com/shenjingnan/openmanual/compare/v0.3.0...v0.3.1) (2026-04-03)
+
+### Bug Fixes
+
+* **cli:** 修复 dev 模式下 __VERSION__ 未定义导致的 ReferenceError ([#38](https://github.com/shenjingnan/openmanual/issues/38)) ([d0bf28d](https://github.com/shenjingnan/openmanual/commit/d0bf28d1df2a350e88a1b849ee34ff8bb08b1ef4))
+* **cli:** 支持 `om -v` 小写短选项查看版本号 ([#33](https://github.com/shenjingnan/openmanual/issues/33)) ([ae3467a](https://github.com/shenjingnan/openmanual/commit/ae3467a1d5cd15307bc0beec469ca8a76cbcc6d6))
+* **cli:** 隐藏 _regenerate 内部命令 ([#36](https://github.com/shenjingnan/openmanual/issues/36)) ([6c585ca](https://github.com/shenjingnan/openmanual/commit/6c585ca459804c7eb06cf554a44e1ec5ae37795f))
+
+### Code Refactoring
+
+* **cli:** 使用构建时注入版本号替代运行时读取 package.json ([#35](https://github.com/shenjingnan/openmanual/issues/35)) ([5cf3227](https://github.com/shenjingnan/openmanual/commit/5cf32272ebe418979c0e7f492a59773365362547))
+
+### Documentation
+
+* 完善部署文档，补充各平台详细配置说明 ([#37](https://github.com/shenjingnan/openmanual/issues/37)) ([d438aca](https://github.com/shenjingnan/openmanual/commit/d438aca2addd48e43a25e5c8aabe7f73a70665fd))
+
 ## [0.3.0](https://github.com/shenjingnan/openmanual/compare/v0.2.1...v0.3.0) (2026-04-03)
 
 ### Features
