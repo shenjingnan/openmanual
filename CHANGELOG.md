@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.2.0](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.7...v0.2.0) (2026-04-03)
+
 ## [0.2.0-beta.7](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.6...v0.2.0-beta.7) (2026-04-03)
 
 ### Bug Fixes
