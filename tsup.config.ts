@@ -1,4 +1,12 @@
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'tsup';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')) as {
+  version: string;
+};
 
 export default defineConfig([
   {
@@ -21,6 +29,9 @@ export default defineConfig([
     ],
     banner: {
       js: '#!/usr/bin/env node\n',
+    },
+    define: {
+      __VERSION__: JSON.stringify(pkg.version),
     },
   },
   {
