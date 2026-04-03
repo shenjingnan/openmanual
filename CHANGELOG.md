@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.4](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.3...v0.2.0-beta.4) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 修复 release workflow 并统一 Node.js 版本到 24 ([#23](https://github.com/shenjingnan/openmanual/issues/23)) ([386df34](https://github.com/shenjingnan/openmanual/commit/386df34bae89cdfc0aa9b59341f897f5fd176045))
+
 ## [0.2.0-beta.3](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.2...v0.2.0-beta.3) (2026-04-03)
 
 ### Bug Fixes
