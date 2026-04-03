@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0](https://github.com/shenjingnan/openmanual/compare/v0.2.1...v0.3.0) (2026-04-03)
+
+### Features
+
+* **cli:** 支持双 CLI 命令名 `om` + `openmanual` ([#32](https://github.com/shenjingnan/openmanual/issues/32)) ([37cb4f3](https://github.com/shenjingnan/openmanual/commit/37cb4f3b38bf0c26b8605afc6eccfdbfb08f8324))
+
 ## [0.2.1](https://github.com/shenjingnan/openmanual/compare/v0.2.0...v0.2.1) (2026-04-03)
 
 ### Documentation
