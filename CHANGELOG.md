@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.6](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.5...v0.2.0-beta.6) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 统一使用 pnpm publish 替代 npm publish ([#25](https://github.com/shenjingnan/openmanual/issues/25)) ([6fc9bee](https://github.com/shenjingnan/openmanual/commit/6fc9beefc2bc60e8a2b94e9f8954cde4eb882bb6))
+
 ## [0.2.0-beta.5](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.4...v0.2.0-beta.5) (2026-04-03)
 
 ### Bug Fixes
