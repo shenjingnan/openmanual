@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.5](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.4...v0.2.0-beta.5) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 修复预发布版本 npm publish 缺少 --tag 参数 ([#24](https://github.com/shenjingnan/openmanual/issues/24)) ([8614330](https://github.com/shenjingnan/openmanual/commit/8614330df758fdf2840fe2b3e85fa0ed965ad2c2))
+
 ## [0.2.0-beta.4](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.3...v0.2.0-beta.4) (2026-04-03)
 
 ### Bug Fixes
