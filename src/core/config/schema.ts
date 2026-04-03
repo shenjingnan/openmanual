@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const NavbarSchema = z.object({
   logo: z.string().optional(),
-  github: z.string().url().optional(),
+  github: z.url().optional(),
   links: z
     .array(
       z.object({
@@ -48,7 +48,7 @@ export const OpenManualConfigSchema = z.object({
   description: z.string().optional(),
   contentDir: z.string().optional(),
   outputDir: z.string().optional(),
-  siteUrl: z.string().url().optional(),
+  siteUrl: z.url().optional(),
   locale: z.string().optional(),
   navbar: NavbarSchema.optional(),
   footer: FooterSchema.optional(),
