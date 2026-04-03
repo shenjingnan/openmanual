@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/shenjingnan/openmanual/compare/v0.2.0...v0.2.1) (2026-04-03)
+
+### Documentation
+
+* 添加 Codecov 覆盖率徽标并居中展示所有徽标 ([#31](https://github.com/shenjingnan/openmanual/issues/31)) ([1a0c629](https://github.com/shenjingnan/openmanual/commit/1a0c6295473e4756936dcfc6189f6d6dd260e8c4))
+* 调整 README 中 Logo 图片尺寸 ([#29](https://github.com/shenjingnan/openmanual/issues/29)) ([3bae996](https://github.com/shenjingnan/openmanual/commit/3bae9964e07ab99f7c1fec49aeafd4d12caa01db))
+* 调整 README 中 Logo 图片尺寸和间距 ([#30](https://github.com/shenjingnan/openmanual/issues/30)) ([9d13df0](https://github.com/shenjingnan/openmanual/commit/9d13df015cc133c8fe79a55af61bbecc2d544c5a))
+
 ## [0.2.0](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.7...v0.2.0) (2026-04-03)
 
 ## [0.2.0-beta.7](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.6...v0.2.0-beta.7) (2026-04-03)
