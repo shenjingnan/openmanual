@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.1](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.0...v0.2.0-beta.1) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 锁定 pnpm 版本为 10.30.3 ([#20](https://github.com/shenjingnan/openmanual/issues/20)) ([ec2acdb](https://github.com/shenjingnan/openmanual/commit/ec2acdb6c50ea1158321f7b7bda80ec905f04f69))
+
 ## 0.2.0-beta.0 (2026-04-03)
 
 ### Features
