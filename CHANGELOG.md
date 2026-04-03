@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.2](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.1...v0.2.0-beta.2) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 修复 release workflow 中 pnpm publish 因 detached HEAD 失败的问题 ([#21](https://github.com/shenjingnan/openmanual/issues/21)) ([7f9b8cb](https://github.com/shenjingnan/openmanual/commit/7f9b8cb372dfa9c19bd1d3be4f7a1343b4b4aae9))
+
 ## [0.2.0-beta.1](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.0...v0.2.0-beta.1) (2026-04-03)
 
 ### Bug Fixes
