@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22]
+        node-version: [22, 24]
 
     steps:
       - name: 检出代码仓库
@@ -45,11 +45,11 @@ jobs:
 
       - name: 覆盖率报告
         run: pnpm run test:coverage
-        if: matrix.node-version == 20
+        if: matrix.node-version == 24
 
       - name: 上传覆盖率到 Codecov
         uses: codecov/codecov-action@v6
-        if: matrix.node-version == 20
+        if: matrix.node-version == 24
         with:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
