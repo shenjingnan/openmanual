@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-beta.3](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.2...v0.2.0-beta.3) (2026-04-03)
+
+### Bug Fixes
+
+* **ci:** 修复 release workflow 以支持 npm Trusted Publisher (OIDC) ([#22](https://github.com/shenjingnan/openmanual/issues/22)) ([c3f59f4](https://github.com/shenjingnan/openmanual/commit/c3f59f478de13b68500fcb02140e8cadcba25ea8))
+
 ## [0.2.0-beta.2](https://github.com/shenjingnan/openmanual/compare/v0.2.0-beta.1...v0.2.0-beta.2) (2026-04-03)
 
 ### Bug Fixes
