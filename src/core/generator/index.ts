@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { generateGlobalCss } from './global-css.js';
@@ -84,11 +84,16 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   // Generate logo SVG in public/ when logo is an image path
   const logo = ctx.config.navbar?.logo ?? '';
   if (logo && isImagePath(logo)) {
-    const publicDir = join(ctx.appDir, 'public');
-    await mkdir(publicDir, { recursive: true });
-    const logoPath = join(publicDir, logo.replace(/^\//, ''));
-    await mkdir(join(logoPath, '..'), { recursive: true });
-    await writeFile(logoPath, generateOpenManualLogoSvg(ctx.config.name), 'utf-8');
+    const userLogoPath = join(ctx.projectDir, 'public', logo.replace(/^\//, ''));
+    try {
+      await access(userLogoPath);
+    } catch {
+      const publicDir = join(ctx.appDir, 'public');
+      await mkdir(publicDir, { recursive: true });
+      const logoPath = join(publicDir, logo.replace(/^\//, ''));
+      await mkdir(join(logoPath, '..'), { recursive: true });
+      await writeFile(logoPath, generateOpenManualLogoSvg(ctx.config.name), 'utf-8');
+    }
   }
 }
 
