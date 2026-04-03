@@ -18,6 +18,6 @@ program
 program.addCommand(devCommand);
 program.addCommand(buildCommand);
 program.addCommand(previewCommand);
-program.addCommand(regenerateCommand);
+program.addCommand(regenerateCommand, { hidden: true });
 
 program.parse();

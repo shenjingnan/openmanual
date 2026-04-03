@@ -7,6 +7,7 @@ import { createSymlink, ensureTempDir, getAppDir } from '../../utils/temp-dir.js
 
 export const regenerateCommand = new Command('_regenerate')
   .description('内部命令：重新生成文件')
+  .helpOption(false)
   .option('--cwd <path>', '项目目录')
   .action(async (options) => {
     const cwd = options.cwd ?? process.cwd();
