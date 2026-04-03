@@ -33,6 +33,72 @@ describe('generateGlobalCss', () => {
   });
 });
 
+describe('generateGlobalCss - dark theme', () => {
+  it('should generate .dark block by default when darkMode not set', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).toContain('.dark {');
+    expect(result).toContain('--color-fd-background: hsl(30, 18%, 10%)');
+    expect(result).toContain('--color-fd-foreground: hsl(35, 15%, 90%)');
+  });
+
+  it('should generate .dark block when darkMode is true', () => {
+    const ctx = { config: { ...baseConfig, theme: { darkMode: true } } };
+    const result = generateGlobalCss(ctx);
+    expect(result).toContain('.dark {');
+  });
+
+  it('should not generate .dark block when darkMode is false', () => {
+    const ctx = { config: { ...baseConfig, theme: { darkMode: false } } };
+    const result = generateGlobalCss(ctx);
+    expect(result).not.toContain('.dark {');
+  });
+
+  const darkVariables = [
+    '--color-fd-background',
+    '--color-fd-foreground',
+    '--color-fd-muted',
+    '--color-fd-muted-foreground',
+    '--color-fd-popover',
+    '--color-fd-popover-foreground',
+    '--color-fd-card',
+    '--color-fd-card-foreground',
+    '--color-fd-border',
+    '--color-fd-primary',
+    '--color-fd-primary-foreground',
+    '--color-fd-secondary',
+    '--color-fd-secondary-foreground',
+    '--color-fd-accent',
+    '--color-fd-accent-foreground',
+    '--color-fd-ring',
+    '--color-fd-overlay',
+  ];
+
+  it('should include all 17 fumadocs variables in .dark block', () => {
+    const result = generateGlobalCss(baseCtx);
+    const darkBlock = result.match(/\.dark \{[^}]+\}/s)![0];
+    for (const variable of darkVariables) {
+      expect(darkBlock).toContain(variable);
+    }
+    expect(darkVariables).toHaveLength(17);
+  });
+
+  it('should include dark gradient on body', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).toContain('.dark body {');
+    expect(result).toContain('linear-gradient');
+    expect(result).toContain('hsla(30, 30%, 15%, 0.4)');
+  });
+
+  it('should apply primaryHue and darkMode together', () => {
+    const ctx = {
+      config: { ...baseConfig, theme: { primaryHue: 180, darkMode: true } },
+    };
+    const result = generateGlobalCss(ctx);
+    expect(result).toContain('--primary-hue: 180');
+    expect(result).toContain('.dark {');
+  });
+});
+
 describe('generateLayout', () => {
   it('should use logo text when navbar.logo is plain text', () => {
     const ctx = {
