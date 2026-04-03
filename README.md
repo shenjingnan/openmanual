@@ -7,9 +7,14 @@
   <br />  
 </div>
 
+<div align="center">
+
 [![CI](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml/badge.svg)](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/openmanual.svg)](https://www.npmjs.com/package/openmanual)
+[![Coverage](https://codecov.io/gh/shenjingnan/openmanual/branch/main/graph/badge.svg)](https://codecov.io/gh/shenjingnan/openmanual)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
 
 AI 友好的开源文档系统框架。只需编写 Markdown/MDX 文档和 JSON 配置，即可自动生成基于 Next.js 的完整文档站点。
 
