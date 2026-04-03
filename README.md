@@ -1,6 +1,9 @@
 <div align="center">
   <br />  
-  <img src="logo.svg" alt="OpenManual" width="500" height="100" />
+  <br />  
+  <img src="logo.svg" alt="OpenManual" width="400" height="100" />
+  <br />  
+  <br />  
   <br />  
 </div>
 
