@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="logo.svg" alt="OpenManual" width="190" height="32" />
+  <br />  
+  <img src="logo.svg" alt="OpenManual" width="500" height="100" />
+  <br />  
 </div>
 
 [![CI](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml/badge.svg)](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml)
