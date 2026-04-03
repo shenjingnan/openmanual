@@ -21,7 +21,9 @@
   },
   "files": [
     "dist",
-    "templates"
+    "logo.svg",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsup",

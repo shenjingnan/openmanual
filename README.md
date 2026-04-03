@@ -1,4 +1,6 @@
-# OpenManual
+<div align="center">
+  <img src="logo.svg" alt="OpenManual" width="190" height="32" />
+</div>
 
 [![CI](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml/badge.svg)](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/openmanual.svg)](https://www.npmjs.com/package/openmanual)
