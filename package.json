@@ -20,7 +20,8 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsx watch src/cli/bin.ts",
+    "dev": "OPENMANUAL_ROOT=$(pwd) tsx src/cli/bin.ts dev --watch --cwd docs",
+    "dev:cli": "tsx watch src/cli/bin.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -54,6 +55,7 @@
     "url": "https://github.com/shenjingnan/openmanual.git"
   },
   "dependencies": {
+    "chokidar": "^5.0.0",
     "commander": "^14.0.3",
     "fast-glob": "^3.3.3",
     "fumadocs-core": "^16.7.7",

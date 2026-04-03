@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
-import { generateLayout } from '../core/generator/layout.js';
+import { generateLayout, isImagePath } from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
@@ -15,9 +15,9 @@ const baseConfig: OpenManualConfig = { name: 'Test' };
 const baseCtx = { config: baseConfig, projectDir: '/tmp/test' };
 
 describe('generateGlobalCss', () => {
-  it('should use default primaryHue 220 when theme not set', () => {
+  it('should use default primaryHue 213 when theme not set', () => {
     const result = generateGlobalCss(baseCtx);
-    expect(result).toContain('--primary-hue: 220');
+    expect(result).toContain('--primary-hue: 213');
   });
 
   it('should use custom primaryHue when provided', () => {
@@ -34,7 +34,7 @@ describe('generateGlobalCss', () => {
 });
 
 describe('generateLayout', () => {
-  it('should use logo when navbar.logo is set', () => {
+  it('should use logo text when navbar.logo is plain text', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
     };
@@ -42,9 +42,39 @@ describe('generateLayout', () => {
     expect(result).toContain("title: 'MyLogo'");
   });
 
+  it('should generate img tag when logo is an image path', () => {
+    const ctx = {
+      config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
+    };
+    const result = generateLayout(ctx);
+    expect(result).toContain('<img src="/logo.svg"');
+    expect(result).toContain('alt="Test"');
+    expect(result).toContain("import type { ReactNode } from 'react'");
+  });
+
   it('should fallback to name when logo not set', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain("title: 'Test'");
+  });
+});
+
+describe('isImagePath', () => {
+  it('should detect absolute paths as image paths', () => {
+    expect(isImagePath('/logo.svg')).toBe(true);
+    expect(isImagePath('/images/logo.png')).toBe(true);
+  });
+
+  it('should detect file extensions as image paths', () => {
+    expect(isImagePath('logo.svg')).toBe(true);
+    expect(isImagePath('logo.png')).toBe(true);
+    expect(isImagePath('logo.jpg')).toBe(true);
+    expect(isImagePath('logo.jpeg')).toBe(true);
+    expect(isImagePath('logo.webp')).toBe(true);
+  });
+
+  it('should not detect plain text as image path', () => {
+    expect(isImagePath('MyLogo')).toBe(false);
+    expect(isImagePath('OpenManual')).toBe(false);
   });
 });
 

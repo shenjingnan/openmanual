@@ -20,7 +20,10 @@
     "openmanual",
     "fumadocs",
     "frontmatter",
-    "infty"
+    "infty",
+    "regen",
+    "Segoe",
+    "Neue"
   ],
   "ignorePaths": [
     "node_modules",

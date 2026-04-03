@@ -10,7 +10,15 @@ export default defineConfig([
     minify: false,
     target: 'es2022',
     outDir: 'dist',
-    external: ['next', 'react', 'react-dom', 'fumadocs-core', 'fumadocs-mdx', 'fumadocs-ui'],
+    external: [
+      'next',
+      'react',
+      'react-dom',
+      'fumadocs-core',
+      'fumadocs-mdx',
+      'fumadocs-ui',
+      'chokidar',
+    ],
     banner: {
       js: '#!/usr/bin/env node\n',
     },
@@ -23,6 +31,14 @@ export default defineConfig([
     minify: false,
     target: 'es2022',
     outDir: 'dist',
-    external: ['next', 'react', 'react-dom', 'fumadocs-core', 'fumadocs-mdx', 'fumadocs-ui'],
+    external: [
+      'next',
+      'react',
+      'react-dom',
+      'fumadocs-core',
+      'fumadocs-mdx',
+      'fumadocs-ui',
+      'chokidar',
+    ],
   },
 ]);

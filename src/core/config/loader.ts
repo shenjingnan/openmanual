@@ -9,7 +9,7 @@ const DEFAULT_CONFIG: Partial<OpenManualConfig> = {
   navbar: {},
   footer: {},
   theme: {
-    primaryHue: 220,
+    primaryHue: 213,
     darkMode: true,
   },
   search: {

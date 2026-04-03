@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { generateGlobalCss } from './global-css.js';
-import { generateLayout } from './layout.js';
+import { generateLayout, isImagePath } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateNextConfig } from './next-config.js';
 import { generatePackageJson } from './package-json.js';
@@ -53,7 +53,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       content: generateLibSource(),
     },
     {
-      path: 'lib/layout.ts',
+      path: 'lib/layout.tsx',
       content: generateLayout(ctx),
     },
     {
@@ -79,6 +79,16 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     const dir = join(fullPath, '..');
     await mkdir(dir, { recursive: true });
     await writeFile(fullPath, file.content, 'utf-8');
+  }
+
+  // Generate logo SVG in public/ when logo is an image path
+  const logo = ctx.config.navbar?.logo ?? '';
+  if (logo && isImagePath(logo)) {
+    const publicDir = join(ctx.appDir, 'public');
+    await mkdir(publicDir, { recursive: true });
+    const logoPath = join(publicDir, logo.replace(/^\//, ''));
+    await mkdir(join(logoPath, '..'), { recursive: true });
+    await writeFile(logoPath, generateOpenManualLogoSvg(ctx.config.name), 'utf-8');
   }
 }
 
@@ -136,5 +146,14 @@ export default function DocsLayoutWrapper({ children }: { children: ReactNode })
     </DocsLayout>
   );
 }
+`;
+}
+
+export function generateOpenManualLogoSvg(name: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 32" width="190" height="32">
+  <text x="0" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="700">
+    <tspan fill="#2B7A4B" font-size="34">${name.charAt(0)}</tspan><tspan fill="#000000">${name.slice(1)}</tspan>
+  </text>
+</svg>
 `;
 }
