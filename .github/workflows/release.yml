@@ -33,12 +33,12 @@ jobs:
       - name: 构建
         run: pnpm run build
 
-      - name: 发布到 npm
+      - name: 发布
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if [[ "$VERSION" == *"-"* ]]; then
             TAG=$(echo "$VERSION" | sed 's/.*-\([a-zA-Z]*\).*/\1/')
-            npm publish --provenance --access public --tag "$TAG"
+            pnpm publish --provenance --access public --tag "$TAG"
           else
-            npm publish --provenance --access public
+            pnpm publish --provenance --access public
           fi
