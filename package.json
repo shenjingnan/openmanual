@@ -4,7 +4,10 @@
   "author": "shenjingnan <sjn.code@gmail.com>",
   "description": "AI 友好的开源文档系统框架",
   "type": "module",
-  "bin": "./dist/bin.js",
+  "bin": {
+    "om": "./dist/bin.js",
+    "openmanual": "./dist/bin.js"
+  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
