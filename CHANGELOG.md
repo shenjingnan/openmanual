@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.2](https://github.com/shenjingnan/openmanual/compare/v0.3.1...v0.3.2) (2026-04-03)
+
+### Bug Fixes
+
+* **deps:** 升级 zod 到 v4，解决 peer dependency 警告 ([#39](https://github.com/shenjingnan/openmanual/issues/39)) ([d02b3aa](https://github.com/shenjingnan/openmanual/commit/d02b3aaee2df197f232025f728bd127cea7393a7))
+
 ## [0.3.1](https://github.com/shenjingnan/openmanual/compare/v0.3.0...v0.3.1) (2026-04-03)
 
 ### Bug Fixes
