@@ -158,3 +158,5 @@ dist
 Thumbs.db
 
 settings.local.json
+
+.idea

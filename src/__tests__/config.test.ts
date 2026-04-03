@@ -96,7 +96,7 @@ describe('loadConfig', () => {
     expect(config.outputDir).toBe('dist');
     expect(config.locale).toBe('zh');
     expect(config.navbar?.logo).toBe('TestProject');
-    expect(config.theme?.primaryHue).toBe(220);
+    expect(config.theme?.primaryHue).toBe(213);
     expect(config.search?.enabled).toBe(true);
   });
 });
