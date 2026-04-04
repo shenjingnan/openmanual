@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/shenjingnan/openmanual/compare/v0.4.0...v0.5.0) (2026-04-04)
+
+### Features
+
+* **content-policy:** 新增 contentPolicy 配置项，支持严格内容过滤 ([#46](https://github.com/shenjingnan/openmanual/issues/46)) ([14b3362](https://github.com/shenjingnan/openmanual/commit/14b3362994976db7a660e0acc74d3dfb978c47eb))
+
+### Bug Fixes
+
+* **mdx:** 代码块语言容错，不认识的语言自动降级为 text ([#44](https://github.com/shenjingnan/openmanual/issues/44)) ([cbf751f](https://github.com/shenjingnan/openmanual/commit/cbf751f0892b56823e11eecddf4fb5db30bd2f83))
+* **source-config:** 修复 titleMap 查表失败，兼容运行时绝对路径 ([#45](https://github.com/shenjingnan/openmanual/issues/45)) ([7672fbf](https://github.com/shenjingnan/openmanual/commit/7672fbfe0044890da9047cbaf833ffdb88433e15))
+
 ## [0.4.0](https://github.com/shenjingnan/openmanual/compare/v0.3.2...v0.4.0) (2026-04-04)
 
 ### Features
