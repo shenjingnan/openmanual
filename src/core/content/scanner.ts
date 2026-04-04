@@ -66,8 +66,7 @@ export function getContentTree(files: ContentFile[]): ContentDirectory {
   for (const file of files) {
     let current = root;
 
-    for (let i = 0; i < file.segments.length - 1; i++) {
-      const segment = file.segments[i]!;
+    for (const segment of file.segments.slice(0, -1)) {
       let child = current.children.find((c) => c.name === segment);
       if (!child) {
         child = { name: segment, files: [], children: [] };

@@ -68,16 +68,13 @@ function buildDirectoryTree(files: ContentFile[]): DirNode {
   for (const file of files) {
     let current = root;
 
-    for (let i = 0; i < file.segments.length - 1; i++) {
-      const segment = file.segments[i]!;
-      if (!current.children.has(segment)) {
-        current.children.set(segment, {
-          name: segment,
-          files: [],
-          children: new Map(),
-        });
+    for (const segment of file.segments.slice(0, -1)) {
+      let child = current.children.get(segment);
+      if (!child) {
+        child = { name: segment, files: [], children: new Map() };
+        current.children.set(segment, child);
       }
-      current = current.children.get(segment)!;
+      current = child;
     }
 
     current.files.push(file);

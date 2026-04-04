@@ -88,7 +88,8 @@ describe('generateGlobalCss - dark theme', () => {
 
   it('should include all 17 fumadocs variables in .dark block', () => {
     const result = generateGlobalCss(baseCtx);
-    const darkBlock = result.match(/\.dark \{[^}]+\}/s)![0];
+    const darkBlock = result.match(/\.dark \{[^}]+\}/s)?.[0];
+    expect(darkBlock).toBeDefined();
     for (const variable of darkVariables) {
       expect(darkBlock).toContain(variable);
     }

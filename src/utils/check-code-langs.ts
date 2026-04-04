@@ -23,9 +23,12 @@ export async function checkCodeLangs(contentDir: string): Promise<UnknownLang[]>
     const content = await readFile(file, 'utf-8');
     const lines = content.split('\n');
     for (let i = 0; i < lines.length; i++) {
-      const match = lines[i].match(/^```(\S+)/);
+      const line = lines[i];
+      if (!line) continue;
+      const match = line.match(/^```(\S+)/);
       if (match) {
         const lang = match[1];
+        if (!lang) continue;
         if (!supportedLangs.has(lang)) {
           results.push({
             file: relative(contentDir, file).split(sep).join('/'),
