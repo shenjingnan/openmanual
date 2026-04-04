@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/shenjingnan/openmanual/compare/v0.3.2...v0.4.0) (2026-04-04)
+
+### Features
+
+* **theme:** 支持 light/dark 双 Logo 切换，修复暗色模式 CSS 特异性问题 ([#43](https://github.com/shenjingnan/openmanual/issues/43)) ([7b98e7f](https://github.com/shenjingnan/openmanual/commit/7b98e7f159a77fd4b797bd88713742223f9d24a7))
+* **theme:** 添加暖色暗色主题，消除亮暗模式视觉断层 ([#42](https://github.com/shenjingnan/openmanual/issues/42)) ([7deb5d0](https://github.com/shenjingnan/openmanual/commit/7deb5d050c3bffb372d8a4b031175ce6af0f2cd4))
+
+### Bug Fixes
+
+* **deploy:** 添加 vercel.json 覆盖框架检测，修复部署失败 ([#41](https://github.com/shenjingnan/openmanual/issues/41)) ([86e870f](https://github.com/shenjingnan/openmanual/commit/86e870fa9010eca3a8694b413f8074aa8166ea4d))
+* **docs:** 添加 siteUrl 启用静态导出，修复 Vercel 部署失败 ([#40](https://github.com/shenjingnan/openmanual/issues/40)) ([4e2b72e](https://github.com/shenjingnan/openmanual/commit/4e2b72ea4013d755a1f7037ae9da4239d90c5d7b))
+
 ## [0.3.2](https://github.com/shenjingnan/openmanual/compare/v0.3.1...v0.3.2) (2026-04-03)
 
 ### Bug Fixes
