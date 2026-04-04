@@ -320,6 +320,90 @@ describe('generateSourceConfig', () => {
     expect(result).toContain('export default defineConfig(');
     expect(result).toContain('fallbackLanguage');
   });
+
+  it('should generate empty titleMap when sidebar is not configured', () => {
+    const result = generateSourceConfig(baseCtx);
+    expect(result).toContain('const titleMap: Record<string, string> = {}');
+  });
+
+  it('should generate titleMap with slug-title pairs from sidebar config', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '快速开始',
+            pages: [
+              { slug: 'index', title: '项目介绍' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+          {
+            group: '指南',
+            pages: [{ slug: 'guide/intro', title: '指南介绍' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).toContain("'index': '项目介绍'");
+    expect(result).toContain("'quickstart': '快速上手'");
+    expect(result).toContain("'guide/intro': '指南介绍'");
+  });
+
+  it('should escape single quotes in titles', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '测试',
+            pages: [{ slug: 'test', title: "It's a test" }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).toContain("'test': 'It\\'s a test'");
+  });
+
+  it('should use titleFromPath that looks up titleMap first', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [{ slug: 'intro', title: '介绍' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).toContain('titleMap[slug]');
+    expect(result).toContain("slug.split('/').pop()");
+  });
+
+  it('should use indexOf to find content/ in path for titleMap lookup', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '项目介绍' },
+              { slug: 'guide/intro', title: '指南介绍' },
+            ],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // titleFromPath must use indexOf('content/') to handle both relative and absolute paths
+    expect(result).toContain("indexOf('content/')");
+    expect(result).toContain("'content/'.length");
+  });
 });
 
 describe('generateTsconfig', () => {
