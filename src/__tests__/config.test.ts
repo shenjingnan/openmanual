@@ -68,6 +68,30 @@ describe('OpenManualConfigSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('should accept logo as object with light and dark paths', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject logo object missing dark field', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      navbar: { logo: { light: '/logo-light.svg' } },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject logo object missing light field', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      navbar: { logo: { dark: '/logo-dark.svg' } },
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('loadConfig', () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
-import { generateLayout, isImagePath } from '../core/generator/layout.js';
+import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
@@ -30,6 +30,19 @@ describe('generateGlobalCss', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain("@import 'tailwindcss'");
     expect(result).toContain("@import 'fumadocs-ui/style.css'");
+  });
+
+  it('should include @custom-variant dark for class-based dark mode', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).toContain('@custom-variant dark (&:is(.dark, .dark *))');
+  });
+
+  it('should place @custom-variant after fumadocs import', () => {
+    const result = generateGlobalCss(baseCtx);
+    const fumadocsIndex = result.indexOf("@import 'fumadocs-ui/style.css'");
+    const variantIndex = result.indexOf('@custom-variant dark');
+    expect(fumadocsIndex).toBeGreaterThan(-1);
+    expect(variantIndex).toBeGreaterThan(fumadocsIndex);
   });
 });
 
@@ -122,6 +135,34 @@ describe('generateLayout', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain("title: 'Test'");
   });
+
+  it('should generate two img tags with dark toggle when logo is object with different paths', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
+      },
+    };
+    const result = generateLayout(ctx);
+    expect(result).toContain('src="/logo-light.svg"');
+    expect(result).toContain('src="/logo-dark.svg"');
+    expect(result).toContain('className="dark:hidden"');
+    expect(result).toContain('className="hidden dark:block"');
+    expect(result).toContain("import type { ReactNode } from 'react'");
+  });
+
+  it('should generate single img tag when logo object has same paths', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: '/logo.svg', dark: '/logo.svg' } },
+      },
+    };
+    const result = generateLayout(ctx);
+    expect(result).toContain('src="/logo.svg"');
+    expect(result).not.toContain('dark:hidden');
+    expect(result).not.toContain('hidden dark:block');
+  });
 });
 
 describe('isImagePath', () => {
@@ -141,6 +182,18 @@ describe('isImagePath', () => {
   it('should not detect plain text as image path', () => {
     expect(isImagePath('MyLogo')).toBe(false);
     expect(isImagePath('OpenManual')).toBe(false);
+  });
+});
+
+describe('resolveLogoPaths', () => {
+  it('should resolve string logo to same light and dark', () => {
+    const result = resolveLogoPaths('/logo.svg');
+    expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
+  });
+
+  it('should resolve object logo to different light and dark', () => {
+    const result = resolveLogoPaths({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
+    expect(result).toEqual({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
   });
 });
 
@@ -217,6 +270,13 @@ describe('generatePage', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('export function generateStaticParams()');
     expect(result).toContain('source.generateParams()');
+  });
+
+  it('should include root path fallback in generateStaticParams', () => {
+    const result = generatePage(baseCtx);
+    expect(result).toContain('p.slug.length === 0');
+    expect(result).toContain('params.unshift');
+    expect(result).toContain('...params[0]');
   });
 });
 

@@ -38,6 +38,7 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 
   return `@import 'tailwindcss';
 @import 'fumadocs-ui/style.css';
+@custom-variant dark (&:is(.dark, .dark *));
 
 :root {
   --primary-hue: ${primaryHue};

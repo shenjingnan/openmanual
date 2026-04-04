@@ -6,7 +6,10 @@
   "outputDir": "docs-dist",
   "locale": "zh",
   "navbar": {
-    "logo": "/logo.svg",
+    "logo": {
+      "light": "/logo.svg",
+      "dark": "/logo-dark.svg"
+    },
     "github": "https://github.com/shenjingnan/openmanual"
   },
   "sidebar": [
