@@ -49,6 +49,7 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<OpenManua
 function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
   return {
     ...config,
+    contentPolicy: config.contentPolicy ?? 'strict',
     contentDir: config.contentDir ?? DEFAULT_CONFIG.contentDir ?? 'content',
     outputDir: config.outputDir ?? DEFAULT_CONFIG.outputDir ?? 'dist',
     locale: config.locale ?? DEFAULT_CONFIG.locale ?? 'zh',
