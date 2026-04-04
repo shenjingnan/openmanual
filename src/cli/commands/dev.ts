@@ -3,6 +3,7 @@ import { extname, resolve } from 'node:path';
 import { Command } from 'commander';
 import { loadConfig } from '../../core/config/loader.js';
 import { generateAll } from '../../core/generator/index.js';
+import { checkCodeLangs } from '../../utils/check-code-langs.js';
 import { installDeps } from '../../utils/install-deps.js';
 import { logger } from '../../utils/logger.js';
 import { createSymlink, ensureTempDir, getAppDir } from '../../utils/temp-dir.js';
@@ -32,6 +33,20 @@ export const devCommand = new Command('dev')
       };
 
       await generateAll(ctx);
+
+      // Check for unsupported code block languages
+      try {
+        const unknownLangs = await checkCodeLangs(contentDir);
+        if (unknownLangs.length > 0) {
+          logger.warn('以下文件使用了不认识的代码块语言:');
+          for (const item of unknownLangs) {
+            logger.warn(`  ${item.file}:${item.line} - "${item.lang}"`);
+          }
+          logger.warn('建议将这些语言改为受支持的类型，或使用 "text" 作为默认值');
+        }
+      } catch {
+        // skip check if shiki is not available
+      }
 
       // Symlink content directory
       await createSymlink(contentDir, resolve(appDir, 'content'));

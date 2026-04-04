@@ -23,7 +23,8 @@
     "infty",
     "regen",
     "Segoe",
-    "Neue"
+    "Neue",
+    "shiki"
   ],
   "ignorePaths": [
     "node_modules",

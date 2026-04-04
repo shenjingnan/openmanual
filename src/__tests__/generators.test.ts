@@ -316,7 +316,8 @@ describe('generateSourceConfig', () => {
 
   it('should export defineConfig as default', () => {
     const result = generateSourceConfig(baseCtx);
-    expect(result).toContain('export default defineConfig()');
+    expect(result).toContain('export default defineConfig(');
+    expect(result).toContain('fallbackLanguage');
   });
 });
 
