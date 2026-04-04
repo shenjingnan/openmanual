@@ -276,6 +276,7 @@ describe('generatePage', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('p.slug.length === 0');
     expect(result).toContain('params.unshift');
+    expect(result).toContain('...params[0]');
   });
 });
 
