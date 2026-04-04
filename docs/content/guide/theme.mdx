@@ -83,3 +83,22 @@ my-docs/
   }
 }
 ```
+
+## Logo 主题适配
+
+如果需要为 Light 和 Dark 模式使用不同的 Logo，可以使用对象形式配置：
+
+```json
+{
+  "navbar": {
+    "logo": {
+      "light": "/logo-light.svg",
+      "dark": "/logo-dark.svg"
+    }
+  }
+}
+```
+
+当 `light` 和 `dark` 路径不同时，导航栏会渲染两个 `<img>` 标签，利用 Tailwind 的 `dark:hidden` / `hidden dark:block` 自动切换显示。
+
+如果未提供自定义 Logo 图片，OpenManual 会根据站点名称自动生成 SVG Logo。Dark 模式下会使用暖色调文字（`#E8E0D4`），与暗色主题背景协调。

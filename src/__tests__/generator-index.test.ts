@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
-import { generateAll } from '../core/generator/index.js';
+import { generateAll, generateOpenManualLogoSvg } from '../core/generator/index.js';
 
 vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
@@ -121,5 +121,26 @@ describe('generateAll', () => {
     );
     expect(layoutCall).toBeDefined();
     expect((layoutCall as unknown[])[1]).not.toContain('github:');
+  });
+});
+
+describe('generateOpenManualLogoSvg', () => {
+  it('should generate light variant with black text', () => {
+    const svg = generateOpenManualLogoSvg('MyProject', 'light');
+    expect(svg).toContain('fill="#2B7A4B"');
+    expect(svg).toContain('fill="#000000"');
+    expect(svg).toContain('M</tspan><tspan fill="#000000">yProject');
+  });
+
+  it('should generate dark variant with warm text', () => {
+    const svg = generateOpenManualLogoSvg('MyProject', 'dark');
+    expect(svg).toContain('fill="#2B7A4B"');
+    expect(svg).toContain('fill="#E8E0D4"');
+    expect(svg).toContain('M</tspan><tspan fill="#E8E0D4">yProject');
+  });
+
+  it('should default to light variant', () => {
+    const svg = generateOpenManualLogoSvg('Test');
+    expect(svg).toContain('fill="#000000"');
   });
 });

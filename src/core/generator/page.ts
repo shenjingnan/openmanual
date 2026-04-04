@@ -30,7 +30,11 @@ export default async function Page({ params }: { params: Promise<{ slug?: string
 }
 
 export function generateStaticParams() {
-  return source.generateParams();
+  const params = source.generateParams();
+  if (!params.some((p: { slug: string[] }) => p.slug.length === 0)) {
+    params.unshift({ slug: [] });
+  }
+  return params;
 }
 `;
 }

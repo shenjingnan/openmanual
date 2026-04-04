@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
+export const LogoSchema = z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]);
+
 export const NavbarSchema = z.object({
-  logo: z.string().optional(),
+  logo: LogoSchema.optional(),
   github: z.url().optional(),
   links: z
     .array(
@@ -64,3 +66,4 @@ export type FooterConfig = z.infer<typeof FooterSchema>;
 export type SidebarGroup = z.infer<typeof SidebarGroupSchema>;
 export type SidebarPage = z.infer<typeof SidebarPageSchema>;
 export type ThemeConfig = z.infer<typeof ThemeSchema>;
+export type LogoConfig = z.infer<typeof LogoSchema>;

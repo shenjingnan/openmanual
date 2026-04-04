@@ -2,7 +2,7 @@ import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { generateGlobalCss } from './global-css.js';
-import { generateLayout, isImagePath } from './layout.js';
+import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateNextConfig } from './next-config.js';
 import { generatePackageJson } from './package-json.js';
@@ -82,17 +82,16 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   }
 
   // Generate logo SVG in public/ when logo is an image path
-  const logo = ctx.config.navbar?.logo ?? '';
-  if (logo && isImagePath(logo)) {
-    const userLogoPath = join(ctx.projectDir, 'public', logo.replace(/^\//, ''));
-    try {
-      await access(userLogoPath);
-    } catch {
-      const publicDir = join(ctx.appDir, 'public');
-      await mkdir(publicDir, { recursive: true });
-      const logoPath = join(publicDir, logo.replace(/^\//, ''));
-      await mkdir(join(logoPath, '..'), { recursive: true });
-      await writeFile(logoPath, generateOpenManualLogoSvg(ctx.config.name), 'utf-8');
+  const logo = ctx.config.navbar?.logo;
+  if (logo && typeof logo === 'string' && isImagePath(logo)) {
+    await ensureLogoFile(ctx, logo, 'light');
+  } else if (logo && typeof logo === 'object') {
+    const { light, dark } = resolveLogoPaths(logo);
+    if (isImagePath(light)) {
+      await ensureLogoFile(ctx, light, 'light');
+    }
+    if (isImagePath(dark) && dark !== light) {
+      await ensureLogoFile(ctx, dark, 'dark');
     }
   }
 }
@@ -154,11 +153,32 @@ export default function DocsLayoutWrapper({ children }: { children: ReactNode })
 `;
 }
 
-export function generateOpenManualLogoSvg(name: string): string {
+export function generateOpenManualLogoSvg(
+  name: string,
+  variant: 'light' | 'dark' = 'light'
+): string {
+  const textColor = variant === 'dark' ? '#E8E0D4' : '#000000';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 32" width="190" height="32">
   <text x="0" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="700">
-    <tspan fill="#2B7A4B" font-size="34">${name.charAt(0)}</tspan><tspan fill="#000000">${name.slice(1)}</tspan>
+    <tspan fill="#2B7A4B" font-size="34">${name.charAt(0)}</tspan><tspan fill="${textColor}">${name.slice(1)}</tspan>
   </text>
 </svg>
 `;
+}
+
+async function ensureLogoFile(
+  ctx: GenerateContext,
+  logoPath: string,
+  variant: 'light' | 'dark'
+): Promise<void> {
+  const userLogoPath = join(ctx.projectDir, 'public', logoPath.replace(/^\//, ''));
+  try {
+    await access(userLogoPath);
+  } catch {
+    const publicDir = join(ctx.appDir, 'public');
+    await mkdir(publicDir, { recursive: true });
+    const fullPath = join(publicDir, logoPath.replace(/^\//, ''));
+    await mkdir(join(fullPath, '..'), { recursive: true });
+    await writeFile(fullPath, generateOpenManualLogoSvg(ctx.config.name, variant), 'utf-8');
+  }
 }
