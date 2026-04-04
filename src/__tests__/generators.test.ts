@@ -279,6 +279,82 @@ describe('generatePage', () => {
     expect(result).toContain('params.unshift');
     expect(result).toContain('...params[0]');
   });
+
+  it('should include allowedSlugs filter in strict mode', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        contentPolicy: 'strict' as const,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [
+              { slug: 'index', title: 'Home' },
+              { slug: 'guide', title: 'Guide' },
+            ],
+          },
+        ],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).toContain('allowedSlugs');
+    expect(result).toContain('isAllowed');
+    expect(result).toContain('!isAllowed(slug)');
+    expect(result).toContain('params.filter');
+  });
+
+  it('should not include allowedSlugs filter when contentPolicy is all', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        contentPolicy: 'all' as const,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).not.toContain('allowedSlugs');
+    expect(result).not.toContain('isAllowed');
+  });
+
+  it('should default to strict mode when contentPolicy is not set', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).toContain('allowedSlugs');
+    expect(result).toContain('isAllowed');
+  });
+
+  it('should generate correct isAllowed function with index fallback', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        contentPolicy: 'strict' as const,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).toContain("slug.join('/')");
+    expect(result).toContain("'index'");
+  });
 });
 
 describe('generatePostcssConfig', () => {
@@ -403,6 +479,64 @@ describe('generateSourceConfig', () => {
     // titleFromPath must use indexOf('content/') to handle both relative and absolute paths
     expect(result).toContain("indexOf('content/')");
     expect(result).toContain("'content/'.length");
+  });
+
+  it('should include allowedSlugs and refine filter in strict mode', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        contentPolicy: 'strict' as const,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [
+              { slug: 'index', title: 'Home' },
+              { slug: 'guide', title: 'Guide' },
+            ],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).toContain('allowedSlugs');
+    expect(result).toContain('.refine(');
+    expect(result).toContain('allowedSlugs.has(slug)');
+    expect(result).toContain('slugFromPath');
+  });
+
+  it('should not include allowedSlugs when contentPolicy is all', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        contentPolicy: 'all' as const,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).not.toContain('allowedSlugs');
+    expect(result).not.toContain('.refine(');
+  });
+
+  it('should default to strict mode when contentPolicy is not set', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).toContain('allowedSlugs');
+    expect(result).toContain('.refine(');
   });
 });
 

@@ -52,6 +52,7 @@ export const OpenManualConfigSchema = z.object({
   outputDir: z.string().optional(),
   siteUrl: z.url().optional(),
   locale: z.string().optional(),
+  contentPolicy: z.enum(['strict', 'all']).optional(),
   navbar: NavbarSchema.optional(),
   footer: FooterSchema.optional(),
   sidebar: z.array(SidebarGroupSchema).optional(),
@@ -67,3 +68,15 @@ export type SidebarGroup = z.infer<typeof SidebarGroupSchema>;
 export type SidebarPage = z.infer<typeof SidebarPageSchema>;
 export type ThemeConfig = z.infer<typeof ThemeSchema>;
 export type LogoConfig = z.infer<typeof LogoSchema>;
+
+export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
+  const slugs = new Set<string>();
+  if (config.sidebar) {
+    for (const group of config.sidebar) {
+      for (const page of group.pages) {
+        slugs.add(page.slug);
+      }
+    }
+  }
+  return slugs;
+}

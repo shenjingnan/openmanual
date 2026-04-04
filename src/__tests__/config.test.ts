@@ -2,7 +2,11 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../core/config/loader.js';
-import { OpenManualConfigSchema } from '../core/config/schema.js';
+import {
+  collectConfiguredSlugs,
+  type OpenManualConfig,
+  OpenManualConfigSchema,
+} from '../core/config/schema.js';
 import { getContentTree, scanContentDir } from '../core/content/scanner.js';
 import { buildPageTree, generateSourceConfigContent } from '../core/content/tree.js';
 
@@ -92,6 +96,30 @@ describe('OpenManualConfigSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('should accept contentPolicy as strict', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      contentPolicy: 'strict',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept contentPolicy as all', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      contentPolicy: 'all',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject invalid contentPolicy value', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      contentPolicy: 'invalid',
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('loadConfig', () => {
@@ -119,9 +147,20 @@ describe('loadConfig', () => {
     expect(config.contentDir).toBe('content');
     expect(config.outputDir).toBe('dist');
     expect(config.locale).toBe('zh');
+    expect(config.contentPolicy).toBe('strict');
     expect(config.navbar?.logo).toBe('TestProject');
     expect(config.theme?.primaryHue).toBe(213);
     expect(config.search?.enabled).toBe(true);
+  });
+
+  it('should respect contentPolicy all when provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'TestProject', contentPolicy: 'all' })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.contentPolicy).toBe('all');
   });
 });
 
@@ -384,5 +423,41 @@ describe('loadConfig validation errors', () => {
       JSON.stringify({ name: 'Test', siteUrl: 'not-a-url' })
     );
     await expect(loadConfig(tmpDir)).rejects.toThrow('siteUrl');
+  });
+});
+
+describe('collectConfiguredSlugs', () => {
+  it('should return empty set when no sidebar', () => {
+    const slugs = collectConfiguredSlugs({ name: 'Test' } as OpenManualConfig);
+    expect(slugs.size).toBe(0);
+  });
+
+  it('should return empty set when sidebar is empty', () => {
+    const slugs = collectConfiguredSlugs({ name: 'Test', sidebar: [] } as OpenManualConfig);
+    expect(slugs.size).toBe(0);
+  });
+
+  it('should collect all slugs from sidebar config', () => {
+    const config = {
+      name: 'Test',
+      sidebar: [
+        {
+          group: 'Getting Started',
+          pages: [
+            { slug: 'index', title: 'Home' },
+            { slug: 'guide', title: 'Guide' },
+          ],
+        },
+        {
+          group: 'Advanced',
+          pages: [{ slug: 'guide/api', title: 'API' }],
+        },
+      ],
+    } as OpenManualConfig;
+    const slugs = collectConfiguredSlugs(config);
+    expect(slugs.has('index')).toBe(true);
+    expect(slugs.has('guide')).toBe(true);
+    expect(slugs.has('guide/api')).toBe(true);
+    expect(slugs.size).toBe(3);
   });
 });
