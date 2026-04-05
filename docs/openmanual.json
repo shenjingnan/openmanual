@@ -25,7 +25,7 @@
     {
       "group": "指南",
       "icon": "BookOpen",
-      "collapsed": false,
+      "collapsed": true,
       "pages": [
         { "slug": "guide/configuration", "title": "配置参考", "icon": "Settings" },
         { "slug": "guide/writing-docs", "title": "编写文档", "icon": "FileText" },
@@ -37,7 +37,7 @@
     {
       "group": "组件",
       "icon": "Layout",
-      "collapsed": false,
+      "collapsed": true,
       "pages": [
         { "slug": "components/callout", "title": "Callout 提示框", "icon": "MessageSquare" },
         { "slug": "components/card", "title": "Card 卡片", "icon": "Square" },
@@ -60,7 +60,7 @@
     {
       "group": "社区",
       "icon": "Users",
-      "collapsed": false,
+      "collapsed": true,
       "pages": [
         { "slug": "community/contributing", "title": "贡献指南", "icon": "Heart" },
         { "slug": "community/changelog", "title": "更新日志", "icon": "Calendar" }
