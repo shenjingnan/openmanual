@@ -1,0 +1,96 @@
+---
+title: TypeTable 类型表格
+description: 使用 TypeTable 组件以清晰的表格形式展示 TypeScript 类型定义。
+---
+
+TypeTable 组件用于以结构化表格的形式展示 TypeScript 类型定义，适合在 API 文档中展示接口、类型别名等。
+
+## 基本用法
+
+```mdx
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: '用户名称',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: '用户年龄',
+    },
+    email: {
+      type: 'string',
+      description: '用户邮箱地址',
+      default: 'user@example.com',
+    },
+  }}
+/>
+```
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: '用户名称',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: '用户年龄',
+    },
+    email: {
+      type: 'string',
+      description: '用户邮箱地址',
+      default: 'user@example.com',
+    },
+    role: {
+      type: "'admin' | 'user' | 'guest'",
+      description: '用户角色',
+      default: 'user',
+    },
+  }}
+/>
+
+## 配置示例
+
+以下是一个 `openmanual.json` 中 `theme` 配置的类型定义：
+
+<TypeTable
+  type={{
+    primaryHue: {
+      type: 'number',
+      description: '主题色相值，范围 0-360',
+    },
+    darkMode: {
+      type: 'boolean',
+      description: '是否启用暗色模式',
+      default: 'true',
+    },
+  }}
+/>
+
+## 属性
+
+### TypeTable
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | `Record<string, TypeField>` | 是 | 类型字段定义对象 |
+
+### TypeField
+
+每个字段的定义包含以下属性：
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `type` | string | 是 | 字段类型描述 |
+| `description` | string | 否 | 字段说明 |
+| `required` | boolean | 否 | 是否必填 |
+| `default` | string | 否 | 默认值 |
+
+## 注意事项
+
+- `type` 属性的键名为字段名，值是字段定义对象
+- `type` 字段的内容是自由文本，可以是任意类型描述字符串
+- 适合用于展示配置项、API 参数、组件 Props 等类型信息

@@ -1,0 +1,78 @@
+---
+title: Files 文件树
+description: 使用 Files 组件展示项目目录结构和文件树。
+---
+
+Files 组件用于以树形结构展示项目目录，清晰地呈现文件组织方式。
+
+## 基本用法
+
+使用 `Files` 包裹 `File` 和 `Folder` 组件：
+
+```mdx
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+```
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+
+## 文件类型图标
+
+`File` 组件会根据文件扩展名自动匹配图标：
+
+<Files>
+  <Folder name="project" defaultOpen>
+    <File name="app.tsx" />
+    <File name="styles.css" />
+    <File name="utils.ts" />
+    <File name="data.json" />
+    <File name="README.md" />
+    <File name=".env" />
+  </Folder>
+</Files>
+
+## 属性
+
+### Files
+
+`Files` 是一个容器组件，无额外属性。用于包裹 `File` 和 `Folder` 子组件。
+
+### Folder
+
+| 属性 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `name` | string | 是 | — | 文件夹名称 |
+| `defaultOpen` | boolean | 否 | `false` | 是否默认展开 |
+| `children` | ReactNode | 否 | — | 子文件/文件夹 |
+
+### File
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | string | 是 | 文件名（含扩展名） |
+
+## 注意事项
+
+- `File` 的 `name` 属性应包含完整的文件名和扩展名
+- `Folder` 设置 `defaultOpen` 可以让该文件夹默认展开
+- 嵌套 `Folder` 可以展示多级目录结构
+- 文件图标根据扩展名自动匹配，支持常见的文件类型

@@ -1,0 +1,84 @@
+---
+title: Callout 提示框
+description: 使用 Callout 组件在文档中添加醒目的提示、警告和备注信息。
+---
+
+Callout 组件用于在文档中显示醒目的提示信息，帮助读者注意到重要的备注、警告或提示内容。
+
+## 基本用法
+
+使用 `Callout` 组件创建一个提示框：
+
+```mdx
+<Callout>
+  这是一条普通提示信息。
+</Callout>
+```
+
+<Callout>
+  这是一条普通提示信息。
+</Callout>
+
+## 类型变体
+
+通过 `type` 属性设置不同类型的提示框：
+
+```mdx
+<Callout type="info">信息提示</Callout>
+<Callout type="warn">警告提示</Callout>
+<Callout type="error">错误提示</Callout>
+```
+
+<Callout type="info">
+  这是一条信息提示，用于补充说明。
+</Callout>
+
+<Callout type="warn">
+  这是一条警告提示，请注意相关事项。
+</Callout>
+
+<Callout type="error">
+  这是一条错误提示，表示需要注意的错误情况。
+</Callout>
+
+## 带标题
+
+使用 `CalloutTitle` 添加标题，`CalloutDescription` 添加描述内容：
+
+```mdx
+<Callout type="warn">
+  <CalloutTitle>注意事项</CalloutTitle>
+  <CalloutDescription>
+    请确保在执行此操作前已备份数据。
+  </CalloutDescription>
+</Callout>
+```
+
+<Callout type="warn">
+  <CalloutTitle>注意事项</CalloutTitle>
+  <CalloutDescription>
+    请确保在执行此操作前已备份数据。
+  </CalloutDescription>
+</Callout>
+
+## 属性
+
+### Callout
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `type` | `'info' \| 'warn' \| 'error'` | `'info'` | 提示框类型 |
+
+### CalloutTitle
+
+`CalloutTitle` 无额外属性，作为 `Callout` 的子组件使用，用于显示提示框标题。
+
+### CalloutDescription
+
+`CalloutDescription` 无额外属性，作为 `Callout` 的子组件使用，用于显示提示框正文内容。
+
+## 注意事项
+
+- `CalloutTitle` 和 `CalloutDescription` 是可选的子组件
+- 不使用子组件时，`Callout` 的直接内容会作为正文显示
+- `Callout` 组件是 `fumadocs-ui/mdx` 默认组件之一，无需额外 import

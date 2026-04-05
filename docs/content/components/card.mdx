@@ -1,0 +1,70 @@
+---
+title: Card 卡片
+description: 使用 Card 组件创建卡片式布局，支持链接跳转和卡片网格。
+---
+
+Card 组件用于创建卡片式内容展示，常用于导航、功能介绍等场景。配合 `Cards` 组件可以快速创建卡片网格布局。
+
+## 基本用法
+
+使用 `Card` 创建单个卡片：
+
+```mdx
+<Card title="快速开始" href="/quickstart">
+  几分钟内搭建你的文档站点。
+</Card>
+```
+
+<Card title="快速开始" href="/quickstart">
+  几分钟内搭建你的文档站点。
+</Card>
+
+## 卡片网格
+
+使用 `Cards` 包裹多个 `Card`，自动形成网格布局：
+
+```mdx
+<Cards>
+  <Card title="配置参考" href="/guide/configuration">
+    了解所有可用的配置选项。
+  </Card>
+  <Card title="编写文档" href="/guide/writing-docs">
+    学习如何使用 MDX 编写文档。
+  </Card>
+  <Card title="主题定制" href="/guide/theme">
+    自定义文档站点的外观。
+  </Card>
+</Cards>
+```
+
+<Cards>
+  <Card title="配置参考" href="/guide/configuration">
+    了解所有可用的配置选项。
+  </Card>
+  <Card title="编写文档" href="/guide/writing-docs">
+    学习如何使用 MDX 编写文档。
+  </Card>
+  <Card title="主题定制" href="/guide/theme">
+    自定义文档站点的外观。
+  </Card>
+</Cards>
+
+## 属性
+
+### Cards
+
+`Cards` 是一个容器组件，无额外属性。用于包裹多个 `Card` 并自动排列为网格布局。
+
+### Card
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | 是 | 卡片标题 |
+| `href` | string | 否 | 点击跳转链接 |
+| `children` | ReactNode | 否 | 卡片描述内容 |
+
+## 注意事项
+
+- `Card` 和 `Cards` 是 `fumadocs-ui/mdx` 默认组件，无需额外 import
+- 当 `Card` 设置了 `href` 时，点击卡片会跳转到对应页面
+- 未设置 `href` 的卡片不可点击，适合纯展示场景

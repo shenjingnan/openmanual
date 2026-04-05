@@ -1,0 +1,64 @@
+---
+title: Accordion 折叠面板
+description: 使用 Accordion 组件创建可折叠的内容面板，节省页面空间。
+---
+
+Accordion 组件用于创建可折叠/展开的内容面板，适合在有限空间内展示大量信息，如 FAQ、详细说明等。
+
+## 常见问题示例
+
+使用 `Accordions` 包裹多个 `Accordion`：
+
+```mdx
+<Accordions>
+  <Accordion title="什么是 OpenManual？">
+    OpenManual 是一个 AI 友好的开源文档系统框架。
+  </Accordion>
+  <Accordion title="如何安装？">
+    使用 pnpm add openmanual 安装。
+  </Accordion>
+</Accordions>
+```
+
+<Accordions>
+  <Accordion title="什么是 OpenManual？">
+    OpenManual 是一个 AI 友好的开源文档系统框架，帮助开发者快速搭建美观、易用的文档站点。它基于 MDX，支持丰富的组件和自定义主题。
+  </Accordion>
+  <Accordion title="如何安装？">
+    使用包管理器安装：
+
+    ```bash
+    pnpm add openmanual
+    ```
+
+    然后在项目根目录创建 `openmanual.json` 配置文件即可。
+  </Accordion>
+  <Accordion title="支持哪些部署方式？">
+    OpenManual 构建的是静态站点，支持部署到任何静态托管平台：
+
+    - Vercel
+    - Netlify
+    - GitHub Pages
+    - 自建服务器
+  </Accordion>
+</Accordions>
+
+## 属性
+
+### Accordions
+
+`Accordions` 是一个容器组件，无额外属性。用于包裹多个 `Accordion` 子组件。
+
+### Accordion
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | 是 | 面板标题，始终可见 |
+| `children` | ReactNode | 是 | 面板内容，点击标题可展开/折叠 |
+
+## 注意事项
+
+- 每个面板默认折叠，点击标题可展开
+- 面板内容支持完整的 Markdown/MDX 语法
+- 适合用于 FAQ、详细说明等需要按需展示的内容
+- 同一 `Accordions` 内的多个面板可以同时展开
