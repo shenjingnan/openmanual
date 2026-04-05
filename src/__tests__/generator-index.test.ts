@@ -262,3 +262,190 @@ describe('generateMetaFiles', () => {
     expect(metaCalls).toHaveLength(0);
   });
 });
+
+describe('generateDocsLayout - restructureTree', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should not include restructureTree when sidebar is not configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).not.toContain('restructureTree');
+    expect(content).not.toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
+    expect(content).toContain('tree: source.getPageTree()');
+  });
+
+  it('should include restructureTree when sidebar is configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).toContain('restructureTree');
+    expect(content).toContain('sidebarConfig');
+    expect(content).toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
+    expect(content).not.toContain('interface TreeNode');
+    expect(content).toContain('restructureTree(source.getPageTree())');
+  });
+
+  it('should embed sidebar config with group, collapsed and page slugs', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            collapsed: false,
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+          {
+            group: '进阶',
+            collapsed: true,
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    // Should contain the sidebar config JSON
+    expect(content).toContain('"group": "开始"');
+    expect(content).toContain('"group": "进阶"');
+    expect(content).toContain('"collapsed": true');
+    expect(content).toContain('"slug": "index"');
+    expect(content).toContain('"slug": "quickstart"');
+    expect(content).toContain('"slug": "advanced/search"');
+    // Should NOT contain titles (only slugs are needed for restructuring)
+    expect(content).not.toContain('"title": "首页"');
+  });
+
+  it('should include slugToUrl helper in generated code', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [{ slug: 'index', title: '首页' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).toContain("slug === 'index' ? '/'");
+    expect(content).toContain('`/${slug}`');
+  });
+
+  it('should handle root-level group wrapping logic', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            collapsed: false,
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    // Should contain folder creation logic for root groups
+    expect(content).toContain("type: 'folder'");
+    expect(content).toContain('group.collapsed !== true');
+    // Should check isRootGroup
+    expect(content).toContain("p.slug.includes('/')");
+  });
+
+  it('should handle directory-level group matching logic', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '指南',
+            collapsed: false,
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    // Should contain dirPrefix extraction
+    expect(content).toContain("p.slug.includes('/')");
+    expect(content).toContain("?.slug.split('/')[0]");
+    // Should contain folder URL prefix matching
+    expect(content).toContain('startsWith');
+    // Should use type assertion for PageTree.Folder in else branch
+    expect(content).toContain('as PageTree.Folder');
+  });
+
+  it('should preserve remaining nodes not in sidebar config', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [{ slug: 'index', title: '首页' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    // Should append unconsumed nodes
+    expect(content).toContain('consumed.has(i)');
+  });
+});
