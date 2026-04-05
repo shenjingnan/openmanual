@@ -51,5 +51,4 @@ jobs:
         uses: codecov/codecov-action@v6
         if: matrix.node-version == 24
         with:
-          files: ./coverage/lcov.info
-          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
