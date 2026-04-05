@@ -5,6 +5,7 @@ import { generateAll, generateOpenManualLogoSvg } from '../core/generator/index.
 vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn().mockResolvedValue(undefined),
   writeFile: vi.fn().mockResolvedValue(undefined),
+  access: vi.fn().mockRejectedValue(new Error('ENOENT')),
 }));
 
 const baseConfig: OpenManualConfig = { name: 'Test' };
@@ -142,5 +143,122 @@ describe('generateOpenManualLogoSvg', () => {
   it('should default to light variant', () => {
     const svg = generateOpenManualLogoSvg('Test');
     expect(svg).toContain('fill="#000000"');
+  });
+});
+
+describe('generateMetaFiles', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should generate meta.json for sidebar groups with directory prefixes', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+          {
+            group: '指南',
+            pages: [
+              { slug: 'guide/configuration', title: '配置' },
+              { slug: 'guide/writing', title: '编写' },
+            ],
+          },
+          {
+            group: '进阶',
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+    expect(metaCalls).toHaveLength(2);
+    expect(metaCalls[0]?.[0]).toContain('guide');
+    expect(metaCalls[0]?.[1]).toBe(`${JSON.stringify({ title: '指南' }, null, 2)}\n`);
+    expect(metaCalls[1]?.[0]).toContain('advanced');
+    expect(metaCalls[1]?.[1]).toBe(`${JSON.stringify({ title: '进阶' }, null, 2)}\n`);
+  });
+
+  it('should not generate meta.json when sidebar is undefined', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+    expect(metaCalls).toHaveLength(0);
+  });
+
+  it('should not overwrite existing meta.json', async () => {
+    const { access, writeFile } = await import('node:fs/promises');
+    // Simulate meta.json already exists for guide directory
+    (access as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
+      if (typeof path === 'string' && path.includes('guide') && path.endsWith('meta.json')) {
+        return Promise.resolve();
+      }
+      return Promise.reject(new Error('ENOENT'));
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '指南',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+          {
+            group: '进阶',
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+    // Only advanced/meta.json should be written, guide/meta.json should be skipped
+    expect(metaCalls).toHaveLength(1);
+    expect(metaCalls[0]?.[0]).toContain('advanced');
+  });
+
+  it('should skip root-level pages without directory prefix', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+    expect(metaCalls).toHaveLength(0);
   });
 });
