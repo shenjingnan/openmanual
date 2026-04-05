@@ -94,6 +94,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       await ensureLogoFile(ctx, dark, 'dark');
     }
   }
+
+  // Generate meta.json for each sidebar group directory
+  await generateMetaFiles(ctx);
 }
 
 function generateRootLayout(): string {
@@ -180,5 +183,41 @@ async function ensureLogoFile(
     const fullPath = join(publicDir, logoPath.replace(/^\//, ''));
     await mkdir(join(fullPath, '..'), { recursive: true });
     await writeFile(fullPath, generateOpenManualLogoSvg(ctx.config.name, variant), 'utf-8');
+  }
+}
+
+/**
+ * Generate meta.json for each sidebar group directory so that
+ * fumadocs displays the configured Chinese group name instead of
+ * auto-capitalizing the English directory name.
+ */
+async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
+  const sidebar = ctx.config.sidebar;
+  if (!sidebar || sidebar.length === 0) return;
+
+  const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
+
+  for (const group of sidebar) {
+    // Extract directory prefix from the first page slug that contains "/"
+    const dirPrefix = group.pages
+      .map((p) => p.slug)
+      .find((slug) => slug.includes('/'))
+      ?.split('/')[0];
+
+    if (!dirPrefix) continue; // Root-level pages, no meta.json needed
+
+    const dirPath = join(contentAbsDir, dirPrefix);
+    const metaPath = join(dirPath, 'meta.json');
+
+    // Skip if meta.json already exists
+    try {
+      await access(metaPath);
+      continue;
+    } catch {
+      // File doesn't exist, proceed to create it
+    }
+
+    await mkdir(dirPath, { recursive: true });
+    await writeFile(metaPath, `${JSON.stringify({ title: group.group }, null, 2)}\n`, 'utf-8');
   }
 }
