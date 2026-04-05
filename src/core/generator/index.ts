@@ -136,14 +136,106 @@ function generateDocsLayout(ctx: GenerateContext): string {
     ? `\n  footer: { children: '${footerText.replace(/'/g, "\\'")}' },`
     : '';
 
+  // Build sidebar config for tree restructuring (only needed fields)
+  const sidebar = config.sidebar;
+  const sidebarSnippet =
+    sidebar && sidebar.length > 0
+      ? `\nconst sidebarConfig = ${JSON.stringify(
+          sidebar.map((g) => ({
+            group: g.group,
+            collapsed: g.collapsed,
+            pages: g.pages.map((p) => ({ slug: p.slug })),
+          })),
+          null,
+          2
+        )} as const;
+
+function slugToUrl(slug: string): string {
+  return slug === 'index' ? '/' : \`/\${slug}\`;
+}
+
+interface TreeNode {
+  type: string;
+  name?: string;
+  url?: string;
+  defaultOpen?: boolean;
+  children?: TreeNode[];
+  [key: string]: unknown;
+}
+
+function restructureTree(tree: TreeNode): TreeNode {
+  const consumed = new Set<number>();
+  const newChildren: TreeNode[] = [];
+
+  for (const group of sidebarConfig) {
+    const isRootGroup = group.pages.every((p) => !p.slug.includes('/'));
+
+    if (isRootGroup) {
+      const folderChildren: TreeNode[] = [];
+      for (const page of group.pages) {
+        const url = slugToUrl(page.slug);
+        const idx = (tree.children ?? []).findIndex(
+          (c, i) => !consumed.has(i) && c.type === 'page' && c.url === url
+        );
+        if (idx >= 0) {
+          folderChildren.push(tree.children![idx]);
+          consumed.add(idx);
+        }
+      }
+      if (folderChildren.length > 0) {
+        newChildren.push({
+          type: 'folder',
+          name: group.group,
+          defaultOpen: group.collapsed !== true,
+          children: folderChildren,
+        });
+      }
+    } else {
+      const dirPrefix = group.pages.find((p) => p.slug.includes('/'))?.slug.split('/')[0];
+      if (dirPrefix) {
+        const idx = (tree.children ?? []).findIndex(
+          (child, i) =>
+            !consumed.has(i) &&
+            child.type === 'folder' &&
+            child.children?.some(
+              (c) => c.type === 'page' && c.url?.startsWith(\`/\${dirPrefix}/\`)
+            )
+        );
+        if (idx >= 0) {
+          consumed.add(idx);
+          newChildren.push({
+            ...tree.children![idx],
+            name: group.group,
+            defaultOpen: group.collapsed !== true,
+          });
+        }
+      }
+    }
+  }
+
+  for (let i = 0; i < (tree.children ?? []).length; i++) {
+    if (!consumed.has(i)) {
+      newChildren.push(tree.children![i]);
+    }
+  }
+
+  return { ...tree, children: newChildren };
+}
+`
+      : '';
+
+  const treeLine = sidebarSnippet
+    ? 'tree: restructureTree(source.getPageTree() as TreeNode),'
+    : 'tree: source.getPageTree(),';
+
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
 import type { ReactNode } from 'react';
-
+${sidebarSnippet}
 const docsOptions = {
   ...baseOptions(),
-  tree: source.getPageTree(),${githubLine}${linksLine}${footerLine}
+  ${treeLine}${githubLine}${linksLine}${footerLine}
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {
