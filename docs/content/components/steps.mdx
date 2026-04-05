@@ -1,0 +1,87 @@
+---
+title: Steps 步骤
+description: 使用 Steps 组件创建带编号的分步指南，清晰展示操作流程。
+---
+
+Steps 组件用于创建带自动编号的分步指南，适合展示操作流程、安装步骤等有序内容。
+
+## 基本用法
+
+使用 `Steps` 包裹多个 `Step`，每个 `Step` 为一个步骤：
+
+```mdx
+<Steps>
+  <Step>安装依赖</Step>
+  <Step>创建配置文件</Step>
+  <Step>启动开发服务器</Step>
+</Steps>
+```
+
+<Steps>
+  <Step>安装依赖</Step>
+  <Step>创建配置文件</Step>
+  <Step>启动开发服务器</Step>
+</Steps>
+
+## 带内容的步骤
+
+每个 `Step` 内可以包含丰富的内容：
+
+```mdx
+<Steps>
+  <Step>
+    ### 安装 OpenManual
+
+    使用以下命令安装：
+
+    \```bash
+    pnpm add openmanual
+    \```
+  </Step>
+  <Step>
+    ### 创建配置文件
+
+    在项目根目录创建 `openmanual.json`。
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step>
+    ### 安装 OpenManual
+
+    使用以下命令安装：
+
+    ```bash
+    pnpm add openmanual
+    ```
+  </Step>
+  <Step>
+    ### 创建配置文件
+
+    在项目根目录创建 `openmanual.json`。
+  </Step>
+  <Step>
+    ### 启动开发服务器
+
+    运行 `pnpm run docs:dev` 启动开发服务器，即可在浏览器中预览文档。
+  </Step>
+</Steps>
+
+## 属性
+
+### Steps
+
+`Steps` 是一个容器组件，无额外属性。用于包裹 `Step` 子组件。
+
+### Step
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `children` | ReactNode | 是 | 步骤内容，支持任意 MDX 内容 |
+
+## 注意事项
+
+- 步骤编号从 1 开始自动递增
+- 每个 `Step` 内支持完整的 Markdown/MDX 语法
+- 适合用于教程、安装指南等需要按顺序执行的场景

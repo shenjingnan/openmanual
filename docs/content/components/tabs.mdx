@@ -1,0 +1,95 @@
+---
+title: Tabs 标签页
+description: 使用 Tabs 组件创建标签页切换，在同一区域展示不同内容。
+---
+
+Tabs 组件用于在同一区域通过标签页切换展示不同内容，适合对比展示不同语言、不同方案的代码或说明。
+
+## 基本用法
+
+使用 `Tabs` 包裹多个 `Tab`：
+
+```mdx
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    npm install openmanual
+  </Tab>
+  <Tab value="pnpm">
+    pnpm add openmanual
+  </Tab>
+  <Tab value="yarn">
+    yarn add openmanual
+  </Tab>
+</Tabs>
+```
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install openmanual
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add openmanual
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add openmanual
+    ```
+  </Tab>
+</Tabs>
+
+## 代码示例切换
+
+Tabs 特别适合展示不同编程语言或框架的代码：
+
+<Tabs items={['TypeScript', 'JavaScript']}>
+  <Tab value="TypeScript">
+    ```typescript
+    interface Config {
+      name: string;
+      theme?: {
+        primaryHue: number;
+      };
+    }
+
+    const config: Config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+## 属性
+
+### Tabs
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `items` | `string[]` | 是 | 标签页标题数组 |
+| `defaultIndex` | number | 否 | 默认选中的标签页索引 |
+| `children` | ReactNode | 是 | `Tab` 子组件 |
+
+### Tab
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `value` | string | 是 | 标签页值，对应 `items` 中的项 |
+| `children` | ReactNode | 是 | 标签页内容 |
+
+## 注意事项
+
+- `items` 数组中的值必须与 `Tab` 的 `value` 属性一一对应
+- 标签页内的内容支持完整的 Markdown/MDX 语法
+- 适合用于多语言代码示例、不同方案的对比展示

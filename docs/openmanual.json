@@ -35,6 +35,20 @@
       ]
     },
     {
+      "group": "组件",
+      "icon": "Layout",
+      "collapsed": false,
+      "pages": [
+        { "slug": "components/callout", "title": "Callout 提示框", "icon": "MessageSquare" },
+        { "slug": "components/card", "title": "Card 卡片", "icon": "Square" },
+        { "slug": "components/steps", "title": "Steps 步骤", "icon": "ListOrdered" },
+        { "slug": "components/tabs", "title": "Tabs 标签页", "icon": "Columns" },
+        { "slug": "components/files", "title": "Files 文件树", "icon": "FolderTree" },
+        { "slug": "components/accordion", "title": "Accordion 折叠面板", "icon": "ChevronDown" },
+        { "slug": "components/type-table", "title": "TypeTable 类型表格", "icon": "Table" }
+      ]
+    },
+    {
       "group": "进阶",
       "icon": "Wrench",
       "collapsed": true,
