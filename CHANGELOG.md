@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/shenjingnan/openmanual/compare/v0.5.0...v0.6.0) (2026-04-05)
+
+### Features
+
+* **components:** 新增 MDX 组件支持及组件文档 ([#47](https://github.com/shenjingnan/openmanual/issues/47)) ([e0b46c4](https://github.com/shenjingnan/openmanual/commit/e0b46c465350a93c42a1e9a858dea0451c877727))
+
+### Bug Fixes
+
+* **sidebar:** 侧边栏分组名称显示中文而非英文目录名 ([#48](https://github.com/shenjingnan/openmanual/issues/48)) ([5608b0a](https://github.com/shenjingnan/openmanual/commit/5608b0ab782a03502d2be53cdf7b12cb72676bf4))
+* **sidebar:** 侧边栏分组默认折叠 ([#50](https://github.com/shenjingnan/openmanual/issues/50)) ([0ae677f](https://github.com/shenjingnan/openmanual/commit/0ae677f03dc57f05346f40ebb1264f2579992f61))
+* **sidebar:** 根级页面 sidebar 分组不生效 ([#49](https://github.com/shenjingnan/openmanual/issues/49)) ([76244dc](https://github.com/shenjingnan/openmanual/commit/76244dc2c58e12ba539f8fba4febe211318b1c92))
+
 ## [0.5.0](https://github.com/shenjingnan/openmanual/compare/v0.4.0...v0.5.0) (2026-04-04)
 
 ### Features
