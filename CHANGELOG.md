@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.6.1](https://github.com/shenjingnan/openmanual/compare/v0.6.0...v0.6.1) (2026-04-05)
+
 ## [0.6.0](https://github.com/shenjingnan/openmanual/compare/v0.5.0...v0.6.0) (2026-04-05)
 
 ### Features
