@@ -195,7 +195,7 @@ function restructureTree(tree: PageTree.Root): PageTree.Root {
         if (idx >= 0) {
           consumed.add(idx);
           newChildren.push({
-            ...tree.children![idx],
+            ...(tree.children![idx] as PageTree.Folder),
             name: group.group,
             defaultOpen: group.collapsed !== true,
           });

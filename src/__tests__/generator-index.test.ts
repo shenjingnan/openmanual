@@ -424,6 +424,8 @@ describe('generateDocsLayout - restructureTree', () => {
     expect(content).toContain("?.slug.split('/')[0]");
     // Should contain folder URL prefix matching
     expect(content).toContain('startsWith');
+    // Should use type assertion for PageTree.Folder in else branch
+    expect(content).toContain('as PageTree.Folder');
   });
 
   it('should preserve remaining nodes not in sidebar config', async () => {
