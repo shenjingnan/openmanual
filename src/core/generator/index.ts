@@ -154,24 +154,15 @@ function slugToUrl(slug: string): string {
   return slug === 'index' ? '/' : \`/\${slug}\`;
 }
 
-interface TreeNode {
-  type: string;
-  name?: string;
-  url?: string;
-  defaultOpen?: boolean;
-  children?: TreeNode[];
-  [key: string]: unknown;
-}
-
-function restructureTree(tree: TreeNode): TreeNode {
+function restructureTree(tree: PageTree.Root): PageTree.Root {
   const consumed = new Set<number>();
-  const newChildren: TreeNode[] = [];
+  const newChildren: PageTree.Node[] = [];
 
   for (const group of sidebarConfig) {
     const isRootGroup = group.pages.every((p) => !p.slug.includes('/'));
 
     if (isRootGroup) {
-      const folderChildren: TreeNode[] = [];
+      const folderChildren: PageTree.Node[] = [];
       for (const page of group.pages) {
         const url = slugToUrl(page.slug);
         const idx = (tree.children ?? []).findIndex(
@@ -225,13 +216,17 @@ function restructureTree(tree: TreeNode): TreeNode {
       : '';
 
   const treeLine = sidebarSnippet
-    ? 'tree: restructureTree(source.getPageTree() as TreeNode),'
+    ? 'tree: restructureTree(source.getPageTree()),'
     : 'tree: source.getPageTree(),';
+
+  const pageTreeImport = sidebarSnippet
+    ? "\nimport type * as PageTree from 'fumadocs-core/page-tree';"
+    : '';
 
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';${pageTreeImport}
 ${sidebarSnippet}
 const docsOptions = {
   ...baseOptions(),

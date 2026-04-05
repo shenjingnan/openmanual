@@ -284,6 +284,7 @@ describe('generateDocsLayout - restructureTree', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
     expect(content).not.toContain('restructureTree');
+    expect(content).not.toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
     expect(content).toContain('tree: source.getPageTree()');
   });
 
@@ -309,7 +310,9 @@ describe('generateDocsLayout - restructureTree', () => {
     const content = getDocsLayoutContent(calls);
     expect(content).toContain('restructureTree');
     expect(content).toContain('sidebarConfig');
-    expect(content).toContain('restructureTree(source.getPageTree() as TreeNode)');
+    expect(content).toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
+    expect(content).not.toContain('interface TreeNode');
+    expect(content).toContain('restructureTree(source.getPageTree())');
   });
 
   it('should embed sidebar config with group, collapsed and page slugs', async () => {
