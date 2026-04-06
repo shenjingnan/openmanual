@@ -21,10 +21,16 @@ describe('generateAll', () => {
     vi.clearAllMocks();
   });
 
-  it('should write 13 files', async () => {
+  it('should write 15 files in dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll({ ...baseCtx, dev: true });
+    expect(writeFile).toHaveBeenCalledTimes(15);
+  });
+
+  it('should write 14 files in non-dev mode', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
-    expect(writeFile).toHaveBeenCalledTimes(13);
+    expect(writeFile).toHaveBeenCalledTimes(14);
   });
 
   it('should create directories recursively', async () => {

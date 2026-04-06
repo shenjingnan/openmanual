@@ -16,6 +16,7 @@ const DEFAULT_CONFIG: Partial<OpenManualConfig> = {
     enabled: true,
   },
   mdx: {},
+  pageActions: { enabled: true },
 };
 
 export async function loadConfig(cwd: string = process.cwd()): Promise<OpenManualConfig> {
@@ -74,6 +75,10 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
     mdx: {
       ...DEFAULT_CONFIG.mdx,
       ...config.mdx,
+    },
+    pageActions: {
+      ...DEFAULT_CONFIG.pageActions,
+      ...config.pageActions,
     },
   };
 }
