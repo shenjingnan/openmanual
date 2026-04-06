@@ -7,8 +7,10 @@ import { generateMermaidComponent } from '../core/generator/mermaid-component.js
 import { generateNextConfig } from '../core/generator/next-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
 import { generatePage } from '../core/generator/page.js';
+import { generatePageActionsComponent } from '../core/generator/page-actions-component.js';
 import { generatePostcssConfig } from '../core/generator/postcss-config.js';
 import { generateProvider } from '../core/generator/provider.js';
+import { generateRawContentRoute } from '../core/generator/raw-content-route.js';
 import { generateSourceConfig } from '../core/generator/source-config.js';
 import { generateTsconfig } from '../core/generator/tsconfig.js';
 
@@ -214,7 +216,7 @@ describe('generateLibSource', () => {
 });
 
 describe('generateNextConfig', () => {
-  it('should include output export when siteUrl is set', () => {
+  it('should include output export when siteUrl is set and not dev mode', () => {
     const ctx = {
       config: { ...baseConfig, siteUrl: 'https://example.com' },
     };
@@ -227,6 +229,15 @@ describe('generateNextConfig', () => {
     expect(result).not.toContain("output: 'export'");
   });
 
+  it('should not include output when siteUrl is set but dev mode is true', () => {
+    const ctx = {
+      config: { ...baseConfig, siteUrl: 'https://example.com' },
+      dev: true,
+    };
+    const result = generateNextConfig(ctx);
+    expect(result).not.toContain("output: 'export'");
+  });
+
   it('should always set images.unoptimized to true', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain('unoptimized: true');
@@ -235,6 +246,19 @@ describe('generateNextConfig', () => {
   it('should include mermaid in serverExternalPackages', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain("serverExternalPackages: ['mermaid']");
+  });
+
+  it('should include rewrites for .md URLs in dev mode', () => {
+    const result = generateNextConfig({ ...baseCtx, dev: true });
+    expect(result).toContain('async rewrites()');
+    expect(result).toContain("source: '/:path(.+)\\\\.md'");
+    expect(result).toContain("destination: '/api/raw/:path'");
+  });
+
+  it('should not include rewrites in non-dev mode', () => {
+    const result = generateNextConfig(baseCtx);
+    expect(result).not.toContain('async rewrites()');
+    expect(result).not.toContain('rewrites');
   });
 });
 
@@ -373,6 +397,28 @@ describe('generatePage', () => {
     const result = generatePage(ctx);
     expect(result).toContain("slug.join('/')");
     expect(result).toContain("'index'");
+  });
+
+  it('should import PageActions and use flex layout by default', () => {
+    const result = generatePage(baseCtx);
+    expect(result).toContain("from '@/components/page-actions'");
+    expect(result).toContain('PageActions');
+    expect(result).toContain('flex items-start justify-between');
+    expect(result).toContain('data-content-area');
+  });
+
+  it('should not include PageActions when pageActions.enabled is false', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        pageActions: { enabled: false },
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).not.toContain("from '@/components/page-actions'");
+    expect(result).not.toContain('PageActions');
+    expect(result).not.toContain('flex items-start justify-between');
+    expect(result).toContain('<DocsTitle>');
   });
 });
 
@@ -637,5 +683,160 @@ describe('generateMermaidComponent', () => {
     const result = generateMermaidComponent();
     expect(result).toContain("fontFamily: 'inherit'");
     expect(result).toContain('themeCSS');
+  });
+});
+
+describe('generatePageActionsComponent', () => {
+  it('should generate use client directive', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain("'use client'");
+  });
+
+  it('should export PageActions component', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('export function PageActions');
+  });
+
+  it('should include clipboard copy logic', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('navigator.clipboard.writeText');
+    expect(result).toContain('article.innerText');
+  });
+
+  it('should query data-content-area element', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain("document.querySelector<HTMLElement>('[data-content-area]')");
+    expect(result).toContain("document.querySelector<HTMLElement>('article')");
+  });
+
+  it('should include copied state feedback', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('已复制');
+    expect(result).toContain('复制全文');
+    expect(result).toContain('setCopied(true)');
+    expect(result).toContain('setCopied(false)');
+  });
+
+  it('should include click outside handler to close menu', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('handleClickOutside');
+    expect(result).toContain("addEventListener('mousedown'");
+    expect(result).toContain("removeEventListener('mousedown'");
+  });
+
+  it('should include inline cn utility for class merging', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('function cn(');
+    expect(result).toContain('classes.filter(Boolean).join');
+    expect(result).toContain('cn(');
+    expect(result).not.toContain("from 'fumadocs-ui/utils/cn'");
+  });
+
+  it('should include dropdown menu with relative positioning', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('absolute right-0 top-full');
+  });
+
+  it('should generate split button with Copy page text and arrow toggle', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('Copy page');
+    expect(result).toContain('Copied!');
+    expect(result).toContain('w-px bg-fd-border');
+    expect(result).toContain('ChevronDownIcon');
+    expect(result).toContain('ChevronUpIcon');
+  });
+
+  it('should include dropdown menu with min-w-[280px]', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('min-w-[280px]');
+  });
+
+  it('should include two menu options with icons and descriptions', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('复制全文');
+    expect(result).toContain('复制页面内容，适合 AI 工具使用');
+    expect(result).toContain('查看原文');
+    expect(result).toContain('查看原始 Markdown 源文件');
+    expect(result).toContain('FileTextIcon');
+  });
+
+  it('should include view markdown functionality', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('handleViewMarkdown');
+    expect(result).toContain('window.open');
+    expect(result).toContain('.md');
+  });
+
+  it('should include getPageText helper function', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('function getPageText()');
+  });
+
+  it('should include all inline SVG icons', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain('CopyIcon');
+    expect(result).toContain('CheckIcon');
+    expect(result).toContain('ChevronDownIcon');
+    expect(result).toContain('ChevronUpIcon');
+    expect(result).toContain('FileTextIcon');
+  });
+
+  it('should include window.open for viewing raw markdown', () => {
+    const result = generatePageActionsComponent();
+    expect(result).toContain("window.open(mdUrl, '_blank')");
+    expect(result).toContain("path === '/' ? '/index.md'");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: testing generated template literal
+    expect(result).toContain('${path}.md');
+  });
+
+  it('should not include modal-related code', () => {
+    const result = generatePageActionsComponent();
+    expect(result).not.toContain('showMarkdownModal');
+    expect(result).not.toContain('setShowMarkdownModal');
+    expect(result).not.toContain('copiedMarkdown');
+    expect(result).not.toContain('setCopiedMarkdown');
+    expect(result).not.toContain('handleCopyFromModal');
+    expect(result).not.toContain('CloseIcon');
+    expect(result).not.toContain('bg-black/50');
+    expect(result).not.toContain('z-[100]');
+  });
+});
+
+describe('generateRawContentRoute', () => {
+  it('should import readFile from node:fs/promises', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("import { readFile } from 'node:fs/promises'");
+  });
+
+  it('should import NextResponse from next/server', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("import { NextResponse } from 'next/server'");
+  });
+
+  it('should export GET handler', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain('export async function GET');
+  });
+
+  it('should try .mdx and .md extensions', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("'.mdx'");
+    expect(result).toContain("'.md'");
+  });
+
+  it('should return text/plain content type', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("'Content-Type': 'text/plain; charset=utf-8'");
+  });
+
+  it('should return 404 when file not found', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("'Not found'");
+    expect(result).toContain('status: 404');
+  });
+
+  it('should read from content directory', () => {
+    const result = generateRawContentRoute();
+    expect(result).toContain("'content'");
   });
 });

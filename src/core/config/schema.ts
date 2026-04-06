@@ -45,6 +45,10 @@ export const MdxSchema = z.object({
   latex: z.boolean().optional(),
 });
 
+export const PageActionsSchema = z.object({
+  enabled: z.boolean().optional(),
+});
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -59,6 +63,7 @@ export const OpenManualConfigSchema = z.object({
   theme: ThemeSchema.optional(),
   search: SearchSchema.optional(),
   mdx: MdxSchema.optional(),
+  pageActions: PageActionsSchema.optional(),
 });
 
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;

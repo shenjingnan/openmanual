@@ -18,6 +18,7 @@ export default defineConfig({
         'examples/**',
         'src/cli/**',
         'src/index.ts',
+        'docs/**',
       ],
       thresholds: {
         lines: 80,

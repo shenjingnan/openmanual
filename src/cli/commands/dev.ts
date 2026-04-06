@@ -30,6 +30,7 @@ export const devCommand = new Command('dev')
         projectDir: cwd,
         appDir,
         contentDir: config.contentDir ?? 'content',
+        dev: true,
       };
 
       await generateAll(ctx);

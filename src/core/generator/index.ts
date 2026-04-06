@@ -8,8 +8,10 @@ import { generateMermaidComponent } from './mermaid-component.js';
 import { generateNextConfig } from './next-config.js';
 import { generatePackageJson } from './package-json.js';
 import { generatePage } from './page.js';
+import { generatePageActionsComponent } from './page-actions-component.js';
 import { generatePostcssConfig } from './postcss-config.js';
 import { generateProvider } from './provider.js';
+import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSourceConfig } from './source-config.js';
 import { generateTsconfig } from './tsconfig.js';
 
@@ -21,6 +23,8 @@ export interface GenerateContext {
   appDir: string;
   /** Content directory relative to project root */
   contentDir: string;
+  /** 开发模式标志，dev 模式下不设置 output: 'export'，生成 API 路由和 rewrites */
+  dev?: boolean;
 }
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
@@ -61,6 +65,14 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       path: 'components/mermaid.tsx',
       content: generateMermaidComponent(),
     },
+    {
+      path: 'components/page-actions.tsx',
+      content: generatePageActionsComponent(),
+    },
+    // 仅在 dev 模式生成 API 路由（生产构建中 output: 'export' 不兼容 API 路由）
+    ...(ctx.dev
+      ? [{ path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute() }]
+      : []),
     {
       path: 'app/layout.tsx',
       content: generateRootLayout(),

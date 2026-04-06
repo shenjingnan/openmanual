@@ -14,6 +14,7 @@ function buildAllowedSlugs(config: OpenManualConfig): Set<string> {
 
 export function generatePage(_ctx: { config: OpenManualConfig }): string {
   const isStrict = _ctx.config.contentPolicy !== 'all';
+  const pageActionsEnabled = _ctx.config.pageActions?.enabled !== false;
 
   const allowedSlugsSnippet = isStrict
     ? `
@@ -54,6 +55,25 @@ export function generateStaticParams() {
   return params;
 }`;
 
+  const pageActionsImport = pageActionsEnabled
+    ? "\nimport { PageActions } from '@/components/page-actions';"
+    : '';
+
+  const pageTitleArea = pageActionsEnabled
+    ? `      <div className="flex items-start justify-between gap-4">
+        <div>
+          <DocsTitle>{page.data.title}</DocsTitle>
+          {page.data.description && (
+            <DocsDescription>{page.data.description}</DocsDescription>
+          )}
+        </div>
+        <PageActions />
+      </div>`
+    : `      <DocsTitle>{page.data.title}</DocsTitle>
+      {page.data.description && (
+        <DocsDescription>{page.data.description}</DocsDescription>
+      )}`;
+
   return `import { source } from '@/lib/source';
 import { notFound } from 'next/navigation';
 import { DocsPage, DocsBody, DocsTitle, DocsDescription } from 'fumadocs-ui/page';
@@ -63,7 +83,7 @@ import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
 import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
-import { Mermaid } from '@/components/mermaid';
+import { Mermaid } from '@/components/mermaid';${pageActionsImport}
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
@@ -77,11 +97,8 @@ ${filterInPage}
 
   return (
     <DocsPage toc={page.data.toc}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      {page.data.description && (
-        <DocsDescription>{page.data.description}</DocsDescription>
-      )}
-      <DocsBody>
+${pageTitleArea}
+      <DocsBody data-content-area>
         <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid }} />
       </DocsBody>
     </DocsPage>
