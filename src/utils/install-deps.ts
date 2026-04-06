@@ -11,7 +11,7 @@ export async function installDeps(appDir: string): Promise<void> {
   }
 
   return new Promise((resolve, reject) => {
-    const child = spawn('pnpm', ['install', '--no-frozen-lockfile'], {
+    const child = spawn('pnpm', ['install', '--no-frozen-lockfile', '--ignore-workspace'], {
       cwd: appDir,
       stdio: 'pipe',
       env: { ...process.env },
