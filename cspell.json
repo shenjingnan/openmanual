@@ -24,7 +24,9 @@
     "regen",
     "Segoe",
     "Neue",
-    "shiki"
+    "shiki",
+    "badlang",
+    "anotherbad"
   ],
   "ignorePaths": [
     "node_modules",

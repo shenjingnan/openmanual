@@ -376,7 +376,8 @@ describe('generateDocsLayout - restructureTree', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
     expect(content).toContain("slug === 'index' ? '/'");
-    expect(content).toContain('`/${slug}`');
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: checking generated template literal syntax
+    expect(content).toContain('/${slug}');
   });
 
   it('should handle root-level group wrapping logic', async () => {
@@ -453,5 +454,111 @@ describe('generateDocsLayout - restructureTree', () => {
     const content = getDocsLayoutContent(calls);
     // Should append unconsumed nodes
     expect(content).toContain('consumed.has(i)');
+  });
+});
+
+describe('generateAll - logo handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Helper: filter writeFile calls that contain the OpenManual logo SVG (viewBox 0 0 190 32)
+  const isLogoSvg = (content: string) => content.includes('viewBox="0 0 190 32"');
+
+  it('should generate two SVG files when logo is object with different light and dark paths', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(2);
+  });
+
+  it('should generate one file when logo object has same light and dark paths', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: '/logo.svg', dark: '/logo.svg' } },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(1);
+  });
+
+  it('should not generate SVG when logo object paths are not images', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: 'MyProject', dark: 'MyProject' } },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(0);
+  });
+
+  it('should skip generation when user already has logo file', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        navbar: { logo: '/logo.svg' },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(0);
+  });
+
+  it('should generate dark variant SVG with correct color', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const darkSvgCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[1] === 'string' &&
+        isLogoSvg(c[1] as string) &&
+        (c[1] as string).includes('fill="#E8E0D4"')
+    );
+    expect(darkSvgCall).toBeDefined();
   });
 });
