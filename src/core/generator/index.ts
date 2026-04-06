@@ -194,7 +194,7 @@ function restructureTree(tree: PageTree.Root): PageTree.Root {
         newChildren.push({
           type: 'folder',
           name: group.group,
-          defaultOpen: group.collapsed !== true,
+          defaultOpen: !group.collapsed,
           children: folderChildren,
         });
       }
@@ -214,7 +214,7 @@ function restructureTree(tree: PageTree.Root): PageTree.Root {
           newChildren.push({
             ...(tree.children![idx] as PageTree.Folder),
             name: group.group,
-            defaultOpen: group.collapsed !== true,
+            defaultOpen: !group.collapsed,
           });
         }
       }
