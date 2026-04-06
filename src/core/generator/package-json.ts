@@ -25,6 +25,7 @@ export function generatePackageJson(_ctx: {
       react: '^19.1.0',
       'react-dom': '^19.1.0',
       tailwindcss: '^4.1.15',
+      zod: '^4.0.0',
     },
   };
 
