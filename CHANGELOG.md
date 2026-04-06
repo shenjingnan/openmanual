@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.2](https://github.com/shenjingnan/openmanual/compare/v0.7.1...v0.7.2) (2026-04-06)
+
+### Bug Fixes
+
+* **generator:** 添加 zod 为临时 app 的直接依赖 ([#56](https://github.com/shenjingnan/openmanual/issues/56)) ([6a3c8e6](https://github.com/shenjingnan/openmanual/commit/6a3c8e6bfc1d9084a73f3b9b20147d2d20abd66b))
+
 ## [0.7.1](https://github.com/shenjingnan/openmanual/compare/v0.7.0...v0.7.1) (2026-04-06)
 
 ### Bug Fixes
