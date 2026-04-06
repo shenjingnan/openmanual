@@ -63,6 +63,7 @@ import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
 import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
+import { Mermaid } from '@/components/mermaid';
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
@@ -81,7 +82,7 @@ ${filterInPage}
         <DocsDescription>{page.data.description}</DocsDescription>
       )}
       <DocsBody>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid }} />
       </DocsBody>
     </DocsPage>
   );

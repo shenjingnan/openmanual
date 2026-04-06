@@ -4,6 +4,7 @@ import type { OpenManualConfig } from '../config/schema.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
+import { generateMermaidComponent } from './mermaid-component.js';
 import { generateNextConfig } from './next-config.js';
 import { generatePackageJson } from './package-json.js';
 import { generatePage } from './page.js';
@@ -55,6 +56,10 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     {
       path: 'lib/layout.tsx',
       content: generateLayout(ctx),
+    },
+    {
+      path: 'components/mermaid.tsx',
+      content: generateMermaidComponent(),
     },
     {
       path: 'app/layout.tsx',

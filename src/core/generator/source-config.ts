@@ -59,6 +59,7 @@ function slugFromPath(path: string): string {
     : '';
 
   return `import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
+import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins';
 import { z } from 'zod';
 
 const titleMap: Record<string, string> = ${titleMapStr};${allowedSlugsSnippet}
@@ -88,6 +89,7 @@ export const docs = defineDocs({
 
 export default defineConfig({
   mdxOptions: {
+    remarkPlugins: [remarkMdxMermaid],
     rehypeCodeOptions: {
       themes: {
         light: 'github-light',
