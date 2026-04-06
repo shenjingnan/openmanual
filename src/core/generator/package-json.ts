@@ -27,6 +27,10 @@ export function generatePackageJson(_ctx: {
       tailwindcss: '^4.1.15',
       zod: '^4.0.0',
     },
+    devDependencies: {
+      '@types/react': '^19.1.0',
+      '@types/react-dom': '^19.1.0',
+    },
   };
 
   return `${JSON.stringify(pkg, null, 2)}\n`;
