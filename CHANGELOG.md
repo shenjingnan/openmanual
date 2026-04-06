@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.0](https://github.com/shenjingnan/openmanual/compare/v0.6.1...v0.7.0) (2026-04-06)
+
+### Features
+
+* **generator:** 集成 Mermaid 图表渲染支持 ([#54](https://github.com/shenjingnan/openmanual/issues/54)) ([0f59a42](https://github.com/shenjingnan/openmanual/commit/0f59a429467be4c4c68bf5081e6c979c6492eae7))
+
 ## [0.6.1](https://github.com/shenjingnan/openmanual/compare/v0.6.0...v0.6.1) (2026-04-05)
 
 ## [0.6.0](https://github.com/shenjingnan/openmanual/compare/v0.5.0...v0.6.0) (2026-04-05)
