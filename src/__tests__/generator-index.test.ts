@@ -403,7 +403,7 @@ describe('generateDocsLayout - restructureTree', () => {
     const content = getDocsLayoutContent(calls);
     // Should contain folder creation logic for root groups
     expect(content).toContain("type: 'folder'");
-    expect(content).toContain('group.collapsed !== true');
+    expect(content).toContain('!group.collapsed');
     // Should check isRootGroup
     expect(content).toContain("p.slug.includes('/')");
   });
