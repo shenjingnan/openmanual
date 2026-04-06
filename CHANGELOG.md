@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.1](https://github.com/shenjingnan/openmanual/compare/v0.7.0...v0.7.1) (2026-04-06)
+
+### Bug Fixes
+
+* **install:** pnpm workspace 项目中依赖安装失败的问题 ([#55](https://github.com/shenjingnan/openmanual/issues/55)) ([17d371a](https://github.com/shenjingnan/openmanual/commit/17d371a4d6d3040d32ed32b1915b2fc593f83188))
+
 ## [0.7.0](https://github.com/shenjingnan/openmanual/compare/v0.6.1...v0.7.0) (2026-04-06)
 
 ### Features
