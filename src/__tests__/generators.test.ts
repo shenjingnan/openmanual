@@ -705,8 +705,8 @@ describe('generatePageActionsComponent', () => {
 
   it('should query data-content-area element', () => {
     const result = generatePageActionsComponent();
-    expect(result).toContain("document.querySelector('[data-content-area]')");
-    expect(result).toContain("document.querySelector('article')");
+    expect(result).toContain("document.querySelector<HTMLElement>('[data-content-area]')");
+    expect(result).toContain("document.querySelector<HTMLElement>('article')");
   });
 
   it('should include copied state feedback', () => {

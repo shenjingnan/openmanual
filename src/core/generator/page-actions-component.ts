@@ -9,8 +9,8 @@ function cn(...classes: (string | undefined | false)[]) {
 
 function getPageText(): string {
   const article =
-    document.querySelector('[data-content-area]') ??
-    document.querySelector('article');
+    document.querySelector<HTMLElement>('[data-content-area]') ??
+    document.querySelector<HTMLElement>('article');
   return article ? article.innerText : '';
 }
 
