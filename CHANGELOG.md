@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0](https://github.com/shenjingnan/openmanual/compare/v0.7.2...v0.8.0) (2026-04-06)
+
+### Features
+
+* 添加页面操作组件及开发模式原始 Markdown 查看支持 ([#57](https://github.com/shenjingnan/openmanual/issues/57)) ([20bcdd7](https://github.com/shenjingnan/openmanual/commit/20bcdd7b3ec3175e33cb794406c6ba7edfa2bdd3))
+
 ## [0.7.2](https://github.com/shenjingnan/openmanual/compare/v0.7.1...v0.7.2) (2026-04-06)
 
 ### Bug Fixes
