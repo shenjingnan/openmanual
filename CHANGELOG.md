@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.1](https://github.com/shenjingnan/openmanual/compare/v0.8.0...v0.8.1) (2026-04-06)
+
+### Bug Fixes
+
+* **generator:** 简化 defaultOpen 逻辑并添加 React 类型依赖 ([#61](https://github.com/shenjingnan/openmanual/issues/61)) ([7e7ba39](https://github.com/shenjingnan/openmanual/commit/7e7ba39b177a49daf13fac79d9cec6cd916a152c))
+
 ## [0.8.0](https://github.com/shenjingnan/openmanual/compare/v0.7.2...v0.8.0) (2026-04-06)
 
 ### Features
