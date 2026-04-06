@@ -3,6 +3,7 @@ import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
+import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
 import { generatePage } from '../core/generator/page.js';
@@ -230,6 +231,11 @@ describe('generateNextConfig', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain('unoptimized: true');
   });
+
+  it('should include mermaid in serverExternalPackages', () => {
+    const result = generateNextConfig(baseCtx);
+    expect(result).toContain("serverExternalPackages: ['mermaid']");
+  });
 });
 
 describe('generatePackageJson', () => {
@@ -257,6 +263,13 @@ describe('generatePackageJson', () => {
     expect(parsed.dependencies.tailwindcss).toBeDefined();
     expect(parsed.dependencies['fumadocs-core']).toBeDefined();
   });
+
+  it('should include mermaid and next-themes dependencies', () => {
+    const result = generatePackageJson(baseCtx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.mermaid).toBeDefined();
+    expect(parsed.dependencies['next-themes']).toBeDefined();
+  });
 });
 
 describe('generatePage', () => {
@@ -265,6 +278,12 @@ describe('generatePage', () => {
     expect(result).toContain("from '@/lib/source'");
     expect(result).toContain("from 'fumadocs-ui/page'");
     expect(result).toContain("from 'fumadocs-ui/mdx'");
+  });
+
+  it('should import and register Mermaid component', () => {
+    const result = generatePage(baseCtx);
+    expect(result).toContain("from '@/components/mermaid'");
+    expect(result).toContain('Mermaid');
   });
 
   it('should export generateStaticParams', () => {
@@ -395,6 +414,12 @@ describe('generateSourceConfig', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).toContain('export default defineConfig(');
     expect(result).toContain('fallbackLanguage');
+  });
+
+  it('should import and configure remarkMdxMermaid', () => {
+    const result = generateSourceConfig(baseCtx);
+    expect(result).toContain("import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins'");
+    expect(result).toContain('remarkPlugins: [remarkMdxMermaid]');
   });
 
   it('should generate empty titleMap when sidebar is not configured', () => {
@@ -559,5 +584,58 @@ describe('generateTsconfig', () => {
     const result = generateTsconfig();
     const parsed = JSON.parse(result);
     expect(parsed.compilerOptions.paths).toEqual({ '@/*': ['./*'] });
+  });
+});
+
+describe('generateMermaidComponent', () => {
+  it('should generate use client directive', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain("'use client'");
+  });
+
+  it('should import mermaid dynamically via cachePromise', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain("cachePromise('mermaid', () => import('mermaid'))");
+  });
+
+  it('should import useTheme from next-themes', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain("from 'next-themes'");
+    expect(result).toContain('useTheme');
+  });
+
+  it('should export Mermaid component', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain('export function Mermaid');
+  });
+
+  it('should include mounted state guard for SSG', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain('useState(false)');
+    expect(result).toContain('setMounted(true)');
+    expect(result).toContain('if (!mounted) return');
+  });
+
+  it('should include dark theme support', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain("resolvedTheme === 'dark'");
+    expect(result).toContain("'dark' : 'default'");
+  });
+
+  it('should include promise cache mechanism', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain('new Map');
+    expect(result).toContain('cachePromise');
+  });
+
+  it('should include bindFunctions for interactive elements', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain('bindFunctions');
+  });
+
+  it('should include mermaid initialize with fontFamily and themeCSS', () => {
+    const result = generateMermaidComponent();
+    expect(result).toContain("fontFamily: 'inherit'");
+    expect(result).toContain('themeCSS');
   });
 });
