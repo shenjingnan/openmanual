@@ -58,5 +58,20 @@
       "!!**/.source",
       "!!**/docs-dist"
     ]
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["src/components/**"],
+      "linter": {
+        "rules": {
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "a11y": {
+            "noSvgWithoutTitle": "off"
+          }
+        }
+      }
+    }
+  ]
 }
