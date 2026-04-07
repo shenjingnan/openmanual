@@ -1,18 +1,17 @@
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
-import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
-import { generateLibSource } from '../core/generator/lib-source.js';
-import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
+import { isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
+import { generateOpenManualConfig } from '../core/generator/openmanual-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
-import { generatePage } from '../core/generator/page.js';
-import { generatePageActionsComponent } from '../core/generator/page-actions-component.js';
-import { generatePostcssConfig } from '../core/generator/postcss-config.js';
-import { generateProvider } from '../core/generator/provider.js';
-import { generateRawContentRoute } from '../core/generator/raw-content-route.js';
 import { generateSourceConfig } from '../core/generator/source-config.js';
 import { generateTsconfig } from '../core/generator/tsconfig.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const baseConfig: OpenManualConfig = { name: 'Test' };
 const baseCtx = { config: baseConfig, projectDir: '/tmp/test' };
@@ -116,59 +115,6 @@ describe('generateGlobalCss - dark theme', () => {
   });
 });
 
-describe('generateLayout', () => {
-  it('should use logo text when navbar.logo is plain text', () => {
-    const ctx = {
-      config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
-    };
-    const result = generateLayout(ctx);
-    expect(result).toContain("title: 'MyLogo'");
-  });
-
-  it('should generate img tag when logo is an image path', () => {
-    const ctx = {
-      config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
-    };
-    const result = generateLayout(ctx);
-    expect(result).toContain('<img src="/logo.svg"');
-    expect(result).toContain('alt="Test"');
-    expect(result).toContain("import type { ReactNode } from 'react'");
-  });
-
-  it('should fallback to name when logo not set', () => {
-    const result = generateLayout(baseCtx);
-    expect(result).toContain("title: 'Test'");
-  });
-
-  it('should generate two img tags with dark toggle when logo is object with different paths', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
-      },
-    };
-    const result = generateLayout(ctx);
-    expect(result).toContain('src="/logo-light.svg"');
-    expect(result).toContain('src="/logo-dark.svg"');
-    expect(result).toContain('className="dark:hidden"');
-    expect(result).toContain('className="hidden dark:block"');
-    expect(result).toContain("import type { ReactNode } from 'react'");
-  });
-
-  it('should generate single img tag when logo object has same paths', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        navbar: { logo: { light: '/logo.svg', dark: '/logo.svg' } },
-      },
-    };
-    const result = generateLayout(ctx);
-    expect(result).toContain('src="/logo.svg"');
-    expect(result).not.toContain('dark:hidden');
-    expect(result).not.toContain('hidden dark:block');
-  });
-});
-
 describe('isImagePath', () => {
   it('should detect absolute paths as image paths', () => {
     expect(isImagePath('/logo.svg')).toBe(true);
@@ -201,17 +147,62 @@ describe('resolveLogoPaths', () => {
   });
 });
 
-describe('generateLibSource', () => {
-  it('should import from .source/server and use loader', () => {
-    const result = generateLibSource();
-    expect(result).toContain("from '@/.source/server'");
-    expect(result).toContain("from 'fumadocs-core/source'");
+describe('generateOpenManualConfig', () => {
+  it('should export config as const', () => {
+    const ctx = { config: baseConfig, projectDir: '/tmp/test' };
+    const result = generateOpenManualConfig(ctx as Parameters<typeof generateOpenManualConfig>[0]);
+    expect(result).toContain('export const config =');
+    expect(result).toContain('as const');
   });
 
-  it('should configure loader with baseUrl and source', () => {
-    const result = generateLibSource();
-    expect(result).toContain("baseUrl: '/'");
-    expect(result).toContain('source: docs.toFumadocsSource()');
+  it('should include name in config', () => {
+    const ctx = { config: { name: 'MyProject' }, projectDir: '/tmp/test' };
+    const result = generateOpenManualConfig(ctx as Parameters<typeof generateOpenManualConfig>[0]);
+    expect(result).toContain('"name": "MyProject"');
+  });
+
+  it('should include navbar config when provided', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        navbar: { logo: '/logo.svg', github: 'https://github.com/test/repo' },
+      },
+      projectDir: '/tmp/test',
+    };
+    const result = generateOpenManualConfig(ctx as Parameters<typeof generateOpenManualConfig>[0]);
+    expect(result).toContain('"navbar"');
+    expect(result).toContain('"/logo.svg"');
+  });
+
+  it('should include sidebar config when provided', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+      projectDir: '/tmp/test',
+    };
+    const result = generateOpenManualConfig(ctx as Parameters<typeof generateOpenManualConfig>[0]);
+    expect(result).toContain('"sidebar"');
+    expect(result).toContain('"group": "开始"');
+  });
+
+  it('should not include contentDir or outputDir', () => {
+    const ctx = {
+      config: { ...baseConfig, contentDir: 'docs', outputDir: '.openmanual' },
+      projectDir: '/tmp/test',
+    };
+    const result = generateOpenManualConfig(ctx as Parameters<typeof generateOpenManualConfig>[0]);
+    expect(result).not.toContain('"contentDir"');
+    expect(result).not.toContain('"outputDir"');
   });
 });
 
@@ -293,159 +284,6 @@ describe('generatePackageJson', () => {
     const parsed = JSON.parse(result);
     expect(parsed.dependencies.mermaid).toBeDefined();
     expect(parsed.dependencies['next-themes']).toBeDefined();
-  });
-});
-
-describe('generatePage', () => {
-  it('should import source and MDX components', () => {
-    const result = generatePage(baseCtx);
-    expect(result).toContain("from '@/lib/source'");
-    expect(result).toContain("from 'fumadocs-ui/page'");
-    expect(result).toContain("from 'fumadocs-ui/mdx'");
-  });
-
-  it('should import and register Mermaid component', () => {
-    const result = generatePage(baseCtx);
-    expect(result).toContain("from '@/components/mermaid'");
-    expect(result).toContain('Mermaid');
-  });
-
-  it('should export generateStaticParams', () => {
-    const result = generatePage(baseCtx);
-    expect(result).toContain('export function generateStaticParams()');
-    expect(result).toContain('source.generateParams()');
-  });
-
-  it('should include root path fallback in generateStaticParams', () => {
-    const result = generatePage(baseCtx);
-    expect(result).toContain('p.slug.length === 0');
-    expect(result).toContain('params.unshift');
-    expect(result).toContain('...params[0]');
-  });
-
-  it('should include allowedSlugs filter in strict mode', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        contentPolicy: 'strict' as const,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [
-              { slug: 'index', title: 'Home' },
-              { slug: 'guide', title: 'Guide' },
-            ],
-          },
-        ],
-      },
-    };
-    const result = generatePage(ctx);
-    expect(result).toContain('allowedSlugs');
-    expect(result).toContain('isAllowed');
-    expect(result).toContain('!isAllowed(slug)');
-    expect(result).toContain('params.filter');
-  });
-
-  it('should not include allowedSlugs filter when contentPolicy is all', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        contentPolicy: 'all' as const,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generatePage(ctx);
-    expect(result).not.toContain('allowedSlugs');
-    expect(result).not.toContain('isAllowed');
-  });
-
-  it('should default to strict mode when contentPolicy is not set', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generatePage(ctx);
-    expect(result).toContain('allowedSlugs');
-    expect(result).toContain('isAllowed');
-  });
-
-  it('should generate correct isAllowed function with index fallback', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        contentPolicy: 'strict' as const,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generatePage(ctx);
-    expect(result).toContain("slug.join('/')");
-    expect(result).toContain("'index'");
-  });
-
-  it('should import PageActions and use flex layout by default', () => {
-    const result = generatePage(baseCtx);
-    expect(result).toContain("from '@/components/page-actions'");
-    expect(result).toContain('PageActions');
-    expect(result).toContain('flex items-start justify-between');
-    expect(result).toContain('data-content-area');
-  });
-
-  it('should not include PageActions when pageActions.enabled is false', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        pageActions: { enabled: false },
-      },
-    };
-    const result = generatePage(ctx);
-    expect(result).not.toContain("from '@/components/page-actions'");
-    expect(result).not.toContain('PageActions');
-    expect(result).not.toContain('flex items-start justify-between');
-    expect(result).toContain('<DocsTitle>');
-  });
-});
-
-describe('generatePostcssConfig', () => {
-  it('should include tailwindcss postcss plugin', () => {
-    const result = generatePostcssConfig();
-    expect(result).toContain("'@tailwindcss/postcss'");
-  });
-});
-
-describe('generateProvider', () => {
-  it('should have use client directive', () => {
-    const result = generateProvider(baseCtx);
-    expect(result).toContain("'use client'");
-  });
-
-  it('should enable search by default', () => {
-    const result = generateProvider(baseCtx);
-    expect(result).toContain('enabled: true');
-  });
-
-  it('should disable search when config.search.enabled is false', () => {
-    const ctx = {
-      config: { ...baseConfig, search: { enabled: false } },
-    };
-    const result = generateProvider(ctx);
-    expect(result).toContain('enabled: false');
   });
 });
 
@@ -547,7 +385,6 @@ describe('generateSourceConfig', () => {
       },
     };
     const result = generateSourceConfig(ctx);
-    // titleFromPath must use indexOf('content/') to handle both relative and absolute paths
     expect(result).toContain("indexOf('content/')");
     expect(result).toContain("'content/'.length");
   });
@@ -633,210 +470,127 @@ describe('generateTsconfig', () => {
   });
 });
 
-describe('generateMermaidComponent', () => {
-  it('should generate use client directive', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("'use client'");
+describe('template files', () => {
+  const templatesDir = resolve(__dirname, '../core/generator/templates');
+
+  const requiredTemplates = [
+    'app/layout.tsx',
+    'app/provider.tsx',
+    'app/[[...slug]]/layout.tsx',
+    'app/[[...slug]]/page.tsx',
+    'lib/source.ts',
+    'lib/layout.tsx',
+    'components/mermaid.tsx',
+    'components/page-actions.tsx',
+    'postcss.config.mjs',
+    'app/api/raw/[...path]/route.ts',
+  ];
+
+  it('should have all required template files', () => {
+    for (const tpl of requiredTemplates) {
+      expect(existsSync(resolve(templatesDir, tpl)), `Template ${tpl} should exist`).toBe(true);
+    }
   });
 
-  it('should import mermaid dynamically via cachePromise', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("cachePromise('mermaid', () => import('mermaid'))");
+  it('app/layout.tsx should import Provider and global.css', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'app/layout.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("from './provider'");
+    expect(content).toContain("'../global.css'");
+    expect(content).toContain('RootLayout');
   });
 
-  it('should import useTheme from next-themes', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("from 'next-themes'");
-    expect(result).toContain('useTheme');
+  it('app/provider.tsx should import config from openmanual-config', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'app/provider.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("'use client'");
+    expect(content).toContain("from '@/openmanual-config'");
+    expect(content).toContain('config.search');
   });
 
-  it('should export Mermaid component', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('export function Mermaid');
+  it('lib/source.ts should import fumadocs loader', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'lib/source.ts'),
+      'utf-8'
+    );
+    expect(content).toContain("'fumadocs-core/source'");
+    expect(content).toContain('baseUrl');
   });
 
-  it('should include mounted state guard for SSG', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('useState(false)');
-    expect(result).toContain('setMounted(true)');
-    expect(result).toContain('if (!mounted) return');
+  it('lib/layout.tsx should import config and handle logo logic', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'lib/layout.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("from '@/openmanual-config'");
+    expect(content).toContain('baseOptions');
+    expect(content).toContain('isImagePath');
+    expect(content).toContain('dark:hidden');
   });
 
-  it('should include dark theme support', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("resolvedTheme === 'dark'");
-    expect(result).toContain("'dark' : 'default'");
+  it('components/mermaid.tsx should be a use client component', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'components/mermaid.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("'use client'");
+    expect(content).toContain('cachePromise');
+    expect(content).toContain('Mermaid');
   });
 
-  it('should include promise cache mechanism', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('new Map');
-    expect(result).toContain('cachePromise');
+  it('components/page-actions.tsx should include copy and view markdown', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'components/page-actions.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("'use client'");
+    expect(content).toContain('navigator.clipboard.writeText');
+    expect(content).toContain('PageActions');
   });
 
-  it('should include bindFunctions for interactive elements', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('bindFunctions');
+  it('app/[[...slug]]/page.tsx should import config and handle strict mode', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'app/[[...slug]]/page.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("from '@/openmanual-config'");
+    expect(content).toContain('config.contentPolicy');
+    expect(content).toContain('isAllowed');
+    expect(content).toContain('generateStaticParams');
+    expect(content).toContain('PageActions');
   });
 
-  it('should include mermaid initialize with fontFamily and themeCSS', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("fontFamily: 'inherit'");
-    expect(result).toContain('themeCSS');
-  });
-});
-
-describe('generatePageActionsComponent', () => {
-  it('should generate use client directive', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain("'use client'");
+  it('app/[[...slug]]/layout.tsx should include restructureTree', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'app/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+    expect(content).toContain("from '@/openmanual-config'");
+    expect(content).toContain('restructureTree');
+    expect(content).toContain('sidebarConfig');
+    expect(content).toContain('DocsLayout');
   });
 
-  it('should export PageActions component', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('export function PageActions');
+  it('postcss.config.mjs should include tailwindcss plugin', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'postcss.config.mjs'),
+      'utf-8'
+    );
+    expect(content).toContain("'@tailwindcss/postcss'");
   });
 
-  it('should include clipboard copy logic', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('navigator.clipboard.writeText');
-    expect(result).toContain('article.innerText');
-  });
-
-  it('should query data-content-area element', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain("document.querySelector<HTMLElement>('[data-content-area]')");
-    expect(result).toContain("document.querySelector<HTMLElement>('article')");
-  });
-
-  it('should include copied state feedback', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('已复制');
-    expect(result).toContain('复制全文');
-    expect(result).toContain('setCopied(true)');
-    expect(result).toContain('setCopied(false)');
-  });
-
-  it('should include click outside handler to close menu', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('handleClickOutside');
-    expect(result).toContain("addEventListener('mousedown'");
-    expect(result).toContain("removeEventListener('mousedown'");
-  });
-
-  it('should include inline cn utility for class merging', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('function cn(');
-    expect(result).toContain('classes.filter(Boolean).join');
-    expect(result).toContain('cn(');
-    expect(result).not.toContain("from 'fumadocs-ui/utils/cn'");
-  });
-
-  it('should include dropdown menu with relative positioning', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('absolute right-0 top-full');
-  });
-
-  it('should generate split button with Copy page text and arrow toggle', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('Copy page');
-    expect(result).toContain('Copied!');
-    expect(result).toContain('w-px bg-fd-border');
-    expect(result).toContain('ChevronDownIcon');
-    expect(result).toContain('ChevronUpIcon');
-  });
-
-  it('should include dropdown menu with min-w-[280px]', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('min-w-[280px]');
-  });
-
-  it('should include two menu options with icons and descriptions', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('复制全文');
-    expect(result).toContain('复制页面内容，适合 AI 工具使用');
-    expect(result).toContain('查看原文');
-    expect(result).toContain('查看原始 Markdown 源文件');
-    expect(result).toContain('FileTextIcon');
-  });
-
-  it('should include view markdown functionality', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('handleViewMarkdown');
-    expect(result).toContain('window.open');
-    expect(result).toContain('.md');
-  });
-
-  it('should include getPageText helper function', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('function getPageText()');
-  });
-
-  it('should include all inline SVG icons', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('CopyIcon');
-    expect(result).toContain('CheckIcon');
-    expect(result).toContain('ChevronDownIcon');
-    expect(result).toContain('ChevronUpIcon');
-    expect(result).toContain('FileTextIcon');
-  });
-
-  it('should include window.open for viewing raw markdown', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain("window.open(mdUrl, '_blank')");
-    expect(result).toContain("path === '/' ? '/index.md'");
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: testing generated template literal
-    expect(result).toContain('${path}.md');
-  });
-
-  it('should not include modal-related code', () => {
-    const result = generatePageActionsComponent();
-    expect(result).not.toContain('showMarkdownModal');
-    expect(result).not.toContain('setShowMarkdownModal');
-    expect(result).not.toContain('copiedMarkdown');
-    expect(result).not.toContain('setCopiedMarkdown');
-    expect(result).not.toContain('handleCopyFromModal');
-    expect(result).not.toContain('CloseIcon');
-    expect(result).not.toContain('bg-black/50');
-    expect(result).not.toContain('z-[100]');
-  });
-});
-
-describe('generateRawContentRoute', () => {
-  it('should import readFile from node:fs/promises', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("import { readFile } from 'node:fs/promises'");
-  });
-
-  it('should import NextResponse from next/server', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("import { NextResponse } from 'next/server'");
-  });
-
-  it('should export GET handler', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain('export async function GET');
-  });
-
-  it('should try .mdx and .md extensions', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("'.mdx'");
-    expect(result).toContain("'.md'");
-  });
-
-  it('should return text/plain content type', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("'Content-Type': 'text/plain; charset=utf-8'");
-  });
-
-  it('should return 404 when file not found', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("'Not found'");
-    expect(result).toContain('status: 404');
-  });
-
-  it('should read from content directory', () => {
-    const result = generateRawContentRoute();
-    expect(result).toContain("'content'");
+  it('app/api/raw/[...path]/route.ts should export GET handler', () => {
+    const content = require('node:fs').readFileSync(
+      resolve(templatesDir, 'app/api/raw/[...path]/route.ts'),
+      'utf-8'
+    );
+    expect(content).toContain('export async function GET');
+    expect(content).toContain("'content'");
+    expect(content).toContain('.mdx');
+    expect(content).toContain('.md');
   });
 });

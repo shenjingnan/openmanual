@@ -8,6 +8,24 @@ vi.mock('node:fs/promises', () => ({
   access: vi.fn().mockRejectedValue(new Error('ENOENT')),
 }));
 
+// Mock node:fs (sync) for template-reader
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn((path: string) => {
+    // Return fake template content based on file name
+    if (path.includes('layout.tsx') && path.includes('[[')) return 'fake-docs-layout';
+    if (path.includes('page.tsx')) return 'fake-page';
+    if (path.includes('provider.tsx')) return 'fake-provider';
+    if (path.includes('app/layout.tsx')) return 'fake-root-layout';
+    if (path.includes('source.ts')) return 'fake-source';
+    if (path.includes('lib/layout.tsx')) return 'fake-lib-layout';
+    if (path.includes('mermaid.tsx')) return 'fake-mermaid';
+    if (path.includes('page-actions.tsx')) return 'fake-page-actions';
+    if (path.includes('postcss')) return 'fake-postcss';
+    if (path.includes('route.ts')) return 'fake-route';
+    return 'fake-template';
+  }),
+}));
+
 const baseConfig: OpenManualConfig = { name: 'Test' };
 const baseCtx = {
   config: baseConfig,
@@ -21,22 +39,37 @@ describe('generateAll', () => {
     vi.clearAllMocks();
   });
 
-  it('should write 15 files in dev mode', async () => {
+  it('should write 15 files in dev mode (6 generated + 10 templates - 1 non-dev)', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...baseCtx, dev: true });
-    expect(writeFile).toHaveBeenCalledTimes(15);
+    // 6 generated + 10 template files (including api route)
+    expect(writeFile).toHaveBeenCalledTimes(16);
   });
 
-  it('should write 14 files in non-dev mode', async () => {
+  it('should write 15 files in non-dev mode (6 generated + 9 templates)', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
-    expect(writeFile).toHaveBeenCalledTimes(14);
+    // 6 generated + 9 template files (no api route)
+    expect(writeFile).toHaveBeenCalledTimes(15);
   });
 
   it('should create directories recursively', async () => {
     const { mkdir } = await import('node:fs/promises');
     await generateAll(baseCtx);
     expect(mkdir).toHaveBeenCalledWith(expect.any(String), { recursive: true });
+  });
+
+  it('should write openmanual-config.ts', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const configCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('openmanual-config.ts')
+    );
+    expect(configCall).toBeDefined();
+    expect((configCall as unknown[])[1]).toContain('export const config');
+    expect((configCall as unknown[])[1]).toContain('as const');
   });
 
   it('should write source.config.ts', async () => {
@@ -50,7 +83,71 @@ describe('generateAll', () => {
     expect((sourceCall as unknown[])[1]).toContain('defineDocs');
   });
 
-  it('should include docs layout with github link when configured', async () => {
+  it('should write template files via readTemplate', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    // Verify template files were written with content from readTemplate
+    const layoutCall = calls.find(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('app/layout.tsx')
+    );
+    expect(layoutCall).toBeDefined();
+    expect((layoutCall as unknown[])[1]).toBe('fake-root-layout');
+  });
+
+  it('should write api route template only in dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    // Non-dev: should not have api route
+    await generateAll(baseCtx);
+    let calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    let routeCall = calls.find(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('api/raw')
+    );
+    expect(routeCall).toBeUndefined();
+
+    vi.clearAllMocks();
+
+    // Dev: should have api route
+    await generateAll({ ...baseCtx, dev: true });
+    calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    routeCall = calls.find(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('api/raw')
+    );
+    expect(routeCall).toBeDefined();
+    expect((routeCall as unknown[])[1]).toBe('fake-route');
+  });
+
+  it('should include sidebar config in openmanual-config.ts when configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const configCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('openmanual-config.ts')
+    );
+    expect(configCall).toBeDefined();
+    expect((configCall as unknown[])[1]).toContain('"sidebar"');
+    expect((configCall as unknown[])[1]).toContain('"group": "开始"');
+    expect((configCall as unknown[])[1]).toContain('"slug": "index"');
+  });
+
+  it('should include github link in openmanual-config.ts when configured', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -61,73 +158,12 @@ describe('generateAll', () => {
     };
     await generateAll(ctx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const layoutCall = calls.find(
+    const configCall = calls.find(
       (c: unknown[]) =>
-        typeof c[0] === 'string' &&
-        (c[0] as string).includes('[[...slug]]') &&
-        (c[0] as string).endsWith('layout.tsx')
+        typeof c[0] === 'string' && (c[0] as string).endsWith('openmanual-config.ts')
     );
-    expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).toContain('github');
-    expect((layoutCall as unknown[])[1]).toContain('https://github.com/test/repo');
-  });
-
-  it('should include nav links when configured', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        navbar: {
-          links: [{ label: 'Blog', href: 'https://blog.example.com' }],
-        },
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const layoutCall = calls.find(
-      (c: unknown[]) =>
-        typeof c[0] === 'string' &&
-        (c[0] as string).includes('[[...slug]]') &&
-        (c[0] as string).endsWith('layout.tsx')
-    );
-    expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).toContain('Blog');
-  });
-
-  it('should include footer text with single quote escaping', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        footer: { text: "MIT 2025 © Test's Project" },
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const layoutCall = calls.find(
-      (c: unknown[]) =>
-        typeof c[0] === 'string' &&
-        (c[0] as string).includes('[[...slug]]') &&
-        (c[0] as string).endsWith('layout.tsx')
-    );
-    expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).toContain("Test\\'s Project");
-  });
-
-  it('should not include github when not configured', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    await generateAll(baseCtx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const layoutCall = calls.find(
-      (c: unknown[]) =>
-        typeof c[0] === 'string' &&
-        (c[0] as string).includes('[[...slug]]') &&
-        (c[0] as string).endsWith('layout.tsx')
-    );
-    expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).not.toContain('github:');
+    expect(configCall).toBeDefined();
+    expect((configCall as unknown[])[1]).toContain('https://github.com/test/repo');
   });
 });
 
@@ -266,194 +302,6 @@ describe('generateMetaFiles', () => {
       (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
     );
     expect(metaCalls).toHaveLength(0);
-  });
-});
-
-describe('generateDocsLayout - restructureTree', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  function getDocsLayoutContent(calls: unknown[][]): string {
-    const layoutCall = calls.find(
-      (c) =>
-        typeof c[0] === 'string' &&
-        (c[0] as string).includes('[[...slug]]') &&
-        (c[0] as string).endsWith('layout.tsx')
-    );
-    return (layoutCall as unknown[])?.[1] as string;
-  }
-
-  it('should not include restructureTree when sidebar is not configured', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    await generateAll(baseCtx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    expect(content).not.toContain('restructureTree');
-    expect(content).not.toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
-    expect(content).toContain('tree: source.getPageTree()');
-  });
-
-  it('should include restructureTree when sidebar is configured', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [
-              { slug: 'index', title: '首页' },
-              { slug: 'quickstart', title: '快速上手' },
-            ],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    expect(content).toContain('restructureTree');
-    expect(content).toContain('sidebarConfig');
-    expect(content).toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
-    expect(content).not.toContain('interface TreeNode');
-    expect(content).toContain('restructureTree(source.getPageTree())');
-  });
-
-  it('should embed sidebar config with group, collapsed and page slugs', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            collapsed: false,
-            pages: [
-              { slug: 'index', title: '首页' },
-              { slug: 'quickstart', title: '快速上手' },
-            ],
-          },
-          {
-            group: '进阶',
-            collapsed: true,
-            pages: [{ slug: 'advanced/search', title: '搜索' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should contain the sidebar config JSON
-    expect(content).toContain('"group": "开始"');
-    expect(content).toContain('"group": "进阶"');
-    expect(content).toContain('"collapsed": true');
-    expect(content).toContain('"slug": "index"');
-    expect(content).toContain('"slug": "quickstart"');
-    expect(content).toContain('"slug": "advanced/search"');
-    // Should NOT contain titles (only slugs are needed for restructuring)
-    expect(content).not.toContain('"title": "首页"');
-  });
-
-  it('should include slugToUrl helper in generated code', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [{ slug: 'index', title: '首页' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    expect(content).toContain("slug === 'index' ? '/'");
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: checking generated template literal syntax
-    expect(content).toContain('/${slug}');
-  });
-
-  it('should handle root-level group wrapping logic', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            collapsed: false,
-            pages: [
-              { slug: 'index', title: '首页' },
-              { slug: 'quickstart', title: '快速上手' },
-            ],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should contain folder creation logic for root groups
-    expect(content).toContain("type: 'folder'");
-    expect(content).toContain('!group.collapsed');
-    // Should check isRootGroup
-    expect(content).toContain("p.slug.includes('/')");
-  });
-
-  it('should handle directory-level group matching logic', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '指南',
-            collapsed: false,
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should contain dirPrefix extraction
-    expect(content).toContain("p.slug.includes('/')");
-    expect(content).toContain("?.slug.split('/')[0]");
-    // Should contain folder URL prefix matching
-    expect(content).toContain('startsWith');
-    // Should use type assertion for PageTree.Folder in else branch
-    expect(content).toContain('as PageTree.Folder');
-  });
-
-  it('should preserve remaining nodes not in sidebar config', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [{ slug: 'index', title: '首页' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should append unconsumed nodes
-    expect(content).toContain('consumed.has(i)');
   });
 });
 

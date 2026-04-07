@@ -2,17 +2,12 @@ import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { generateGlobalCss } from './global-css.js';
-import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
-import { generateLibSource } from './lib-source.js';
-import { generateMermaidComponent } from './mermaid-component.js';
+import { isImagePath, resolveLogoPaths } from './layout.js';
 import { generateNextConfig } from './next-config.js';
+import { generateOpenManualConfig } from './openmanual-config.js';
 import { generatePackageJson } from './package-json.js';
-import { generatePage } from './page.js';
-import { generatePageActionsComponent } from './page-actions-component.js';
-import { generatePostcssConfig } from './postcss-config.js';
-import { generateProvider } from './provider.js';
-import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSourceConfig } from './source-config.js';
+import { readTemplate } from './template-reader.js';
 import { generateTsconfig } from './tsconfig.js';
 
 export interface GenerateContext {
@@ -27,75 +22,50 @@ export interface GenerateContext {
   dev?: boolean;
 }
 
+// 模板文件列表（从 templates/ 目录读取）
+const TEMPLATE_FILES = [
+  'app/layout.tsx',
+  'app/provider.tsx',
+  'app/[[...slug]]/layout.tsx',
+  'app/[[...slug]]/page.tsx',
+  'lib/source.ts',
+  'lib/layout.tsx',
+  'components/mermaid.tsx',
+  'components/page-actions.tsx',
+  'postcss.config.mjs',
+];
+
 export async function generateAll(ctx: GenerateContext): Promise<void> {
-  const files: Array<{ path: string; content: string }> = [
-    {
-      path: 'source.config.ts',
-      content: generateSourceConfig(ctx),
-    },
-    {
-      path: 'next.config.mjs',
-      content: generateNextConfig(ctx),
-    },
-    {
-      path: 'global.css',
-      content: generateGlobalCss(ctx),
-    },
-    {
-      path: 'package.json',
-      content: generatePackageJson(ctx),
-    },
-    {
-      path: 'tsconfig.json',
-      content: generateTsconfig(),
-    },
-    {
-      path: 'postcss.config.mjs',
-      content: generatePostcssConfig(),
-    },
-    {
-      path: 'lib/source.ts',
-      content: generateLibSource(),
-    },
-    {
-      path: 'lib/layout.tsx',
-      content: generateLayout(ctx),
-    },
-    {
-      path: 'components/mermaid.tsx',
-      content: generateMermaidComponent(),
-    },
-    {
-      path: 'components/page-actions.tsx',
-      content: generatePageActionsComponent(),
-    },
-    // 仅在 dev 模式生成 API 路由（生产构建中 output: 'export' 不兼容 API 路由）
-    ...(ctx.dev
-      ? [{ path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute() }]
-      : []),
-    {
-      path: 'app/layout.tsx',
-      content: generateRootLayout(),
-    },
-    {
-      path: 'app/provider.tsx',
-      content: generateProvider(ctx),
-    },
-    {
-      path: 'app/[[...slug]]/layout.tsx',
-      content: generateDocsLayout(ctx),
-    },
-    {
-      path: 'app/[[...slug]]/page.tsx',
-      content: generatePage(ctx),
-    },
+  // 1. 生成的文件（需要动态生成）
+  const generatedFiles: Array<{ path: string; content: string }> = [
+    { path: 'openmanual-config.ts', content: generateOpenManualConfig(ctx) },
+    { path: 'source.config.ts', content: generateSourceConfig(ctx) },
+    { path: 'next.config.mjs', content: generateNextConfig(ctx) },
+    { path: 'global.css', content: generateGlobalCss(ctx) },
+    { path: 'package.json', content: generatePackageJson(ctx) },
+    { path: 'tsconfig.json', content: generateTsconfig() },
   ];
 
-  for (const file of files) {
+  // dev 模式额外生成 API 路由
+  const templateFiles = ctx.dev
+    ? [...TEMPLATE_FILES, 'app/api/raw/[...path]/route.ts']
+    : TEMPLATE_FILES;
+
+  // 写入生成的文件
+  for (const file of generatedFiles) {
     const fullPath = join(ctx.appDir, file.path);
     const dir = join(fullPath, '..');
     await mkdir(dir, { recursive: true });
     await writeFile(fullPath, file.content, 'utf-8');
+  }
+
+  // 写入模板文件（从 templates/ 目录读取）
+  for (const tpl of templateFiles) {
+    const content = readTemplate(tpl);
+    const fullPath = join(ctx.appDir, tpl);
+    const dir = join(fullPath, '..');
+    await mkdir(dir, { recursive: true });
+    await writeFile(fullPath, content, 'utf-8');
   }
 
   // Generate logo SVG in public/ when logo is an image path
@@ -114,150 +84,6 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
 
   // Generate meta.json for each sidebar group directory
   await generateMetaFiles(ctx);
-}
-
-function generateRootLayout(): string {
-  return `import { Provider } from './provider';
-import type { ReactNode } from 'react';
-import '../global.css';
-
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="zh" suppressHydrationWarning>
-      <body className="flex flex-col min-h-screen">
-        <Provider>{children}</Provider>
-      </body>
-    </html>
-  );
-}
-`;
-}
-
-function generateDocsLayout(ctx: GenerateContext): string {
-  const { config } = ctx;
-  const githubLink = config.navbar?.github ?? '';
-  const navLinks = config.navbar?.links ?? [];
-  const footerText = config.footer?.text ?? '';
-
-  const linksArray = navLinks.map((l) => ({
-    text: l.label,
-    url: l.href,
-    external: true,
-  }));
-
-  const githubLine = githubLink ? `\n    github: '${githubLink}',` : '';
-
-  const linksLine = linksArray.length > 0 ? `\n    links: ${JSON.stringify(linksArray)},` : '';
-
-  const footerLine = footerText
-    ? `\n  footer: { children: '${footerText.replace(/'/g, "\\'")}' },`
-    : '';
-
-  // Build sidebar config for tree restructuring (only needed fields)
-  const sidebar = config.sidebar;
-  const sidebarSnippet =
-    sidebar && sidebar.length > 0
-      ? `\nconst sidebarConfig = ${JSON.stringify(
-          sidebar.map((g) => ({
-            group: g.group,
-            collapsed: g.collapsed,
-            pages: g.pages.map((p) => ({ slug: p.slug })),
-          })),
-          null,
-          2
-        )} as const;
-
-function slugToUrl(slug: string): string {
-  return slug === 'index' ? '/' : \`/\${slug}\`;
-}
-
-function restructureTree(tree: PageTree.Root): PageTree.Root {
-  const consumed = new Set<number>();
-  const newChildren: PageTree.Node[] = [];
-
-  for (const group of sidebarConfig) {
-    const isRootGroup = group.pages.every((p) => !p.slug.includes('/'));
-
-    if (isRootGroup) {
-      const folderChildren: PageTree.Node[] = [];
-      for (const page of group.pages) {
-        const url = slugToUrl(page.slug);
-        const idx = (tree.children ?? []).findIndex(
-          (c, i) => !consumed.has(i) && c.type === 'page' && c.url === url
-        );
-        if (idx >= 0) {
-          folderChildren.push(tree.children![idx]);
-          consumed.add(idx);
-        }
-      }
-      if (folderChildren.length > 0) {
-        newChildren.push({
-          type: 'folder',
-          name: group.group,
-          defaultOpen: !group.collapsed,
-          children: folderChildren,
-        });
-      }
-    } else {
-      const dirPrefix = group.pages.find((p) => p.slug.includes('/'))?.slug.split('/')[0];
-      if (dirPrefix) {
-        const idx = (tree.children ?? []).findIndex(
-          (child, i) =>
-            !consumed.has(i) &&
-            child.type === 'folder' &&
-            child.children?.some(
-              (c) => c.type === 'page' && c.url?.startsWith(\`/\${dirPrefix}/\`)
-            )
-        );
-        if (idx >= 0) {
-          consumed.add(idx);
-          newChildren.push({
-            ...(tree.children![idx] as PageTree.Folder),
-            name: group.group,
-            defaultOpen: !group.collapsed,
-          });
-        }
-      }
-    }
-  }
-
-  for (let i = 0; i < (tree.children ?? []).length; i++) {
-    if (!consumed.has(i)) {
-      newChildren.push(tree.children![i]);
-    }
-  }
-
-  return { ...tree, children: newChildren };
-}
-`
-      : '';
-
-  const treeLine = sidebarSnippet
-    ? 'tree: restructureTree(source.getPageTree()),'
-    : 'tree: source.getPageTree(),';
-
-  const pageTreeImport = sidebarSnippet
-    ? "\nimport type * as PageTree from 'fumadocs-core/page-tree';"
-    : '';
-
-  return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
-import { baseOptions } from '@/lib/layout';
-import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${pageTreeImport}
-${sidebarSnippet}
-const docsOptions = {
-  ...baseOptions(),
-  ${treeLine}${githubLine}${linksLine}${footerLine}
-};
-
-export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {
-  return (
-    <DocsLayout {...docsOptions}>
-      {children}
-    </DocsLayout>
-  );
-}
-`;
 }
 
 export function generateOpenManualLogoSvg(

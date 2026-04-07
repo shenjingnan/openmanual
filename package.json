@@ -27,7 +27,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && cp -r src/core/generator/templates dist/templates",
     "dev": "OPENMANUAL_ROOT=$(pwd) tsx src/cli/bin.ts dev --watch --cwd docs",
     "dev:cli": "tsx watch src/cli/bin.ts",
     "test": "vitest run",

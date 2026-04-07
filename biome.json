@@ -50,6 +50,7 @@
       "**",
       "!!**/node_modules",
       "!!**/dist",
+      "!!**/src/core/generator/templates",
       "!!**/coverage",
       "!!**/*.min.js",
       "!!**/.husky",

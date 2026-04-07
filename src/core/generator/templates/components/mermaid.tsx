@@ -1,5 +1,4 @@
-export function generateMermaidComponent(): string {
-  return `'use client';
+'use client';
 
 import { use, useEffect, useId, useState } from 'react';
 import { useTheme } from 'next-themes';
@@ -40,8 +39,8 @@ function MermaidContent({ chart }: { chart: string }) {
   });
 
   const { svg, bindFunctions } = use(
-    cachePromise(\`\${chart}-\${resolvedTheme}\`, () => {
-      return mermaid.render(id, chart.replaceAll('\\\\\\\\n', '\\n'));
+    cachePromise(`${chart}-${resolvedTheme}`, () => {
+      return mermaid.render(id, chart.replaceAll('\\n', '\n'));
     }),
   );
 
@@ -53,6 +52,4 @@ function MermaidContent({ chart }: { chart: string }) {
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );
-}
-`;
 }

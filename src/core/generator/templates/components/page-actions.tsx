@@ -1,5 +1,4 @@
-export function generatePageActionsComponent(): string {
-  return `'use client';
+'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 
@@ -45,7 +44,7 @@ export function PageActions() {
 
   const handleViewMarkdown = useCallback(() => {
     const path = window.location.pathname;
-    const mdUrl = path === '/' ? '/index.md' : \`\${path}.md\`;
+    const mdUrl = path === '/' ? '/index.md' : `${path}.md`;
     window.open(mdUrl, '_blank');
     setOpen(false);
   }, []);
@@ -164,6 +163,4 @@ export function PageActions() {
       )}
     </div>
   );
-}
-`;
 }
