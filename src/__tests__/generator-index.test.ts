@@ -290,11 +290,13 @@ describe('generateDocsLayout - restructureTree', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
     expect(content).not.toContain('restructureTree');
-    expect(content).not.toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
+    expect(content).not.toContain(
+      "import { restructureTree } from 'openmanual/utils/restructure-tree'"
+    );
     expect(content).toContain('tree: source.getPageTree()');
   });
 
-  it('should include restructureTree when sidebar is configured', async () => {
+  it('should include restructureTree import when sidebar is configured', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -314,11 +316,12 @@ describe('generateDocsLayout - restructureTree', () => {
     await generateAll(ctx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
-    expect(content).toContain('restructureTree');
+    expect(content).toContain(
+      "import { restructureTree } from 'openmanual/utils/restructure-tree'"
+    );
     expect(content).toContain('sidebarConfig');
-    expect(content).toContain("import type * as PageTree from 'fumadocs-core/page-tree'");
     expect(content).not.toContain('interface TreeNode');
-    expect(content).toContain('restructureTree(source.getPageTree())');
+    expect(content).toContain('restructureTree(source.getPageTree(), sidebarConfig)');
   });
 
   it('should embed sidebar config with group, collapsed and page slugs', async () => {
@@ -358,7 +361,7 @@ describe('generateDocsLayout - restructureTree', () => {
     expect(content).not.toContain('"title": "首页"');
   });
 
-  it('should include slugToUrl helper in generated code', async () => {
+  it('should import restructureTree utility instead of embedding function body', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -375,85 +378,13 @@ describe('generateDocsLayout - restructureTree', () => {
     await generateAll(ctx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
-    expect(content).toContain("slug === 'index' ? '/'");
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: checking generated template literal syntax
-    expect(content).toContain('/${slug}');
-  });
-
-  it('should handle root-level group wrapping logic', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            collapsed: false,
-            pages: [
-              { slug: 'index', title: '首页' },
-              { slug: 'quickstart', title: '快速上手' },
-            ],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should contain folder creation logic for root groups
-    expect(content).toContain("type: 'folder'");
-    expect(content).toContain('!group.collapsed');
-    // Should check isRootGroup
-    expect(content).toContain("p.slug.includes('/')");
-  });
-
-  it('should handle directory-level group matching logic', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '指南',
-            collapsed: false,
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should contain dirPrefix extraction
-    expect(content).toContain("p.slug.includes('/')");
-    expect(content).toContain("?.slug.split('/')[0]");
-    // Should contain folder URL prefix matching
-    expect(content).toContain('startsWith');
-    // Should use type assertion for PageTree.Folder in else branch
-    expect(content).toContain('as PageTree.Folder');
-  });
-
-  it('should preserve remaining nodes not in sidebar config', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [{ slug: 'index', title: '首页' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-    // Should append unconsumed nodes
-    expect(content).toContain('consumed.has(i)');
+    // Should use import instead of embedded function body
+    expect(content).toContain(
+      "import { restructureTree } from 'openmanual/utils/restructure-tree'"
+    );
+    // Should NOT embed slugToUrl or restructureTree function definitions
+    expect(content).not.toContain('function slugToUrl');
+    expect(content).not.toContain('function restructureTree');
   });
 });
 

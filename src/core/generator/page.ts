@@ -1,16 +1,4 @@
-import type { OpenManualConfig } from '../config/schema.js';
-
-function buildAllowedSlugs(config: OpenManualConfig): Set<string> {
-  const slugs = new Set<string>();
-  if (config.sidebar) {
-    for (const group of config.sidebar) {
-      for (const page of group.pages) {
-        slugs.add(page.slug);
-      }
-    }
-  }
-  return slugs;
-}
+import { collectConfiguredSlugs, type OpenManualConfig } from '../config/schema.js';
 
 export function generatePage(_ctx: { config: OpenManualConfig }): string {
   const isStrict = _ctx.config.contentPolicy !== 'all';
@@ -18,7 +6,7 @@ export function generatePage(_ctx: { config: OpenManualConfig }): string {
 
   const allowedSlugsSnippet = isStrict
     ? `
-const allowedSlugs = new Set(${JSON.stringify([...buildAllowedSlugs(_ctx.config)])});
+const allowedSlugs = new Set(${JSON.stringify([...collectConfiguredSlugs(_ctx.config)])});
 
 function isAllowed(slug: string[] | undefined): boolean {
   if (allowedSlugs.size === 0) return true;

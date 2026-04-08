@@ -1,28 +1,4 @@
-import type { OpenManualConfig } from '../config/schema.js';
-
-function buildTitleMap(config: OpenManualConfig): Record<string, string> {
-  const map: Record<string, string> = {};
-  if (config.sidebar) {
-    for (const group of config.sidebar) {
-      for (const page of group.pages) {
-        map[page.slug] = page.title;
-      }
-    }
-  }
-  return map;
-}
-
-function buildAllowedSlugs(config: OpenManualConfig): Set<string> {
-  const slugs = new Set<string>();
-  if (config.sidebar) {
-    for (const group of config.sidebar) {
-      for (const page of group.pages) {
-        slugs.add(page.slug);
-      }
-    }
-  }
-  return slugs;
-}
+import { buildTitleMap, collectConfiguredSlugs, type OpenManualConfig } from '../config/schema.js';
 
 export function generateSourceConfig(_ctx: { config: OpenManualConfig }): string {
   const titleMap = buildTitleMap(_ctx.config);
@@ -36,7 +12,7 @@ export function generateSourceConfig(_ctx: { config: OpenManualConfig }): string
   const allowedSlugsSnippet = isStrict
     ? `
 
-const allowedSlugs = new Set(${JSON.stringify([...buildAllowedSlugs(_ctx.config)])});
+const allowedSlugs = new Set(${JSON.stringify([...collectConfiguredSlugs(_ctx.config)])});
 
 function slugFromPath(path: string): string {
   const normalized = path.replace(/\\\\/g, '/');
