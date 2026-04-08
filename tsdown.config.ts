@@ -53,4 +53,14 @@ export default defineConfig([
     outExtensions: () => ({ js: '.js' }),
     deps: { neverBundle: [...NEVER_BUNDLE, 'next-themes', 'mermaid'] },
   },
+  {
+    entry: ['src/utils/**/*.ts'],
+    format: 'esm',
+    target: 'es2023',
+    unbundle: true,
+    dts: { sourcemap: false },
+    outDir: 'dist/utils',
+    outExtensions: () => ({ js: '.js' }),
+    deps: { neverBundle: NEVER_BUNDLE },
+  },
 ]);

@@ -22,6 +22,10 @@
     "./components/*": {
       "import": "./dist/components/*.js",
       "types": "./dist/components/*.d.ts"
+    },
+    "./utils/*": {
+      "import": "./dist/utils/*.js",
+      "types": "./dist/utils/*.d.ts"
     }
   },
   "files": [
