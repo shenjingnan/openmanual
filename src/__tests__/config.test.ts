@@ -420,7 +420,7 @@ describe('page tree builder', () => {
     const sidebar = [
       {
         group: 'Docs',
-        pages: [{ slug: 'guide', title: 'Guide' }],
+        pages: [{ slug: 'guide', title: '' }],
       },
     ];
 
