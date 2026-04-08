@@ -122,7 +122,7 @@ describe('generateLayout', () => {
       config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain("type: 'text', text: 'MyLogo'");
+    expect(result).toContain('type="text" text="MyLogo"');
   });
 
   it('should generate image props when logo is an image path', () => {
@@ -130,12 +130,12 @@ describe('generateLayout', () => {
       config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain("type: 'image', src: '/logo.svg', alt: 'Test'");
+    expect(result).toContain('type="image" src="/logo.svg" alt="Test"');
   });
 
   it('should fallback to name as text when logo not set', () => {
     const result = generateLayout(baseCtx);
-    expect(result).toContain("type: 'text', text: 'Test'");
+    expect(result).toContain('type="text" text="Test"');
   });
 
   it('should generate srcLight and srcDark props when logo object has different paths', () => {
@@ -146,8 +146,8 @@ describe('generateLayout', () => {
       },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain("srcLight: '/logo-light.svg'");
-    expect(result).toContain("srcDark: '/logo-dark.svg'");
+    expect(result).toContain('srcLight="/logo-light.svg"');
+    expect(result).toContain('srcDark="/logo-dark.svg"');
   });
 
   it('should generate single src prop when logo object has same paths', () => {
@@ -158,9 +158,9 @@ describe('generateLayout', () => {
       },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain("type: 'image', src: '/logo.svg'");
-    expect(result).not.toContain('srcLight');
-    expect(result).not.toContain('srcDark');
+    expect(result).toContain('type="image" src="/logo.svg"');
+    expect(result).not.toContain('srcLight=');
+    expect(result).not.toContain('srcDark=');
   });
 
   it('should import NavLogo from openmanual/components/nav-layout', () => {

@@ -20,16 +20,16 @@ export function generateLayout(ctx: { config: OpenManualConfig }): string {
 
   let logoProps: string;
   if (typeof logo === 'string' && isImagePath(logo)) {
-    logoProps = `type: 'image', src: '${logo}', alt: '${config.name}'`;
+    logoProps = `type="image" src="${logo}" alt="${config.name}"`;
   } else if (typeof logo === 'object') {
     const { light, dark } = logo;
     if (light === dark) {
-      logoProps = `type: 'image', src: '${light}', alt: '${config.name}'`;
+      logoProps = `type="image" src="${light}" alt="${config.name}"`;
     } else {
-      logoProps = `type: 'image', srcLight: '${light}', srcDark: '${dark}', alt: '${config.name}'`;
+      logoProps = `type="image" srcLight="${light}" srcDark="${dark}" alt="${config.name}"`;
     }
   } else {
-    logoProps = `type: 'text', text: '${logo}'`;
+    logoProps = `type="text" text="${logo}"`;
   }
 
   return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
