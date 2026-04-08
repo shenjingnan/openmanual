@@ -25,6 +25,8 @@ export interface GenerateContext {
   contentDir: string;
   /** 开发模式标志，dev 模式下不设置 output: 'export'，生成 API 路由和 rewrites */
   dev?: boolean;
+  /** openmanual 项目根目录，dev 模式下用于 file: 链接到本地构建产物 */
+  openmanualRoot?: string;
 }
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {

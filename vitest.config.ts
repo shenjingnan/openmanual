@@ -17,6 +17,7 @@ export default defineConfig({
         '**/__tests__/**',
         'examples/**',
         'src/cli/**',
+        'src/components/**',
         'src/index.ts',
         'docs/**',
       ],

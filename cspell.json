@@ -4,7 +4,8 @@
   "language": "en",
   "words": [
     "biomejs",
-    "tsup",
+    "tsdown",
+    "myproject",
     "vitest",
     "pnpm",
     "typecheck",

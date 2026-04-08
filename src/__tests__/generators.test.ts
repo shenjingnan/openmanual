@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
@@ -293,6 +293,55 @@ describe('generatePackageJson', () => {
     const parsed = JSON.parse(result);
     expect(parsed.dependencies.mermaid).toBeDefined();
     expect(parsed.dependencies['next-themes']).toBeDefined();
+  });
+
+  it('should use version range when openmanualRoot is not set', () => {
+    const result = generatePackageJson(baseCtx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toMatch(/^\^\d+\.\d+\.\d+/);
+  });
+
+  it('should use file: link when openmanualRoot and appDir are set', () => {
+    const ctx = {
+      config: baseConfig,
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.openmanual/app',
+      openmanualRoot: '/tmp/test',
+    };
+    const result = generatePackageJson(ctx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toBe('file:../..');
+  });
+
+  it('should compute correct relative path for file: link', () => {
+    const ctx = {
+      config: baseConfig,
+      projectDir: '/tmp/myproject',
+      appDir: '/tmp/myproject/.openmanual/app',
+      openmanualRoot: '/tmp/myproject',
+    };
+    const result = generatePackageJson(ctx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toBe('file:../..');
+  });
+
+  it('should fall back to version when openmanualRoot is set but appDir is not', () => {
+    const ctx = {
+      config: baseConfig,
+      projectDir: '/tmp/test',
+      openmanualRoot: '/tmp/test',
+    };
+    const result = generatePackageJson(ctx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toMatch(/^\^\d+\.\d+\.\d+/);
+  });
+
+  it('should use __VERSION__ when defined', () => {
+    vi.stubGlobal('__VERSION__', '1.0.0-test');
+    const result = generatePackageJson(baseCtx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toBe('^1.0.0-test');
+    vi.restoreAllMocks();
   });
 });
 
@@ -639,50 +688,9 @@ describe('generateMermaidComponent', () => {
     expect(result).toContain("'use client'");
   });
 
-  it('should import mermaid dynamically via cachePromise', () => {
+  it('should re-export Mermaid from openmanual/components/mermaid', () => {
     const result = generateMermaidComponent();
-    expect(result).toContain("cachePromise('mermaid', () => import('mermaid'))");
-  });
-
-  it('should import useTheme from next-themes', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("from 'next-themes'");
-    expect(result).toContain('useTheme');
-  });
-
-  it('should export Mermaid component', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('export function Mermaid');
-  });
-
-  it('should include mounted state guard for SSG', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('useState(false)');
-    expect(result).toContain('setMounted(true)');
-    expect(result).toContain('if (!mounted) return');
-  });
-
-  it('should include dark theme support', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("resolvedTheme === 'dark'");
-    expect(result).toContain("'dark' : 'default'");
-  });
-
-  it('should include promise cache mechanism', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('new Map');
-    expect(result).toContain('cachePromise');
-  });
-
-  it('should include bindFunctions for interactive elements', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain('bindFunctions');
-  });
-
-  it('should include mermaid initialize with fontFamily and themeCSS', () => {
-    const result = generateMermaidComponent();
-    expect(result).toContain("fontFamily: 'inherit'");
-    expect(result).toContain('themeCSS');
+    expect(result).toContain("export { Mermaid } from 'openmanual/components/mermaid'");
   });
 });
 
@@ -692,113 +700,9 @@ describe('generatePageActionsComponent', () => {
     expect(result).toContain("'use client'");
   });
 
-  it('should export PageActions component', () => {
+  it('should re-export PageActions from openmanual/components/page-actions', () => {
     const result = generatePageActionsComponent();
-    expect(result).toContain('export function PageActions');
-  });
-
-  it('should include clipboard copy logic', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('navigator.clipboard.writeText');
-    expect(result).toContain('article.innerText');
-  });
-
-  it('should query data-content-area element', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain("document.querySelector<HTMLElement>('[data-content-area]')");
-    expect(result).toContain("document.querySelector<HTMLElement>('article')");
-  });
-
-  it('should include copied state feedback', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('已复制');
-    expect(result).toContain('复制全文');
-    expect(result).toContain('setCopied(true)');
-    expect(result).toContain('setCopied(false)');
-  });
-
-  it('should include click outside handler to close menu', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('handleClickOutside');
-    expect(result).toContain("addEventListener('mousedown'");
-    expect(result).toContain("removeEventListener('mousedown'");
-  });
-
-  it('should include inline cn utility for class merging', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('function cn(');
-    expect(result).toContain('classes.filter(Boolean).join');
-    expect(result).toContain('cn(');
-    expect(result).not.toContain("from 'fumadocs-ui/utils/cn'");
-  });
-
-  it('should include dropdown menu with relative positioning', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('absolute right-0 top-full');
-  });
-
-  it('should generate split button with Copy page text and arrow toggle', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('Copy page');
-    expect(result).toContain('Copied!');
-    expect(result).toContain('w-px bg-fd-border');
-    expect(result).toContain('ChevronDownIcon');
-    expect(result).toContain('ChevronUpIcon');
-  });
-
-  it('should include dropdown menu with min-w-[280px]', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('min-w-[280px]');
-  });
-
-  it('should include two menu options with icons and descriptions', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('复制全文');
-    expect(result).toContain('复制页面内容，适合 AI 工具使用');
-    expect(result).toContain('查看原文');
-    expect(result).toContain('查看原始 Markdown 源文件');
-    expect(result).toContain('FileTextIcon');
-  });
-
-  it('should include view markdown functionality', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('handleViewMarkdown');
-    expect(result).toContain('window.open');
-    expect(result).toContain('.md');
-  });
-
-  it('should include getPageText helper function', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('function getPageText()');
-  });
-
-  it('should include all inline SVG icons', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain('CopyIcon');
-    expect(result).toContain('CheckIcon');
-    expect(result).toContain('ChevronDownIcon');
-    expect(result).toContain('ChevronUpIcon');
-    expect(result).toContain('FileTextIcon');
-  });
-
-  it('should include window.open for viewing raw markdown', () => {
-    const result = generatePageActionsComponent();
-    expect(result).toContain("window.open(mdUrl, '_blank')");
-    expect(result).toContain("path === '/' ? '/index.md'");
-    // biome-ignore lint/suspicious/noTemplateCurlyInString: testing generated template literal
-    expect(result).toContain('${path}.md');
-  });
-
-  it('should not include modal-related code', () => {
-    const result = generatePageActionsComponent();
-    expect(result).not.toContain('showMarkdownModal');
-    expect(result).not.toContain('setShowMarkdownModal');
-    expect(result).not.toContain('copiedMarkdown');
-    expect(result).not.toContain('setCopiedMarkdown');
-    expect(result).not.toContain('handleCopyFromModal');
-    expect(result).not.toContain('CloseIcon');
-    expect(result).not.toContain('bg-black/50');
-    expect(result).not.toContain('z-[100]');
+    expect(result).toContain("export { PageActions } from 'openmanual/components/page-actions'");
   });
 });
 

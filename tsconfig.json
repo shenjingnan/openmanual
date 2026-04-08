@@ -16,6 +16,7 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "outDir": "./dist",
+    "jsx": "react-jsx",
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]

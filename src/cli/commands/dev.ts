@@ -31,6 +31,7 @@ export const devCommand = new Command('dev')
         appDir,
         contentDir: config.contentDir ?? 'content',
         dev: true,
+        ...(process.env.OPENMANUAL_ROOT ? { openmanualRoot: process.env.OPENMANUAL_ROOT } : {}),
       };
 
       await generateAll(ctx);
@@ -152,9 +153,8 @@ function spawnRegenerate(openmanualRoot: string, cwd: string, nextChild: ChildPr
 
   logger.step('重新生成文件...');
 
-  const binPath = resolve(openmanualRoot, 'src/cli/bin.ts');
-  const tsxPath = resolve(openmanualRoot, 'node_modules/.bin/tsx');
-  const child = spawn(tsxPath, [binPath, '_regenerate', '--cwd', cwd], {
+  const binPath = resolve(openmanualRoot, 'dist/bin.js');
+  const child = spawn('node', [binPath, '_regenerate', '--cwd', cwd], {
     stdio: 'inherit',
     env: { ...process.env },
   });

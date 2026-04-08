@@ -22,6 +22,7 @@ export const regenerateCommand = new Command('_regenerate')
         projectDir: cwd,
         appDir,
         contentDir: config.contentDir ?? 'content',
+        ...(process.env.OPENMANUAL_ROOT ? { openmanualRoot: process.env.OPENMANUAL_ROOT } : {}),
       };
 
       await ensureTempDir(cwd);
