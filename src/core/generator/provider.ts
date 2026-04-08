@@ -4,20 +4,11 @@ export function generateProvider(ctx: { config: OpenManualConfig }): string {
   const searchEnabled = ctx.config.search?.enabled !== false;
 
   return `'use client';
-
-import { RootProvider } from 'fumadocs-ui/provider/next';
+import { Provider } from 'openmanual/components/provider';
 import type { ReactNode } from 'react';
 
-export function Provider({ children }: { children: ReactNode }) {
-  return (
-    <RootProvider
-      search={{
-        enabled: ${searchEnabled},
-      }}
-    >
-      {children}
-    </RootProvider>
-  );
+export function AppProvider({ children }: { children: ReactNode }) {
+  return <Provider searchEnabled={${searchEnabled}}>{children}</Provider>;
 }
 `;
 }

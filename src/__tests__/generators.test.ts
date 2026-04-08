@@ -122,25 +122,23 @@ describe('generateLayout', () => {
       config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain("title: 'MyLogo'");
+    expect(result).toContain("type: 'text', text: 'MyLogo'");
   });
 
-  it('should generate img tag when logo is an image path', () => {
+  it('should generate image props when logo is an image path', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('<img src="/logo.svg"');
-    expect(result).toContain('alt="Test"');
-    expect(result).toContain("import type { ReactNode } from 'react'");
+    expect(result).toContain("type: 'image', src: '/logo.svg', alt: 'Test'");
   });
 
-  it('should fallback to name when logo not set', () => {
+  it('should fallback to name as text when logo not set', () => {
     const result = generateLayout(baseCtx);
-    expect(result).toContain("title: 'Test'");
+    expect(result).toContain("type: 'text', text: 'Test'");
   });
 
-  it('should generate two img tags with dark toggle when logo is object with different paths', () => {
+  it('should generate srcLight and srcDark props when logo object has different paths', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -148,14 +146,11 @@ describe('generateLayout', () => {
       },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('src="/logo-light.svg"');
-    expect(result).toContain('src="/logo-dark.svg"');
-    expect(result).toContain('className="dark:hidden"');
-    expect(result).toContain('className="hidden dark:block"');
-    expect(result).toContain("import type { ReactNode } from 'react'");
+    expect(result).toContain("srcLight: '/logo-light.svg'");
+    expect(result).toContain("srcDark: '/logo-dark.svg'");
   });
 
-  it('should generate single img tag when logo object has same paths', () => {
+  it('should generate single src prop when logo object has same paths', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -163,9 +158,14 @@ describe('generateLayout', () => {
       },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('src="/logo.svg"');
-    expect(result).not.toContain('dark:hidden');
-    expect(result).not.toContain('hidden dark:block');
+    expect(result).toContain("type: 'image', src: '/logo.svg'");
+    expect(result).not.toContain('srcLight');
+    expect(result).not.toContain('srcDark');
+  });
+
+  it('should import NavLogo from openmanual/components/nav-layout', () => {
+    const result = generateLayout(baseCtx);
+    expect(result).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
   });
 });
 
@@ -486,7 +486,7 @@ describe('generateProvider', () => {
 
   it('should enable search by default', () => {
     const result = generateProvider(baseCtx);
-    expect(result).toContain('enabled: true');
+    expect(result).toContain('searchEnabled={true}');
   });
 
   it('should disable search when config.search.enabled is false', () => {
@@ -494,7 +494,17 @@ describe('generateProvider', () => {
       config: { ...baseConfig, search: { enabled: false } },
     };
     const result = generateProvider(ctx);
-    expect(result).toContain('enabled: false');
+    expect(result).toContain('searchEnabled={false}');
+  });
+
+  it('should import Provider from openmanual/components/provider', () => {
+    const result = generateProvider(baseCtx);
+    expect(result).toContain("import { Provider } from 'openmanual/components/provider'");
+  });
+
+  it('should export AppProvider', () => {
+    const result = generateProvider(baseCtx);
+    expect(result).toContain('export function AppProvider');
   });
 });
 
