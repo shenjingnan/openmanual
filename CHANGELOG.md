@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.2](https://github.com/shenjingnan/openmanual/compare/v0.8.1...v0.8.2) (2026-04-08)
+
+### Bug Fixes
+
+* **generator:** 去除代码块 shadow 样式和 max-height 限制 ([#66](https://github.com/shenjingnan/openmanual/issues/66)) ([83931dc](https://github.com/shenjingnan/openmanual/commit/83931dcc836a9b762b7d4164bedba9f00e7ab55e))
+
+### Code Refactoring
+
+* **build:** 迁移构建工具从 tsup 到 tsdown，统一 dev/build 管线 ([#63](https://github.com/shenjingnan/openmanual/issues/63)) ([fbadbe9](https://github.com/shenjingnan/openmanual/commit/fbadbe988416945942a24a9cc9acc0232033313c))
+* **generator:** 提取 provider、app-layout、nav-layout 为独立组件 ([#64](https://github.com/shenjingnan/openmanual/issues/64)) ([fb72f75](https://github.com/shenjingnan/openmanual/commit/fb72f7576e2bbcdcd3c29f1338e784cce6b82c83))
+* **generator:** 提取 restructureTree 为共享工具，消除重复代码 ([#65](https://github.com/shenjingnan/openmanual/issues/65)) ([5131d52](https://github.com/shenjingnan/openmanual/commit/5131d52f5b8280c9f31f7eb6f9c86b0696f334e7))
+
 ## [0.8.1](https://github.com/shenjingnan/openmanual/compare/v0.8.0...v0.8.1) (2026-04-06)
 
 ### Bug Fixes
