@@ -50,5 +50,15 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   --color-fd-card: hsl(40, 18%, 94%);              /* 卡片背景 */
   --color-fd-popover: hsl(40, 20%, 97.5%);         /* 弹窗背景 */
 }
-${darkBlock}`;
+${darkBlock}
+
+/* 代码块：去除 shadow，使用朴素边框；去除 max-height 限制 */
+figure.shiki {
+  box-shadow: none;
+}
+
+figure.shiki > div {
+  max-height: none;
+}
+`;
 }
