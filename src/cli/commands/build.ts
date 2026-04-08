@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { cp, mkdir } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { loadConfig } from '../../core/config/loader.js';
 import { generateAll } from '../../core/generator/index.js';
@@ -22,11 +23,16 @@ export const buildCommand = new Command('build').description('构建静态站点
 
     await ensureTempDir(cwd);
 
+    // 从 CLI 位置推导 openmanual 包根目录（dist/bin.js → 上溯 1 级到包根目录）
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const openmanualRoot = resolve(__dirname, '..');
+
     const ctx = {
       config,
       projectDir: cwd,
       appDir,
       contentDir: config.contentDir ?? 'content',
+      openmanualRoot,
     };
 
     await generateAll(ctx);

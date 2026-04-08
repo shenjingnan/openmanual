@@ -18,74 +18,28 @@ export function generateLayout(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
   const logo = config.navbar?.logo ?? config.name;
 
-  // String logo that is an image path — backward compatible single image
+  let logoProps: string;
   if (typeof logo === 'string' && isImagePath(logo)) {
-    return `import type { ReactNode } from 'react';
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-
-export function baseOptions(): BaseLayoutProps {
-  return {
-    nav: {
-      title: (
-        <>
-          <img src="${logo}" alt="${config.name}" style={{ height: 28 }} />
-        </>
-      ) as ReactNode,
-    },
-  };
-}
-`;
-  }
-
-  // Object logo { light, dark }
-  if (typeof logo === 'object') {
+    logoProps = `type="image" src="${logo}" alt="${config.name}"`;
+  } else if (typeof logo === 'object') {
     const { light, dark } = logo;
-
-    // Same path — treat as single image
     if (light === dark) {
-      return `import type { ReactNode } from 'react';
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-
-export function baseOptions(): BaseLayoutProps {
-  return {
-    nav: {
-      title: (
-        <>
-          <img src="${light}" alt="${config.name}" style={{ height: 28 }} />
-        </>
-      ) as ReactNode,
-    },
-  };
-}
-`;
+      logoProps = `type="image" src="${light}" alt="${config.name}"`;
+    } else {
+      logoProps = `type="image" srcLight="${light}" srcDark="${dark}" alt="${config.name}"`;
     }
-
-    // Different paths — generate two images with dark mode toggle
-    return `import type { ReactNode } from 'react';
-import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-
-export function baseOptions(): BaseLayoutProps {
-  return {
-    nav: {
-      title: (
-        <>
-          <img src="${light}" alt="${config.name}" style={{ height: 28 }} className="dark:hidden" />
-          <img src="${dark}" alt="${config.name}" style={{ height: 28 }} className="hidden dark:block" />
-        </>
-      ) as ReactNode,
-    },
-  };
-}
-`;
+  } else {
+    logoProps = `type="text" text="${logo}"`;
   }
 
-  // Plain text logo
   return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import type { ReactNode } from 'react';
+import { NavLogo } from 'openmanual/components/nav-layout';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: '${logo}',
+      title: <NavLogo ${logoProps} /> as ReactNode,
     },
   };
 }

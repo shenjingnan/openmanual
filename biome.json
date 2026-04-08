@@ -64,6 +64,9 @@
       "includes": ["src/components/**"],
       "linter": {
         "rules": {
+          "performance": {
+            "noImgElement": "off"
+          },
           "security": {
             "noDangerouslySetInnerHtml": "off"
           },
