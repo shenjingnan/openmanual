@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
@@ -334,6 +334,14 @@ describe('generatePackageJson', () => {
     const result = generatePackageJson(ctx);
     const parsed = JSON.parse(result);
     expect(parsed.dependencies.openmanual).toMatch(/^\^\d+\.\d+\.\d+/);
+  });
+
+  it('should use __VERSION__ when defined', () => {
+    vi.stubGlobal('__VERSION__', '1.0.0-test');
+    const result = generatePackageJson(baseCtx);
+    const parsed = JSON.parse(result);
+    expect(parsed.dependencies.openmanual).toBe('^1.0.0-test');
+    vi.restoreAllMocks();
   });
 });
 
