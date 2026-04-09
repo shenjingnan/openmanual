@@ -60,5 +60,10 @@ figure.shiki {
 figure.shiki > div {
   max-height: none;
 }
+
+/* Callout：去除 shadow */
+[style*="--callout-color"] {
+  box-shadow: none;
+}
 `;
 }

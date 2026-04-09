@@ -51,7 +51,9 @@ export default defineConfig([
     dts: { sourcemap: false },
     outDir: 'dist/components',
     outExtensions: () => ({ js: '.js' }),
-    deps: { neverBundle: [...NEVER_BUNDLE, 'next-themes', 'mermaid'] },
+    deps: {
+      neverBundle: [...NEVER_BUNDLE, 'next-themes', 'mermaid', 'lucide-react', 'tailwind-merge'],
+    },
   },
   {
     entry: ['src/utils/**/*.ts'],

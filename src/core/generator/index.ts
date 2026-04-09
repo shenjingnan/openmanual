@@ -1,6 +1,7 @@
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
+import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
@@ -62,6 +63,10 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     {
       path: 'lib/layout.tsx',
       content: generateLayout(ctx),
+    },
+    {
+      path: 'components/callout.tsx',
+      content: generateCalloutComponent(),
     },
     {
       path: 'components/mermaid.tsx',
