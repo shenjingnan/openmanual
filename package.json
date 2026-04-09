@@ -37,7 +37,6 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "dev:docs": "cd docs && pnpm run dev",
     "dev:cli": "tsx watch src/cli/bin.ts",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -48,6 +47,7 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm run typecheck && pnpm run lint",
     "check:fix": "pnpm run typecheck && pnpm run lint:fix && pnpm run format",
+    "docs:dev": "cd docs && pnpm run dev",
     "docs:build": "cd docs && pnpm run build",
     "spellcheck": "cspell \"**/*.ts\" \"**/*.md\"",
     "prepare": "husky",

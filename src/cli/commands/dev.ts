@@ -1,5 +1,6 @@
 import { type ChildProcess, spawn } from 'node:child_process';
-import { extname, resolve } from 'node:path';
+import { dirname, extname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { loadConfig } from '../../core/config/loader.js';
 import { generateAll } from '../../core/generator/index.js';
@@ -25,17 +26,21 @@ export const devCommand = new Command('dev')
       const appDir = getAppDir(cwd);
       const contentDir = resolve(cwd, config.contentDir ?? 'content');
 
+      // 从 CLI 位置推导 openmanual 包根目录（dist/bin.js → 上溯 1 级到包根目录）
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const openmanualRoot = process.env.OPENMANUAL_ROOT || resolve(__dirname, '..');
+
       const ctx = {
         config,
         projectDir: cwd,
         appDir,
         contentDir: config.contentDir ?? 'content',
         dev: true,
-        ...(process.env.OPENMANUAL_ROOT ? { openmanualRoot: process.env.OPENMANUAL_ROOT } : {}),
+        openmanualRoot,
       };
 
-      if (ctx.openmanualRoot) {
-        await spawnInitialGenerate(ctx.openmanualRoot, cwd);
+      if (process.env.OPENMANUAL_ROOT) {
+        await spawnInitialGenerate(openmanualRoot, cwd);
       } else {
         await generateAll(ctx);
 
