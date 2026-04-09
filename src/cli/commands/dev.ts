@@ -34,7 +34,24 @@ export const devCommand = new Command('dev')
         ...(process.env.OPENMANUAL_ROOT ? { openmanualRoot: process.env.OPENMANUAL_ROOT } : {}),
       };
 
-      await generateAll(ctx);
+      if (ctx.openmanualRoot) {
+        await spawnInitialGenerate(ctx.openmanualRoot, cwd);
+      } else {
+        await generateAll(ctx);
+
+        // Symlink content directory
+        await createSymlink(contentDir, resolve(appDir, 'content'));
+
+        // Symlink public directory if exists
+        const publicDir = resolve(cwd, 'public');
+        try {
+          const { stat } = await import('node:fs/promises');
+          await stat(publicDir);
+          await createSymlink(publicDir, resolve(appDir, 'public'));
+        } catch {
+          // no public dir, that's fine
+        }
+      }
 
       // Check for unsupported code block languages
       try {
@@ -48,19 +65,6 @@ export const devCommand = new Command('dev')
         }
       } catch {
         // skip check if shiki is not available
-      }
-
-      // Symlink content directory
-      await createSymlink(contentDir, resolve(appDir, 'content'));
-
-      // Symlink public directory if exists
-      const publicDir = resolve(cwd, 'public');
-      try {
-        const { stat } = await import('node:fs/promises');
-        await stat(publicDir);
-        await createSymlink(publicDir, resolve(appDir, 'public'));
-      } catch {
-        // no public dir, that's fine
       }
 
       logger.step('安装依赖...');
@@ -144,6 +148,26 @@ export const devCommand = new Command('dev')
       process.exit(1);
     }
   });
+
+function spawnInitialGenerate(openmanualRoot: string, cwd: string): Promise<void> {
+  const binPath = resolve(openmanualRoot, 'dist/bin.js');
+  const child = spawn('node', [binPath, '_regenerate', '--cwd', cwd], {
+    stdio: 'inherit',
+    env: { ...process.env },
+  });
+
+  return new Promise<void>((promiseResolve, promiseReject) => {
+    child.on('exit', (code) => {
+      if (code === 0) {
+        promiseResolve();
+      } else {
+        promiseReject(new Error(`初始生成失败 (exit code: ${code})`));
+      }
+    });
+
+    child.on('error', promiseReject);
+  });
+}
 
 function spawnRegenerate(openmanualRoot: string, cwd: string, nextChild: ChildProcess): void {
   if (nextChild.exitCode !== null) {

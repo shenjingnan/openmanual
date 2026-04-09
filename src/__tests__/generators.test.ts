@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
+import { generateCalloutComponent } from '../core/generator/callout-component.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
@@ -359,6 +360,14 @@ describe('generatePage', () => {
     expect(result).toContain('Mermaid');
   });
 
+  it('should import and register Callout components', () => {
+    const result = generatePage(baseCtx);
+    expect(result).toContain("from '@/components/callout'");
+    expect(result).toContain('Callout');
+    expect(result).toContain('CalloutTitle');
+    expect(result).toContain('CalloutDescription');
+  });
+
   it('should export generateStaticParams', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('export function generateStaticParams()');
@@ -701,6 +710,20 @@ describe('generateMermaidComponent', () => {
   it('should re-export Mermaid from openmanual/components/mermaid', () => {
     const result = generateMermaidComponent();
     expect(result).toContain("export { Mermaid } from 'openmanual/components/mermaid'");
+  });
+});
+
+describe('generateCalloutComponent', () => {
+  it('should generate use client directive', () => {
+    const result = generateCalloutComponent();
+    expect(result).toContain("'use client'");
+  });
+
+  it('should re-export Callout components from openmanual/components/callout', () => {
+    const result = generateCalloutComponent();
+    expect(result).toContain(
+      "export { Callout, CalloutTitle, CalloutDescription } from 'openmanual/components/callout'"
+    );
   });
 });
 
