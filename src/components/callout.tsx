@@ -1,10 +1,29 @@
 'use client';
 
-import { CircleCheck, CircleX, Info, Lightbulb, TriangleAlert } from 'lucide-react';
+import {
+  Info,
+  KeyRound,
+  Lightbulb,
+  MessageCircleCheck,
+  MessageCircleWarning,
+  OctagonAlert,
+  TriangleAlert,
+} from 'lucide-react';
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
 import { twMerge as cn } from 'tailwind-merge';
 
-export type CalloutType = 'info' | 'warn' | 'error' | 'success' | 'warning' | 'idea';
+export type CalloutType =
+  | 'note'
+  | 'info'
+  | 'warning'
+  | 'tip'
+  | 'check'
+  | 'danger'
+  | 'key'
+  | 'warn'
+  | 'error'
+  | 'success'
+  | 'idea';
 
 export interface CalloutContainerProps extends ComponentProps<'div'> {
   /**
@@ -17,11 +36,18 @@ export interface CalloutContainerProps extends ComponentProps<'div'> {
   icon?: ReactNode;
 }
 
-const iconClass = 'size-5 -me-0.5 fill-(--callout-color) text-fd-card';
+const iconClass = 'size-5 -me-0.5 text-(--callout-color)';
 
-function resolveAlias(type: CalloutType): 'info' | 'warning' | 'error' | 'success' | 'idea' {
-  if (type === 'warn') return 'warning';
-  return type;
+type ResolvedCalloutType = 'note' | 'info' | 'warning' | 'tip' | 'check' | 'danger' | 'key';
+
+function resolveAlias(type: CalloutType): ResolvedCalloutType {
+  const aliases: Partial<Record<CalloutType, ResolvedCalloutType>> = {
+    warn: 'warning',
+    error: 'danger',
+    success: 'check',
+    idea: 'tip',
+  };
+  return aliases[type] ?? (type as ResolvedCalloutType);
 }
 
 export function Callout({
@@ -51,12 +77,14 @@ export function CalloutContainer({
   return (
     <div
       className={cn(
-        'flex gap-2 my-4 rounded-xl border bg-fd-card p-3 ps-1 text-sm text-fd-card-foreground',
+        'flex gap-2 my-4 rounded-xl border p-3 text-sm text-(--callout-color)',
         className
       )}
       style={
         {
-          '--callout-color': `var(--color-fd-${type}, var(--color-fd-muted))`,
+          '--callout-color': `var(--callout-${type}-text)`,
+          backgroundColor: `var(--callout-${type}-bg)`,
+          borderColor: `var(--callout-${type}-border)`,
           ...style,
         } as CSSProperties
       }
@@ -64,13 +92,13 @@ export function CalloutContainer({
     >
       {icon ??
         {
+          note: <MessageCircleWarning className={iconClass} />,
           info: <Info className={iconClass} />,
           warning: <TriangleAlert className={iconClass} />,
-          error: <CircleX className={iconClass} />,
-          success: <CircleCheck className={iconClass} />,
-          idea: (
-            <Lightbulb className="size-5 -me-0.5 fill-(--callout-color) text-(--callout-color)" />
-          ),
+          tip: <Lightbulb className={iconClass} />,
+          check: <MessageCircleCheck className={iconClass} />,
+          danger: <OctagonAlert className={iconClass} />,
+          key: <KeyRound className={iconClass} />,
         }[type]}
       <div className="flex flex-col gap-2 min-w-0 flex-1">{children}</div>
     </div>
@@ -87,10 +115,7 @@ export function CalloutTitle({ children, className, ...props }: ComponentProps<'
 
 export function CalloutDescription({ children, className, ...props }: ComponentProps<'p'>) {
   return (
-    <div
-      className={cn('text-fd-muted-foreground prose-no-margin empty:hidden', className)}
-      {...props}
-    >
+    <div className={cn('prose-no-margin empty:hidden', className)} {...props}>
       {children}
     </div>
   );
