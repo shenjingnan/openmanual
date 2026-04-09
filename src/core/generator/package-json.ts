@@ -47,7 +47,7 @@ export function generatePackageJson(ctx: {
       'fumadocs-core': '^16.7.7',
       'fumadocs-mdx': '^14.2.11',
       'fumadocs-ui': '^16.7.7',
-      'lucide-react': '^0.400.0',
+      'lucide-react': '^1.7.0',
       mermaid: '^11.4.0',
       next: '^16.2.1',
       'next-themes': '^0.4.6',

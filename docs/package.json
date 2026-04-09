@@ -2,7 +2,7 @@
   "name": "openmanual-docs",
   "private": true,
   "scripts": {
-    "dev": "openmanual dev",
+    "dev": "pnpm install && rm -rf .openmanual && openmanual dev",
     "build": "openmanual build"
   },
   "dependencies": {
