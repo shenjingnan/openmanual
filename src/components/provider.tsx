@@ -13,7 +13,7 @@ export function Provider({ searchEnabled = true, children }: ProviderProps) {
     <RootProvider
       search={{
         enabled: searchEnabled,
-        options: { type: 'static' },
+        options: { type: 'static', api: '/api/search' },
       }}
     >
       {children}
