@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/shenjingnan/openmanual/compare/v0.9.0...v0.10.0) (2026-04-10)
+
+### Features
+
+* **agents:** 新增 increase-coverage 自定义命令 ([#76](https://github.com/shenjingnan/openmanual/issues/76)) ([29e8e1e](https://github.com/shenjingnan/openmanual/commit/29e8e1e8bd3c5fb24001d89fffb59088dc39c24e))
+* **config, search:** 新增 favicon 配置支持与安全搜索对话框 ([#75](https://github.com/shenjingnan/openmanual/issues/75)) ([a145315](https://github.com/shenjingnan/openmanual/commit/a145315b3720c05597e7731c3f56e8d527f0a7fc))
+
 ## [0.9.0](https://github.com/shenjingnan/openmanual/compare/v0.8.2...v0.9.0) (2026-04-10)
 
 ### Features
