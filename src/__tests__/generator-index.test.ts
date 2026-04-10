@@ -21,16 +21,16 @@ describe('generateAll', () => {
     vi.clearAllMocks();
   });
 
-  it('should write 16 files in dev mode', async () => {
+  it('should write 17 files in dev mode', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...baseCtx, dev: true });
-    expect(writeFile).toHaveBeenCalledTimes(16);
+    expect(writeFile).toHaveBeenCalledTimes(17);
   });
 
-  it('should write 15 files in non-dev mode', async () => {
+  it('should write 16 files in non-dev mode', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
-    expect(writeFile).toHaveBeenCalledTimes(15);
+    expect(writeFile).toHaveBeenCalledTimes(16);
   });
 
   it('should create directories recursively', async () => {
@@ -128,6 +128,60 @@ describe('generateAll', () => {
     );
     expect(layoutCall).toBeDefined();
     expect((layoutCall as unknown[])[1]).not.toContain('github:');
+  });
+
+  it('should generate search route in dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll({ ...baseCtx, dev: true });
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const searchRouteCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('app/api/search/route.ts')
+    );
+    expect(searchRouteCall).toBeDefined();
+    expect((searchRouteCall as unknown[])[1]).toContain('createFromSource');
+    expect((searchRouteCall as unknown[])[1]).toContain('staticGET');
+  });
+
+  it('should generate search route in non-dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const searchRouteCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('app/api/search/route.ts')
+    );
+    expect(searchRouteCall).toBeDefined();
+    expect((searchRouteCall as unknown[])[1]).toContain('createFromSource');
+    expect((searchRouteCall as unknown[])[1]).toContain('staticGET');
+  });
+
+  it('should generate raw content route only in dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    // Dev mode should have raw content route
+    await generateAll({ ...baseCtx, dev: true });
+    const devCalls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const devRawCall = devCalls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('api/raw') &&
+        (c[0] as string).endsWith('route.ts')
+    );
+    expect(devRawCall).toBeDefined();
+
+    vi.clearAllMocks();
+
+    // Non-dev mode should NOT have raw content route
+    await generateAll(baseCtx);
+    const prodCalls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const prodRawCall = prodCalls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('api/raw') &&
+        (c[0] as string).endsWith('route.ts')
+    );
+    expect(prodRawCall).toBeUndefined();
   });
 });
 

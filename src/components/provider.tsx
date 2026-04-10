@@ -9,5 +9,14 @@ interface ProviderProps {
 }
 
 export function Provider({ searchEnabled = true, children }: ProviderProps) {
-  return <RootProvider search={{ enabled: searchEnabled }}>{children}</RootProvider>;
+  return (
+    <RootProvider
+      search={{
+        enabled: searchEnabled,
+        options: { type: 'static' },
+      }}
+    >
+      {children}
+    </RootProvider>
+  );
 }
