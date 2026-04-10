@@ -120,6 +120,29 @@ describe('OpenManualConfigSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('should accept favicon as .ico path', () => {
+    const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: '/favicon.ico' });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept favicon as .svg path', () => {
+    const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: '/favicon.svg' });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept favicon with subdirectory path', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      favicon: '/icons/favicon.png',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject favicon as non-string value', () => {
+    const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: 123 });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('loadConfig', () => {

@@ -676,3 +676,79 @@ describe('generateAll - logo handling', () => {
     expect(darkSvgCall).toBeDefined();
   });
 });
+
+describe('generateAll - favicon handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getRootLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('app/layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should include Metadata export when favicon is configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: { ...baseConfig, favicon: '/favicon.ico' },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getRootLayoutContent(calls);
+    expect(content).toContain("import type { Metadata } from 'next'");
+    expect(content).toContain('export const metadata: Metadata = {');
+    expect(content).toContain('icons: {');
+    expect(content).toContain("icon: '/favicon.ico'");
+  });
+
+  it('should embed SVG path correctly', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: { ...baseConfig, favicon: '/favicon.svg' },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getRootLayoutContent(calls);
+    expect(content).toContain("icon: '/favicon.svg'");
+  });
+
+  it('should place Metadata export before global.css import', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: { ...baseConfig, favicon: '/favicon.ico' },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getRootLayoutContent(calls);
+    const metadataIndex = content.indexOf('export const metadata');
+    const cssImportIndex = content.indexOf("import '../global.css'");
+    expect(metadataIndex).toBeLessThan(cssImportIndex);
+  });
+
+  it('should not include Metadata export when favicon is not configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getRootLayoutContent(calls);
+    expect(content).not.toContain('Metadata');
+    expect(content).not.toContain('icons:');
+    expect(content).not.toContain('icon:');
+  });
+
+  it('should embed subdirectory path as-is in template literal', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: { ...baseConfig, favicon: '/assets/icons/favicon.svg' },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getRootLayoutContent(calls);
+    expect(content).toContain("icon: '/assets/icons/favicon.svg'");
+  });
+});
