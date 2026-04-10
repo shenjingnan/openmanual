@@ -239,11 +239,13 @@ function MermaidContent({ chart }: { chart: string }) {
               type="button"
               onClick={handleZoomIn}
               className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
-              style={{
-                color: 'var(--color-fd-background)',
-                '--hover-bg': 'var(--color-fd-background)',
-                '--hover-color': 'var(--color-fd-foreground)',
-              } as React.CSSProperties}
+              style={
+                {
+                  color: 'var(--color-fd-background)',
+                  '--hover-bg': 'var(--color-fd-background)',
+                  '--hover-color': 'var(--color-fd-foreground)',
+                } as React.CSSProperties
+              }
               title="放大"
             >
               <ZoomIn size={16} />
@@ -252,11 +254,13 @@ function MermaidContent({ chart }: { chart: string }) {
               type="button"
               onClick={handleZoomOut}
               className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
-              style={{
-                color: 'var(--color-fd-background)',
-                '--hover-bg': 'var(--color-fd-background)',
-                '--hover-color': 'var(--color-fd-foreground)',
-              } as React.CSSProperties}
+              style={
+                {
+                  color: 'var(--color-fd-background)',
+                  '--hover-bg': 'var(--color-fd-background)',
+                  '--hover-color': 'var(--color-fd-foreground)',
+                } as React.CSSProperties
+              }
               title="缩小"
             >
               <ZoomOut size={16} />
@@ -265,11 +269,13 @@ function MermaidContent({ chart }: { chart: string }) {
               type="button"
               onClick={handleReset}
               className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
-              style={{
-                color: 'var(--color-fd-background)',
-                '--hover-bg': 'var(--color-fd-background)',
-                '--hover-color': 'var(--color-fd-foreground)',
-              } as React.CSSProperties}
+              style={
+                {
+                  color: 'var(--color-fd-background)',
+                  '--hover-bg': 'var(--color-fd-background)',
+                  '--hover-color': 'var(--color-fd-foreground)',
+                } as React.CSSProperties
+              }
               title="重置缩放"
             >
               <RotateCcw size={16} />
@@ -278,11 +284,13 @@ function MermaidContent({ chart }: { chart: string }) {
               type="button"
               onClick={handleCenter}
               className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
-              style={{
-                color: 'var(--color-fd-background)',
-                '--hover-bg': 'var(--color-fd-background)',
-                '--hover-color': 'var(--color-fd-foreground)',
-              } as React.CSSProperties}
+              style={
+                {
+                  color: 'var(--color-fd-background)',
+                  '--hover-bg': 'var(--color-fd-background)',
+                  '--hover-color': 'var(--color-fd-foreground)',
+                } as React.CSSProperties
+              }
               title="定位到中心"
             >
               <LocateFixed size={16} />
@@ -292,11 +300,13 @@ function MermaidContent({ chart }: { chart: string }) {
               type="button"
               onClick={handleClose}
               className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
-              style={{
-                color: 'var(--color-fd-background)',
-                '--hover-bg': 'var(--color-fd-background)',
-                '--hover-color': 'var(--color-fd-foreground)',
-              } as React.CSSProperties}
+              style={
+                {
+                  color: 'var(--color-fd-background)',
+                  '--hover-bg': 'var(--color-fd-background)',
+                  '--hover-color': 'var(--color-fd-foreground)',
+                } as React.CSSProperties
+              }
               title="关闭"
             >
               <X size={16} />
