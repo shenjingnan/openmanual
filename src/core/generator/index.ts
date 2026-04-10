@@ -159,16 +159,30 @@ function generateDocsLayout(ctx: GenerateContext): string {
     ? `\n  footer: { children: '${footerText.replace(/'/g, "\\'")}' },`
     : '';
 
-  // Build sidebar config for tree restructuring (only needed fields)
+  // Build sidebar config for tree restructuring (including icon names)
   const sidebar = config.sidebar;
   const hasSidebar = sidebar && sidebar.length > 0;
+
+  // Collect all unique icon names from sidebar config
+  const iconNames = new Set<string>();
+  if (hasSidebar) {
+    for (const g of sidebar ?? []) {
+      if (g.icon) iconNames.add(g.icon);
+      for (const p of g.pages) {
+        if (p.icon) iconNames.add(p.icon);
+      }
+    }
+  }
+  const hasIcons = iconNames.size > 0;
+  const iconNameList = [...iconNames];
 
   const sidebarConfigSnippet = hasSidebar
     ? `\nconst sidebarConfig = ${JSON.stringify(
         (sidebar ?? []).map((g) => ({
           group: g.group,
+          icon: g.icon,
           collapsed: g.collapsed,
-          pages: g.pages.map((p) => ({ slug: p.slug })),
+          pages: g.pages.map((p) => ({ slug: p.slug, icon: p.icon })),
         })),
         null,
         2
@@ -176,8 +190,21 @@ function generateDocsLayout(ctx: GenerateContext): string {
 `
     : '';
 
+  // Generate lucide-react import statement
+  const lucideImportLine = hasIcons
+    ? `\nimport { ${iconNameList.join(', ')} } from 'lucide-react';`
+    : '';
+
+  // Generate iconMap mapping icon names to React elements
+  const iconMapSnippet = hasIcons
+    ? `\nconst iconMap = {${iconNameList.map((name) => `\n  ${name}: <${name} />,`).join('')}\n} as const;
+`
+    : '';
+
   const treeLine = hasSidebar
-    ? 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
+    ? hasIcons
+      ? 'tree: restructureTree(source.getPageTree(), sidebarConfig, iconMap),'
+      : 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
     : 'tree: source.getPageTree(),';
 
   const restructureTreeImport = hasSidebar
@@ -187,8 +214,8 @@ function generateDocsLayout(ctx: GenerateContext): string {
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${restructureTreeImport}
-${sidebarConfigSnippet}
+import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLine}
+${sidebarConfigSnippet}${iconMapSnippet}
 const docsOptions = {
   ...baseOptions(),
   ${treeLine}${githubLine}${linksLine}${footerLine}

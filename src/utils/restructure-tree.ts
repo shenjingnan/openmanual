@@ -2,8 +2,9 @@ import type * as PageTree from 'fumadocs-core/page-tree';
 
 export interface SidebarConfigEntry {
   group: string;
+  icon?: string;
   collapsed?: boolean;
-  pages: readonly { slug: string }[];
+  pages: readonly { slug: string; icon?: string }[];
 }
 
 export function slugToUrl(slug: string): string {
@@ -12,7 +13,8 @@ export function slugToUrl(slug: string): string {
 
 export function restructureTree(
   tree: PageTree.Root,
-  sidebarConfig: readonly SidebarConfigEntry[]
+  sidebarConfig: readonly SidebarConfigEntry[],
+  iconMap?: Record<string, React.ReactNode>
 ): PageTree.Root {
   const consumed = new Set<number>();
   const newChildren: PageTree.Node[] = [];
@@ -31,7 +33,9 @@ export function restructureTree(
         if (idx >= 0) {
           const node = children[idx];
           if (node) {
-            folderChildren.push(node);
+            folderChildren.push(
+              page.icon && iconMap?.[page.icon] ? { ...node, icon: iconMap[page.icon] } : node
+            );
           }
           consumed.add(idx);
         }
@@ -40,6 +44,7 @@ export function restructureTree(
         newChildren.push({
           type: 'folder',
           name: group.group,
+          icon: group.icon && iconMap ? iconMap[group.icon] : undefined,
           defaultOpen: !group.collapsed,
           children: folderChildren,
         });
@@ -55,10 +60,28 @@ export function restructureTree(
         );
         if (idx >= 0) {
           consumed.add(idx);
+          const originalFolder = children[idx] as PageTree.Folder;
+
+          // Inject icons into children pages
+          const childrenWithIcons = (originalFolder.children ?? []).map((child) => {
+            if (child.type === 'page') {
+              const matchedPage = group.pages.find((p) => {
+                const url = slugToUrl(p.slug);
+                return child.url === url;
+              });
+              if (matchedPage?.icon && iconMap?.[matchedPage.icon]) {
+                return { ...child, icon: iconMap[matchedPage.icon] };
+              }
+            }
+            return child;
+          });
+
           newChildren.push({
-            ...(children[idx] as PageTree.Folder),
+            ...originalFolder,
             name: group.group,
+            icon: group.icon && iconMap ? iconMap[group.icon] : undefined,
             defaultOpen: !group.collapsed,
+            children: childrenWithIcons,
           });
         }
       }
