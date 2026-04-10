@@ -8,7 +8,13 @@ import { Provider } from 'openmanual/components/provider';
 import type { ReactNode } from 'react';
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  return <Provider searchEnabled={${searchEnabled}}>{children}</Provider>;
+  return (
+    <Provider
+      searchEnabled={${searchEnabled}}
+    >
+      {children}
+    </Provider>
+  );
 }
 `;
 }

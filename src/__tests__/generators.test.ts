@@ -12,6 +12,7 @@ import { generatePageActionsComponent } from '../core/generator/page-actions-com
 import { generatePostcssConfig } from '../core/generator/postcss-config.js';
 import { generateProvider } from '../core/generator/provider.js';
 import { generateRawContentRoute } from '../core/generator/raw-content-route.js';
+import { generateSearchRoute } from '../core/generator/search-route.js';
 import { generateSourceConfig } from '../core/generator/source-config.js';
 import { generateTsconfig } from '../core/generator/tsconfig.js';
 
@@ -775,5 +776,32 @@ describe('generateRawContentRoute', () => {
   it('should read from content directory', () => {
     const result = generateRawContentRoute();
     expect(result).toContain("'content'");
+  });
+});
+
+describe('generateSearchRoute', () => {
+  it('should import source from @/lib/source', () => {
+    const result = generateSearchRoute();
+    expect(result).toContain("import { source } from '@/lib/source'");
+  });
+
+  it('should import createFromSource from fumadocs-core/search/server', () => {
+    const result = generateSearchRoute();
+    expect(result).toContain("import { createFromSource } from 'fumadocs-core/search/server'");
+  });
+
+  it('should export revalidate as false', () => {
+    const result = generateSearchRoute();
+    expect(result).toContain('export const revalidate = false');
+  });
+
+  it('should export staticGET as GET from createFromSource', () => {
+    const result = generateSearchRoute();
+    expect(result).toContain('export const { staticGET: GET } = createFromSource(source)');
+  });
+
+  it('should use source as argument to createFromSource', () => {
+    const result = generateSearchRoute();
+    expect(result).toMatch(/createFromSource\(source\)/);
   });
 });

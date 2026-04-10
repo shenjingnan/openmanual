@@ -13,6 +13,7 @@ import { generatePageActionsComponent } from './page-actions-component.js';
 import { generatePostcssConfig } from './postcss-config.js';
 import { generateProvider } from './provider.js';
 import { generateRawContentRoute } from './raw-content-route.js';
+import { generateSearchRoute } from './search-route.js';
 import { generateSourceConfig } from './source-config.js';
 import { generateTsconfig } from './tsconfig.js';
 
@@ -76,10 +77,13 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       path: 'components/page-actions.tsx',
       content: generatePageActionsComponent(),
     },
-    // 仅在 dev 模式生成 API 路由（生产构建中 output: 'export' 不兼容 API 路由）
+    // API 路由：raw content 仅 dev 模式（动态读取文件系统）；搜索路由两种模式都生成（staticGET 兼容静态导出）
     ...(ctx.dev
-      ? [{ path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute() }]
-      : []),
+      ? [
+          { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute() },
+          { path: 'app/api/search/route.ts', content: generateSearchRoute() },
+        ]
+      : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
     {
       path: 'app/layout.tsx',
       content: generateRootLayout(),
