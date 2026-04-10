@@ -230,4 +230,184 @@ describe('restructureTree', () => {
       expect(result.children[0]?.type).toBe('page');
     });
   });
+
+  describe('icon injection', () => {
+    it('should inject page icon into root-level folder children', () => {
+      const iconMap = { HomeIcon: 'home-icon-element' };
+      const tree = makeRoot([makePage('/', 'Home'), makePage('/quickstart', 'Quick Start')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          pages: [{ slug: 'index', icon: 'HomeIcon' }, { slug: 'quickstart' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.children).toHaveLength(2);
+
+      const homePage = folder.children[0] as PageTree.Item;
+      expect(homePage.icon).toBe('home-icon-element');
+
+      const quickstartPage = folder.children[1] as PageTree.Item;
+      expect(quickstartPage.icon).toBeUndefined();
+    });
+
+    it('should inject group icon into root-level folder', () => {
+      const iconMap = { FolderIcon: 'folder-icon-element' };
+      const tree = makeRoot([makePage('/', 'Home')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          icon: 'FolderIcon',
+          pages: [{ slug: 'index' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.icon).toBe('folder-icon-element');
+    });
+
+    it('should not inject icon when iconMap has no matching key', () => {
+      const iconMap = { OtherIcon: 'other-element' };
+      const tree = makeRoot([makePage('/', 'Home')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          icon: 'MissingIcon',
+          pages: [{ slug: 'index', icon: 'MissingPageIcon' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.icon).toBeUndefined();
+
+      const homePage = folder.children[0] as PageTree.Item;
+      expect(homePage.icon).toBeUndefined();
+    });
+
+    it('should inject page icon into directory-level children', () => {
+      const iconMap = { IntroIcon: 'intro-icon-element' };
+      const tree = makeRoot([
+        makeFolder('Guide', [makePage('/guide/intro', 'Intro'), makePage('/guide/api', 'API')]),
+      ]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [{ slug: 'guide/intro', icon: 'IntroIcon' }, { slug: 'guide/api' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+
+      const introPage = folder.children.find(
+        (c) => c.type === 'page' && c.url === '/guide/intro'
+      ) as PageTree.Item;
+      expect(introPage.icon).toBe('intro-icon-element');
+
+      const apiPage = folder.children.find(
+        (c) => c.type === 'page' && c.url === '/guide/api'
+      ) as PageTree.Item;
+      expect(apiPage.icon).toBeUndefined();
+    });
+
+    it('should inject group icon into directory-level folder', () => {
+      const iconMap = { GuideIcon: 'guide-icon-element' };
+      const tree = makeRoot([makeFolder('Guide', [makePage('/guide/intro', 'Intro')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          icon: 'GuideIcon',
+          pages: [{ slug: 'guide/intro' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.icon).toBe('guide-icon-element');
+    });
+
+    it('should handle mixed icon/non-icon pages in directory-level folder', () => {
+      const iconMap = { IconA: 'icon-a', IconB: 'icon-b' };
+      const tree = makeRoot([
+        makeFolder('Guide', [
+          makePage('/guide/intro', 'Intro'),
+          makePage('/guide/api', 'API'),
+          makePage('/guide/advanced', 'Advanced'),
+        ]),
+      ]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [
+            { slug: 'guide/intro', icon: 'IconA' },
+            { slug: 'guide/api' },
+            { slug: 'guide/advanced', icon: 'IconB' },
+          ],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.children).toHaveLength(3);
+
+      const intro = folder.children.find(
+        (c) => c.type === 'page' && c.url === '/guide/intro'
+      ) as PageTree.Item;
+      expect(intro.icon).toBe('icon-a');
+
+      const api = folder.children.find(
+        (c) => c.type === 'page' && c.url === '/guide/api'
+      ) as PageTree.Item;
+      expect(api.icon).toBeUndefined();
+
+      const advanced = folder.children.find(
+        (c) => c.type === 'page' && c.url === '/guide/advanced'
+      ) as PageTree.Item;
+      expect(advanced.icon).toBe('icon-b');
+    });
+
+    it('should behave identically when iconMap is undefined', () => {
+      const tree = makeRoot([makePage('/', 'Home'), makePage('/quickstart', 'Quick Start')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          pages: [{ slug: 'index' }, { slug: 'quickstart' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.icon).toBeUndefined();
+      expect(folder.children).toHaveLength(2);
+      expect((folder.children[0] as PageTree.Item).icon).toBeUndefined();
+    });
+
+    it('should not inject icon when page.icon is set but iconMap is undefined', () => {
+      const tree = makeRoot([makePage('/', 'Home')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          icon: 'FolderIcon',
+          pages: [{ slug: 'index', icon: 'HomeIcon' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.icon).toBeUndefined();
+      expect((folder.children[0] as PageTree.Item).icon).toBeUndefined();
+    });
+  });
 });

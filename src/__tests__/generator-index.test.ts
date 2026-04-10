@@ -361,6 +361,135 @@ describe('generateDocsLayout - restructureTree', () => {
     expect(content).not.toContain('"title": "首页"');
   });
 
+  it('should generate lucide-react import when sidebar has icons', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            pages: [
+              { slug: 'index', title: '首页', icon: 'Home' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).toContain("import { BookOpen, Home } from 'lucide-react'");
+  });
+
+  it('should generate iconMap when sidebar has icons', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            pages: [
+              { slug: 'index', title: '首页', icon: 'Home' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).toContain('const iconMap = {');
+    expect(content).toContain('BookOpen: <BookOpen />');
+    expect(content).toContain('Home: <Home />');
+  });
+
+  it('should pass iconMap to restructureTree when sidebar has icons', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            pages: [{ slug: 'index', title: '首页', icon: 'Home' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).toContain('restructureTree(source.getPageTree(), sidebarConfig, iconMap)');
+  });
+
+  it('should not generate lucide-related code when sidebar has no icons', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    expect(content).not.toContain('lucide-react');
+    expect(content).not.toContain('iconMap');
+    expect(content).toContain('restructureTree(source.getPageTree(), sidebarConfig)');
+  });
+
+  it('should include icon fields in sidebar config JSON', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            collapsed: false,
+            pages: [
+              { slug: 'index', title: '首页', icon: 'Home' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+          {
+            group: '进阶',
+            collapsed: true,
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+    // Group icon should be serialized
+    expect(content).toContain('"icon": "BookOpen"');
+    // Page icon should be serialized
+    expect(content).toContain('"icon": "Home"');
+  });
+
   it('should import restructureTree utility instead of embedding function body', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
