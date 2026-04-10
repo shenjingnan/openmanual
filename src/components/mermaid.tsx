@@ -1,7 +1,7 @@
 'use client';
 
 import Panzoom from '@panzoom/panzoom';
-import { Maximize2, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
+import { LocateFixed, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { use, useCallback, useEffect, useId, useRef, useState } from 'react';
 
@@ -231,12 +231,19 @@ function MermaidContent({ chart }: { chart: string }) {
           onClick={(e) => e.stopPropagation()}
           onKeyDown={(e) => e.stopPropagation()}
         >
-          <div className="absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg bg-neutral-800/80 px-2 py-1.5 backdrop-blur-md dark:bg-neutral-200/80">
+          <div
+            className="absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-lg px-2 py-1.5 backdrop-blur-md"
+            style={{ backgroundColor: 'var(--color-fd-foreground)' }}
+          >
             <button
               type="button"
               onClick={handleZoomIn}
-              className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-white/20 dark:hover:bg-black/20"
-              style={{ color: '#fff' }}
+              className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
+              style={{
+                color: 'var(--color-fd-background)',
+                '--hover-bg': 'var(--color-fd-background)',
+                '--hover-color': 'var(--color-fd-foreground)',
+              } as React.CSSProperties}
               title="放大"
             >
               <ZoomIn size={16} />
@@ -244,8 +251,12 @@ function MermaidContent({ chart }: { chart: string }) {
             <button
               type="button"
               onClick={handleZoomOut}
-              className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-white/20 dark:hover:bg-black/20"
-              style={{ color: '#fff' }}
+              className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
+              style={{
+                color: 'var(--color-fd-background)',
+                '--hover-bg': 'var(--color-fd-background)',
+                '--hover-color': 'var(--color-fd-foreground)',
+              } as React.CSSProperties}
               title="缩小"
             >
               <ZoomOut size={16} />
@@ -253,8 +264,12 @@ function MermaidContent({ chart }: { chart: string }) {
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-white/20 dark:hover:bg-black/20"
-              style={{ color: '#fff' }}
+              className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
+              style={{
+                color: 'var(--color-fd-background)',
+                '--hover-bg': 'var(--color-fd-background)',
+                '--hover-color': 'var(--color-fd-foreground)',
+              } as React.CSSProperties}
               title="重置缩放"
             >
               <RotateCcw size={16} />
@@ -262,18 +277,26 @@ function MermaidContent({ chart }: { chart: string }) {
             <button
               type="button"
               onClick={handleCenter}
-              className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-white/20 dark:hover:bg-black/20"
-              style={{ color: '#fff' }}
+              className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
+              style={{
+                color: 'var(--color-fd-background)',
+                '--hover-bg': 'var(--color-fd-background)',
+                '--hover-color': 'var(--color-fd-foreground)',
+              } as React.CSSProperties}
               title="定位到中心"
             >
-              <Maximize2 size={16} />
+              <LocateFixed size={16} />
             </button>
-            <div className="mx-1 h-4 w-px bg-white/30 dark:bg-black/30" />
+            <div className="mx-1 h-4 w-px bg-white/20" />
             <button
               type="button"
               onClick={handleClose}
-              className="inline-flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-white/20 dark:hover:bg-black/20"
-              style={{ color: '#fff' }}
+              className="mermaid-toolbar-btn inline-flex items-center justify-center rounded-md p-1.5 transition-colors cursor-pointer"
+              style={{
+                color: 'var(--color-fd-background)',
+                '--hover-bg': 'var(--color-fd-background)',
+                '--hover-color': 'var(--color-fd-foreground)',
+              } as React.CSSProperties}
               title="关闭"
             >
               <X size={16} />

@@ -60,6 +60,7 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
     : '';
 
   return `@import 'tailwindcss';
+@source './node_modules/openmanual/dist/components/**/*.js';
 @import 'fumadocs-ui/style.css';
 @custom-variant dark (&:is(.dark, .dark *));
 
@@ -105,6 +106,16 @@ figure.shiki {
 
 figure.shiki > div {
   max-height: none;
+}
+
+/* Mermaid 全屏操作栏按钮 hover */
+.mermaid-toolbar-btn:hover {
+  background-color: var(--hover-bg) !important;
+  color: var(--hover-color) !important;
+}
+
+.mermaid-toolbar-btn:hover svg {
+  color: inherit;
 }
 
 /* Callout：去除 shadow */
