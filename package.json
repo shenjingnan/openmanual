@@ -76,6 +76,7 @@
     "url": "https://github.com/shenjingnan/openmanual.git"
   },
   "dependencies": {
+    "@panzoom/panzoom": "^4.6.2",
     "chokidar": "^5.0.0",
     "commander": "^14.0.3",
     "fast-glob": "^3.3.3",
