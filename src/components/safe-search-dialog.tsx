@@ -13,7 +13,8 @@
  *   新: items={Array.isArray(query.data) ? query.data : defaultItems}
  */
 
-import { useI18n } from 'fumadocs-ui/contexts/i18n';
+import { useDocsSearch } from 'fumadocs-core/search/client';
+import { useOnChange } from 'fumadocs-core/utils/use-on-change';
 import {
   SearchDialog,
   SearchDialogClose,
@@ -26,10 +27,10 @@ import {
   SearchDialogOverlay,
   TagsList,
   TagsListItem,
+  useSearch,
 } from 'fumadocs-ui/components/dialog/search';
+import { useI18n } from 'fumadocs-ui/contexts/i18n';
 import { useMemo, useState } from 'react';
-import { useOnChange } from 'fumadocs-core/utils/use-on-change';
-import { useDocsSearch } from 'fumadocs-core/search/client';
 
 interface SafeSearchDialogProps {
   defaultTag?: string;
@@ -53,26 +54,26 @@ export default function SafeSearchDialog({
   allowClear = false,
   links = [],
   footer,
-  ...props
 }: SafeSearchDialogProps) {
   const { locale } = useI18n();
   const [tag, setTag] = useState(defaultTag);
+  const { open, onOpenChange } = useSearch();
   const { search, setSearch, query } = useDocsSearch(
     type === 'fetch'
       ? {
           type: 'fetch',
-          api,
-          locale,
-          tag,
-          delayMs,
+          ...(api != null && { api }),
+          ...(locale != null && { locale }),
+          ...(tag != null && { tag }),
+          ...(delayMs != null && { delayMs }),
         }
       : {
           type: 'static',
-          from: api,
-          locale,
-          tag,
-          delayMs,
-        },
+          ...(api != null && { from: api }),
+          ...(locale != null && { locale }),
+          ...(tag != null && { tag }),
+          ...(delayMs != null && { delayMs }),
+        }
   );
 
   const defaultItems = useMemo(() => {
@@ -94,10 +95,11 @@ export default function SafeSearchDialog({
 
   return (
     <SearchDialog
+      open={open}
+      onOpenChange={onOpenChange}
       search={search}
       onSearchChange={setSearch}
       isLoading={query.isLoading}
-      {...props}
     >
       <SearchDialogOverlay />
       <SearchDialogContent>
@@ -110,7 +112,7 @@ export default function SafeSearchDialog({
       </SearchDialogContent>
       <SearchDialogFooter>
         {tags.length > 0 && (
-          <TagsList tag={tag} onTagChange={setTag} allowClear={allowClear}>
+          <TagsList {...(tag != null && { tag })} onTagChange={setTag} allowClear={allowClear}>
             {tags.map((tagItem) => (
               <TagsListItem key={tagItem.value} value={tagItem.value}>
                 {tagItem.name}
