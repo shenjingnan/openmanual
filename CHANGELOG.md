@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.9.0](https://github.com/shenjingnan/openmanual/compare/v0.8.2...v0.9.0) (2026-04-10)
+
+### Features
+
+* **callout:** 重构 Callout 类型系统，新增 7 种类型及专属配色 ([#70](https://github.com/shenjingnan/openmanual/issues/70)) ([f737a94](https://github.com/shenjingnan/openmanual/commit/f737a948a74b75532ff4172b996bdef6395a678b))
+* **generator:** 新增 Callout 组件支持 ([#68](https://github.com/shenjingnan/openmanual/issues/68)) ([6056a63](https://github.com/shenjingnan/openmanual/commit/6056a63eb1d351a215ba6fee5be982d619decf22))
+* **mermaid:** 新增全屏预览对话框，支持缩放和平移操作 ([#72](https://github.com/shenjingnan/openmanual/issues/72)) ([9c004c0](https://github.com/shenjingnan/openmanual/commit/9c004c0e0145d925c9450d6b5b45db77d028a13a))
+
+### Bug Fixes
+
+* **search:** 修复搜索路由路径缺少 app/ 前缀导致 404 问题 ([#74](https://github.com/shenjingnan/openmanual/issues/74)) ([4fe5f1c](https://github.com/shenjingnan/openmanual/commit/4fe5f1c56b22e49ef037f7904b5e3831ea2067ce))
+* **sidebar:** 修复侧边栏 icon 不显示问题 ([#71](https://github.com/shenjingnan/openmanual/issues/71)) ([d64985e](https://github.com/shenjingnan/openmanual/commit/d64985ed5be3dd5674b1fa0e0637db980c04f7e2))
+
+### Code Refactoring
+
+* **cli:** dev 命令自动推导 openmanual 包根目录 ([#69](https://github.com/shenjingnan/openmanual/issues/69)) ([389b602](https://github.com/shenjingnan/openmanual/commit/389b6022fec15c99fe45302ace972b622ac7280d))
+* **scripts:** 简化 dev 脚本，新增 agent command ([#67](https://github.com/shenjingnan/openmanual/issues/67)) ([03b4401](https://github.com/shenjingnan/openmanual/commit/03b44015737194992de2610edfb32360aaf8f2bb))
+
 ## [0.8.2](https://github.com/shenjingnan/openmanual/compare/v0.8.1...v0.8.2) (2026-04-08)
 
 ### Bug Fixes
