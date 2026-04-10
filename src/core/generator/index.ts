@@ -86,7 +86,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
     {
       path: 'app/layout.tsx',
-      content: generateRootLayout(),
+      content: generateRootLayout(ctx),
     },
     {
       path: 'app/provider.tsx',
@@ -127,11 +127,26 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   await generateMetaFiles(ctx);
 }
 
-function generateRootLayout(): string {
+function generateRootLayout(ctx: GenerateContext): string {
+  const { config } = ctx;
+  const favicon = config.favicon;
+
+  const metadataExport = favicon
+    ? `import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '${favicon}',
+  },
+};
+
+`
+    : '';
+
   return `import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
-import '../global.css';
+${metadataExport}import '../global.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

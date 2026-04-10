@@ -2,6 +2,8 @@ import { z } from 'zod';
 
 export const LogoSchema = z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]);
 
+export const FaviconSchema = z.string();
+
 export const NavbarSchema = z.object({
   logo: LogoSchema.optional(),
   github: z.url().optional(),
@@ -57,6 +59,7 @@ export const OpenManualConfigSchema = z.object({
   siteUrl: z.url().optional(),
   locale: z.string().optional(),
   contentPolicy: z.enum(['strict', 'all']).optional(),
+  favicon: FaviconSchema.optional(),
   navbar: NavbarSchema.optional(),
   footer: FooterSchema.optional(),
   sidebar: z.array(SidebarGroupSchema).optional(),
@@ -73,6 +76,7 @@ export type SidebarGroup = z.infer<typeof SidebarGroupSchema>;
 export type SidebarPage = z.infer<typeof SidebarPageSchema>;
 export type ThemeConfig = z.infer<typeof ThemeSchema>;
 export type LogoConfig = z.infer<typeof LogoSchema>;
+export type FaviconConfig = z.infer<typeof FaviconSchema>;
 
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
   const slugs = new Set<string>();
