@@ -194,6 +194,28 @@ describe('generateLayout', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
   });
+
+  // --- i18n 模式 ---
+
+  it('should generate baseOptions with _locale param in i18n mode', () => {
+    const result = generateLayout(i18nCtx);
+    expect(result).toContain('baseOptions(_locale: string)');
+    expect(result).not.toContain('baseOptions()');
+  });
+
+  it('should use text logo in i18n mode baseOptions', () => {
+    const result = generateLayout(i18nCtx);
+    expect(result).toContain('type="text" text="TestI18n"');
+  });
+
+  it('should use image logo in i18n mode baseOptions', () => {
+    const ctx = {
+      config: { ...i18nConfig, navbar: { logo: '/logo.svg' } },
+      projectDir: '/tmp/test',
+    };
+    const result = generateLayout(ctx);
+    expect(result).toContain('type="image" src="/logo.svg"');
+  });
 });
 
 describe('isImagePath', () => {
@@ -732,6 +754,116 @@ describe('generateSourceConfig', () => {
     expect(result).toContain('allowedSlugs');
     expect(result).toContain('.refine(');
   });
+
+  // --- i18n / dir parser 模式 ---
+
+  it('should strip language directory prefix in slugFromPath when dir parser + strict', () => {
+    const ctx = {
+      config: {
+        ...i18nConfigDirParser,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // dir parser: 剥离语言目录前缀
+    expect(result).toContain('dir parser: 剥离语言目录前缀');
+    expect(result).toContain('parts.slice(1)');
+    expect(result).toContain('/^[a-z]{2}(-[A-Z]{2})?$/i');
+  });
+
+  it('should strip .lang suffix in slugFromPath when i18n dot parser + strict', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // dot parser: 剥离语言后缀
+    expect(result).toContain('剥离语言后缀：index.en -> index');
+    // 验证生成了语言后缀剥离的 regex（模板字面量中 \\.\. 会输出 \.）
+    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
+  });
+
+  it('should NOT strip language suffix in slugFromPath when not i18n + strict', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).not.toContain('剥离语言后缀');
+    expect(result).not.toContain('剥离语言目录前缀');
+  });
+
+  it('should strip language dir prefix in titleFromPath when dir parser', () => {
+    const ctx = {
+      config: {
+        ...i18nConfigDirParser,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // titleFromPath with dir parser
+    expect(result).toContain('dir parser: 剥离语言目录前缀');
+    expect(result).toContain('parts.slice(1)');
+  });
+
+  it('should strip .lang suffix in titleFromPath when i18n dot parser', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // titleFromPath with i18n dot parser
+    expect(result).toContain('剥离语言后缀：guide/configuration.en -> guide/configuration');
+    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
+  });
+
+  it('should NOT have i18n stripping in titleFromPath when not i18n', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).not.toContain('剥离语言后缀');
+    expect(result).not.toContain('剥离语言目录前缀');
+  });
 });
 
 describe('generateTsconfig', () => {
@@ -909,6 +1041,20 @@ describe('generateSearchRoute', () => {
     expect(result).toContain("fr: 'french'");
     // ja 不在支持列表中，应使用空对象
     expect(result).toContain('ja: {}');
+  });
+
+  it('should NOT include localeMap when i18n enabled but only 1 language', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          languages: [{ code: 'zh', name: '中文' }],
+        },
+      } as any,
+    });
+    expect(result).not.toContain('localeMap');
+    expect(result).not.toContain('_localeMap');
+    expect(result).toMatch(/createFromSource\(source\)/);
   });
 });
 
@@ -1145,6 +1291,18 @@ describe('generateRawContentRoute - i18n modes', () => {
     const result = generateRawContentRoute(i18nCtxDir);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
+  });
+
+  // --- 显式断言确保分支覆盖 ---
+
+  it('dir parser route should embed defaultLang variable with resolved value', () => {
+    const result = generateRawContentRoute(i18nCtxDir);
+    expect(result).toContain("const defaultLang = 'zh'");
+  });
+
+  it('dot parser route should embed defaultLang variable with resolved value', () => {
+    const result = generateRawContentRoute(i18nCtx);
+    expect(result).toContain("const defaultLang = 'zh'");
   });
 });
 

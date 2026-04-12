@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../core/config/loader.js';
 import {
   collectConfiguredSlugs,
+  isDirParser,
+  isI18nEnabled,
   type OpenManualConfig,
   OpenManualConfigSchema,
 } from '../core/config/schema.js';
@@ -595,5 +597,244 @@ describe('content scanner - error handling', () => {
     const files = await scanContentDir(contentTmpDir);
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe('good');
+  });
+});
+
+// ============================================================
+// i18n schema 工具函数测试
+// ============================================================
+
+describe('isI18nEnabled', () => {
+  it('should return false when i18n is undefined', () => {
+    expect(isI18nEnabled({ name: 'Test' })).toBe(false);
+  });
+
+  it('should return false when i18n.enabled is false', () => {
+    expect(
+      isI18nEnabled({
+        name: 'Test',
+        i18n: {
+          enabled: false,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    ).toBe(false);
+  });
+
+  it('should return false when enabled but only 1 language', () => {
+    expect(
+      isI18nEnabled({
+        name: 'Test',
+        i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] },
+      })
+    ).toBe(false);
+  });
+
+  it('should return false when enabled but languages array is empty', () => {
+    expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true, languages: [] } })).toBe(false);
+  });
+
+  it('should return false when enabled but languages is undefined', () => {
+    expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true } })).toBe(false);
+  });
+
+  it('should return true when enabled and languages has 2+ entries', () => {
+    expect(
+      isI18nEnabled({
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    ).toBe(true);
+  });
+
+  it('should return true when enabled and languages has 3+ entries', () => {
+    expect(
+      isI18nEnabled({
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+            { code: 'ja', name: '日本語' },
+          ],
+        },
+      })
+    ).toBe(true);
+  });
+});
+
+describe('isDirParser', () => {
+  it('should return true when parser is "dir"', () => {
+    expect(isDirParser({ name: 'T', i18n: { parser: 'dir' } })).toBe(true);
+  });
+
+  it('should return false when parser is "dot"', () => {
+    expect(isDirParser({ name: 'T', i18n: { parser: 'dot' } })).toBe(false);
+  });
+
+  it('should return false when parser is undefined', () => {
+    expect(isDirParser({ name: 'T', i18n: { enabled: true } })).toBe(false);
+  });
+
+  it('should return false when i18n config is undefined', () => {
+    expect(isDirParser({ name: 'T' })).toBe(false);
+  });
+});
+
+describe('I18nLocaleSchema', () => {
+  it('should accept valid locale with code and name', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: {
+        enabled: true,
+        languages: [{ code: 'en', name: 'English' }],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject empty code', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: { languages: [{ code: '', name: 'English' }] },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject empty name', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: { languages: [{ code: 'en', name: '' }] },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('I18nConfigSchema', () => {
+  it('should accept full i18n config with all fields', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: {
+        enabled: true,
+        defaultLanguage: 'zh',
+        languages: [
+          { code: 'zh', name: '中文' },
+          { code: 'en', name: 'English' },
+        ],
+        parser: 'dir',
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept minimal i18n config (only enabled)', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: { enabled: true },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject invalid parser value', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      i18n: { parser: 'invalid' },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should accept i18n as optional field', () => {
+    const result = OpenManualConfigSchema.safeParse({ name: 'Test' });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ============================================================
+// mergeDefaults — i18n 合并逻辑
+// ============================================================
+
+describe('loadConfig - mergeDefaults i18n', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-i18n');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should merge i18n defaults when i18n config provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n).toBeDefined();
+    expect(config.i18n?.enabled).toBe(true);
+    expect(config.i18n?.defaultLanguage).toBe('zh'); // fallback to locale
+    expect(config.i18n?.parser).toBe('dot'); // fallback default
+    expect(config.i18n?.languages).toHaveLength(2);
+  });
+
+  it('should use provided i18n.defaultLanguage over fallback', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        locale: 'ja',
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'en',
+          languages: [{ code: 'en', name: 'English' }],
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.defaultLanguage).toBe('en');
+  });
+
+  it('should use provided i18n.parser over fallback', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        i18n: {
+          enabled: true,
+          parser: 'dir',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.parser).toBe('dir');
+  });
+
+  it('should set i18n to undefined when i18n not in config', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n).toBeUndefined();
   });
 });
