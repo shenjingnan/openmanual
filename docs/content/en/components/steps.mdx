@@ -1,0 +1,87 @@
+---
+title: Steps
+description: Use the Steps component to create numbered step-by-step guides.
+---
+
+The Steps component creates auto-numbered step-by-step guides, ideal for showing workflows, installation steps, and other sequential content.
+
+## Basic Usage
+
+Wrap multiple `Step` components with `Steps`; each `Step` represents one step:
+
+```mdx
+<Steps>
+  <Step>Install dependencies</Step>
+  <Step>Create configuration file</Step>
+  <Step>Start development server</Step>
+</Steps>
+```
+
+<Steps>
+  <Step>Install dependencies</Step>
+  <Step>Create configuration file</Step>
+  <Step>Start development server</Step>
+</Steps>
+
+## Steps with Content
+
+Each `Step` can contain rich content:
+
+```mdx
+<Steps>
+  <Step>
+    ### Install OpenManual
+
+    Run the following command:
+
+    \```bash
+    pnpm add openmanual
+    \```
+  </Step>
+  <Step>
+    ### Create Config File
+
+    Create `openmanual.json` in the project root.
+  </Step>
+</Steps>
+```
+
+<Steps>
+  <Step>
+    ### Install OpenManual
+
+    Run the following command:
+
+    ```bash
+    pnpm add openmanual
+    ```
+  </Step>
+  <Step>
+    ### Create Config File
+
+    Create `openmanual.json` in the project root.
+  </Step>
+  <Step>
+    ### Start Dev Server
+
+    Run `pnpm run docs:dev` to start the dev server and preview docs in browser.
+  </Step>
+</Steps>
+
+## Props
+
+### Steps
+
+`Steps` is a container component with no extra props. Used to wrap `Step` child components.
+
+### Step
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `children` | ReactNode | Yes | Step content, supports any MDX content |
+
+## Notes
+
+- Step numbers start at 1 and increment automatically
+- Each `Step` supports full Markdown/MDX syntax
+- Suitable for tutorials, installation guides, and other sequential scenarios

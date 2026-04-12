@@ -1,0 +1,87 @@
+---
+title: MDX Enhancements
+description: Learn about OpenManual's MDX enhancements, including LaTeX formula support.
+---
+
+# MDX Enhancements
+
+MDX is a superset of Markdown that allows you to use JSX/React components in your documents. OpenManual provides additional enhancements on top of this.
+
+## LaTeX Formulas
+
+Enable LaTeX support in configuration:
+
+```json
+{
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+Once enabled, you can use LaTeX syntax in your documents:
+
+### Inline Formulas
+
+Use `$...$` syntax:
+
+```markdown
+The mass-energy equation $E = mc^2$ is a famous formula in physics.
+```
+
+### Block Formulas
+
+Use `$$...$$` syntax:
+
+```markdown
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+## MDX Configuration Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `mdx.latex` | boolean | `false` | Whether LaTeX formula support is enabled |
+
+## Standard Markdown Support
+
+OpenManual supports all standard Markdown syntax:
+
+- Headings (h1-h6)
+- Lists (ordered, unordered)
+- Code blocks (with syntax highlighting)
+- Tables
+- Links and images
+- Blockquotes
+- Horizontal rules
+- Bold, italic, strikethrough
+
+## Code Blocks
+
+Supports syntax highlighting and line markers:
+
+````markdown
+```typescript showLineNumbers
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
+
+## MDX Components
+
+OpenManual includes rich built-in MDX components that you can use directly in documents without extra imports:
+
+| Component | Description | Documentation |
+|-----------|-------------|---------------|
+| Callout | Notice box for displaying important information | [Callout](/components/callout) |
+| Card / Cards | Card and card grid layout | [Card](/components/card) |
+| Steps / Step | Numbered step-by-step guide | [Steps](/components/steps) |
+| Tabs / Tab | Tabbed content switching | [Tabs](/components/tabs) |
+| Files / File / Folder | File tree directory display | [Files](/components/files) |
+| Accordion / Accordions | Collapsible content panels | [Accordion](/components/accordion) |
+| TypeTable | TypeScript type definition table | [TypeTable](/components/type-table) |
+
+Click component names to view detailed usage instructions and parameter documentation.

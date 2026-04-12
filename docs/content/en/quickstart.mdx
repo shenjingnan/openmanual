@@ -1,0 +1,107 @@
+---
+title: Quick Start
+description: Create your first OpenManual documentation site in 5 minutes.
+---
+
+# Quick Start
+
+This guide will help you create a complete documentation site in 5 minutes.
+
+## Installation
+
+```bash
+npm install -g openmanual
+```
+
+Or use pnpm:
+
+```bash
+pnpm add -g openmanual
+```
+
+## Create Project
+
+### 1. Create Project Directory
+
+```bash
+mkdir my-docs && cd my-docs
+```
+
+### 2. Create Configuration File
+
+Create a minimal `openmanual.json` config:
+
+```json
+{
+  "name": "My Docs"
+}
+```
+
+### 3. Create Homepage Document
+
+```bash
+mkdir content
+```
+
+Create `content/index.mdx`:
+
+```mdx
+---
+title: Welcome
+---
+
+# Hello OpenManual
+
+This is my first document.
+```
+
+### 4. Start Development Server
+
+```bash
+openmanual dev
+```
+
+Visit `http://localhost:3000` to see your documentation site.
+
+## CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `openmanual dev` | Start development server (default port 3000) |
+| `openmanual dev -p 8080` | Start on specified port |
+| `openmanual build` | Build static site |
+| `openmanual preview` | Preview build output (default port 8080) |
+| `openmanual preview -d ./out` | Preview from specified output directory |
+
+## Add More Pages
+
+Create new MDX files and register them in the `sidebar` configuration:
+
+```json
+{
+  "name": "My Docs",
+  "sidebar": [
+    {
+      "group": "Docs",
+      "pages": [
+        { "slug": "index", "title": "Home" },
+        { "slug": "guide", "title": "Guide" }
+      ]
+    }
+  ]
+}
+```
+
+Corresponding file structure:
+
+```
+content/
+├── index.mdx      # slug: index
+└── guide.mdx      # slug: guide
+```
+
+## Next Steps
+
+- [Configuration Reference](/guide/configuration) — Learn about all available configuration options
+- [Writing Docs](/guide/writing-docs) — Learn how to write MDX documents
+- [Theme Customization](/guide/theme) — Customize your site's appearance

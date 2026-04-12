@@ -1,0 +1,64 @@
+---
+title: Accordion
+description: Use the Accordion component to create collapsible content panels.
+---
+
+The Accordion component creates collapsible/expandable content panels, suitable for displaying large amounts of information in limited space, such as FAQs and detailed explanations.
+
+## FAQ Example
+
+Wrap multiple `Accordion` components with `Accordions`:
+
+```mdx
+<Accordions>
+  <Accordion title="What is OpenManual?">
+    OpenManual is an AI-friendly open-source documentation framework.
+  </Accordion>
+  <Accordion title="How to install?">
+    Run pnpm add openmanual to install.
+  </Accordion>
+</Accordions>
+```
+
+<Accordions>
+  <Accordion title="What is OpenManual?">
+    OpenManual is an AI-friendly open-source documentation framework that helps developers quickly build beautiful, easy-to-use documentation sites. It's based on MDX, supports rich components, and offers customizable themes.
+  </Accordion>
+  <Accordion title="How to install?">
+    Install using a package manager:
+
+    ```bash
+    pnpm add openmanual
+    ```
+
+    Then create an `openmanual.json` config file in your project root.
+  </Accordion>
+  <Accordion title="Which deployment platforms are supported?">
+    OpenManual builds static sites that can be deployed to any static hosting platform:
+
+    - Vercel
+    - Netlify
+    - GitHub Pages
+    - Self-hosted servers
+  </Accordion>
+</Accordions>
+
+## Props
+
+### Accordions
+
+`Accordions` is a container component with no extra props. Used to wrap multiple `Accordion` child components.
+
+### Accordion
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `title` | string | Yes | Panel title, always visible |
+| `children` | ReactNode | Yes | Panel content, click title to expand/collapse |
+
+## Notes
+
+- Each panel is collapsed by default; click the title to expand
+- Panel content supports full Markdown/MDX syntax
+- Suitable for FAQs, detailed explanations, and other on-demand content
+- Multiple panels within the same `Accordions` can be expanded simultaneously

@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { generateCalloutComponent } from '../core/generator/callout-component.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
+import { generateI18nConfig } from '../core/generator/i18n-config.js';
+import { generateI18nUI } from '../core/generator/i18n-ui.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
+import { generateMiddleware } from '../core/generator/middleware.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
 import { generatePackageJson } from '../core/generator/package-json.js';
 import { generatePage } from '../core/generator/page.js';
@@ -18,6 +21,28 @@ import { generateTsconfig } from '../core/generator/tsconfig.js';
 
 const baseConfig: OpenManualConfig = { name: 'Test' };
 const baseCtx = { config: baseConfig, projectDir: '/tmp/test' };
+
+// === i18n 测试用共享配置 ===
+const i18nConfig: OpenManualConfig = {
+  name: 'TestI18n',
+  i18n: {
+    enabled: true,
+    defaultLanguage: 'zh',
+    languages: [
+      { code: 'zh', name: '中文' },
+      { code: 'en', name: 'English' },
+    ],
+    parser: 'dot',
+  },
+};
+
+const i18nConfigDirParser: OpenManualConfig = {
+  ...i18nConfig,
+  i18n: { ...i18nConfig.i18n!, parser: 'dir' },
+};
+
+const i18nCtx = { config: i18nConfig, projectDir: '/tmp/test' };
+const i18nCtxDir = { config: i18nConfigDirParser, projectDir: '/tmp/test' };
 
 describe('generateGlobalCss', () => {
   it('should use default primaryHue 213 when theme not set', () => {
@@ -169,6 +194,28 @@ describe('generateLayout', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
   });
+
+  // --- i18n 模式 ---
+
+  it('should generate baseOptions with _locale param in i18n mode', () => {
+    const result = generateLayout(i18nCtx);
+    expect(result).toContain('baseOptions(_locale: string)');
+    expect(result).not.toContain('baseOptions()');
+  });
+
+  it('should use text logo in i18n mode baseOptions', () => {
+    const result = generateLayout(i18nCtx);
+    expect(result).toContain('type="text" text="TestI18n"');
+  });
+
+  it('should use image logo in i18n mode baseOptions', () => {
+    const ctx = {
+      config: { ...i18nConfig, navbar: { logo: '/logo.svg' } },
+      projectDir: '/tmp/test',
+    };
+    const result = generateLayout(ctx);
+    expect(result).toContain('type="image" src="/logo.svg"');
+  });
 });
 
 describe('isImagePath', () => {
@@ -205,13 +252,13 @@ describe('resolveLogoPaths', () => {
 
 describe('generateLibSource', () => {
   it('should import from .source/server and use loader', () => {
-    const result = generateLibSource();
+    const result = generateLibSource(baseCtx);
     expect(result).toContain("from '@/.source/server'");
     expect(result).toContain("from 'fumadocs-core/source'");
   });
 
   it('should configure loader with baseUrl and source', () => {
-    const result = generateLibSource();
+    const result = generateLibSource(baseCtx);
     expect(result).toContain("baseUrl: '/'");
     expect(result).toContain('source: docs.toFumadocsSource()');
   });
@@ -707,6 +754,116 @@ describe('generateSourceConfig', () => {
     expect(result).toContain('allowedSlugs');
     expect(result).toContain('.refine(');
   });
+
+  // --- i18n / dir parser 模式 ---
+
+  it('should strip language directory prefix in slugFromPath when dir parser + strict', () => {
+    const ctx = {
+      config: {
+        ...i18nConfigDirParser,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // dir parser: 剥离语言目录前缀
+    expect(result).toContain('dir parser: 剥离语言目录前缀');
+    expect(result).toContain('parts.slice(1)');
+    expect(result).toContain('/^[a-z]{2}(-[A-Z]{2})?$/i');
+  });
+
+  it('should strip .lang suffix in slugFromPath when i18n dot parser + strict', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // dot parser: 剥离语言后缀
+    expect(result).toContain('剥离语言后缀：index.en -> index');
+    // 验证生成了语言后缀剥离的 regex（模板字面量中 \\.\. 会输出 \.）
+    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
+  });
+
+  it('should NOT strip language suffix in slugFromPath when not i18n + strict', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'index', title: 'Home' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).not.toContain('剥离语言后缀');
+    expect(result).not.toContain('剥离语言目录前缀');
+  });
+
+  it('should strip language dir prefix in titleFromPath when dir parser', () => {
+    const ctx = {
+      config: {
+        ...i18nConfigDirParser,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // titleFromPath with dir parser
+    expect(result).toContain('dir parser: 剥离语言目录前缀');
+    expect(result).toContain('parts.slice(1)');
+  });
+
+  it('should strip .lang suffix in titleFromPath when i18n dot parser', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    // titleFromPath with i18n dot parser
+    expect(result).toContain('剥离语言后缀：guide/configuration.en -> guide/configuration');
+    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
+  });
+
+  it('should NOT have i18n stripping in titleFromPath when not i18n', () => {
+    const ctx = {
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    const result = generateSourceConfig(ctx);
+    expect(result).not.toContain('剥离语言后缀');
+    expect(result).not.toContain('剥离语言目录前缀');
+  });
 });
 
 describe('generateTsconfig', () => {
@@ -771,39 +928,39 @@ describe('generatePageActionsComponent', () => {
 
 describe('generateRawContentRoute', () => {
   it('should import readFile from node:fs/promises', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { readFile } from 'node:fs/promises'");
   });
 
   it('should import NextResponse from next/server', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { NextResponse } from 'next/server'");
   });
 
   it('should export GET handler', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain('export async function GET');
   });
 
   it('should try .mdx and .md extensions', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'.mdx'");
     expect(result).toContain("'.md'");
   });
 
   it('should return text/plain content type', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Content-Type': 'text/plain; charset=utf-8'");
   });
 
   it('should return 404 when file not found', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
   });
 
   it('should read from content directory', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'content'");
   });
 });
@@ -832,5 +989,459 @@ describe('generateSearchRoute', () => {
   it('should use source as argument to createFromSource', () => {
     const result = generateSearchRoute();
     expect(result).toMatch(/createFromSource\(source\)/);
+  });
+
+  it('should not include localeMap when i18n is not enabled', () => {
+    const result = generateSearchRoute();
+    expect(result).not.toContain('localeMap');
+  });
+
+  it('should generate localeMap with i18n config (zh + en)', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          parser: 'dir',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as any,
+    });
+
+    // zh 不在支持列表中，应使用空对象
+    expect(result).toContain('zh: {}');
+    // en 在支持列表中，应映射为 'english'
+    expect(result).toContain("en: 'english'");
+    // 应包含带 localeMap 的 options 对象
+    expect(result).toContain('createFromSource(source, {');
+    expect(result).toContain('zh: {}');
+    expect(result).toContain("en: 'english'");
+  });
+
+  it('should map all supported languages correctly in i18n mode', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'en',
+          languages: [
+            { code: 'en', name: 'English' },
+            { code: 'fr', name: 'French' },
+            { code: 'ja', name: 'Japanese' },
+          ],
+        },
+      } as any,
+    });
+
+    // en 和 fr 在支持列表中
+    expect(result).toContain("en: 'english'");
+    expect(result).toContain("fr: 'french'");
+    // ja 不在支持列表中，应使用空对象
+    expect(result).toContain('ja: {}');
+  });
+
+  it('should NOT include localeMap when i18n enabled but only 1 language', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          languages: [{ code: 'zh', name: '中文' }],
+        },
+      } as any,
+    });
+    expect(result).not.toContain('localeMap');
+    expect(result).not.toContain('_localeMap');
+    expect(result).toMatch(/createFromSource\(source\)/);
+  });
+});
+
+// ============================================================
+// i18n 相关测试用例
+// ============================================================
+
+describe('generateI18nConfig', () => {
+  it('should generate defineI18n config with dot parser (no parser field)', () => {
+    const result = generateI18nConfig(i18nCtx);
+    expect(result).toContain("import { defineI18n } from 'fumadocs-core/i18n'");
+    expect(result).toContain("defaultLanguage: 'zh'");
+    expect(result).toContain("languages: ['zh', 'en']");
+    expect(result).not.toContain("parser: 'dir'");
+  });
+
+  it('should include parser: dir when parser is dir', () => {
+    const result = generateI18nConfig(i18nCtxDir);
+    expect(result).toContain("parser: 'dir'");
+    expect(result).toContain("defaultLanguage: 'zh'");
+    expect(result).toContain("languages: ['zh', 'en']");
+  });
+
+  it('should fallback defaultLanguage to config.locale', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        locale: 'ja',
+      },
+    };
+    const result = generateI18nConfig(ctx);
+    expect(result).toContain("defaultLanguage: 'ja'");
+  });
+
+  it('should fallback defaultLanguage to zh when neither set', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+      },
+    };
+    const result = generateI18nConfig(ctx);
+    expect(result).toContain("defaultLanguage: 'zh'");
+  });
+
+  it('should throw when i18n.enabled is false', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        i18n: {
+          enabled: false,
+          languages: [
+            { code: 'a', name: 'A' },
+            { code: 'b', name: 'B' },
+          ],
+        },
+      },
+    };
+    expect(() => generateI18nConfig(ctx)).toThrow(
+      /generateI18nConfig called but i18n is not properly configured/
+    );
+  });
+
+  it('should throw when only 1 language configured', () => {
+    const ctx = {
+      config: { name: 'T', i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] } },
+    };
+    expect(() => generateI18nConfig(ctx)).toThrow(
+      /generateI18nConfig called but i18n is not properly configured/
+    );
+  });
+
+  it('should throw when languages array is empty', () => {
+    const ctx = { config: { name: 'T', i18n: { enabled: true, languages: [] } } };
+    expect(() => generateI18nConfig(ctx)).toThrow(
+      /generateI18nConfig called but i18n is not properly configured/
+    );
+  });
+
+  it('should throw when i18n config is missing', () => {
+    const ctx = { config: { name: 'T' } };
+    expect(() => generateI18nConfig(ctx)).toThrow(
+      /generateI18nConfig called but i18n is not properly configured/
+    );
+  });
+});
+
+describe('generateI18nUI', () => {
+  it('should generate defineI18nUI with multiple language displayNames', () => {
+    const result = generateI18nUI(i18nCtx);
+    expect(result).toContain("import { defineI18nUI } from 'fumadocs-ui/i18n'");
+    expect(result).toContain("'zh': {");
+    expect(result).toContain("displayName: '中文'");
+    expect(result).toContain("'en': {");
+    expect(result).toContain("displayName: 'English'");
+  });
+
+  it('should work with single language', () => {
+    const ctx = {
+      config: { name: 'T', i18n: { languages: [{ code: 'ja', name: '日本語' }] } },
+    };
+    const result = generateI18nUI(ctx);
+    expect(result).toContain("'ja': {");
+    expect(result).toContain("displayName: '日本語'");
+  });
+
+  it('should correctly map three languages', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+            { code: 'ja', name: '日本語' },
+          ],
+        },
+      },
+    };
+    const result = generateI18nUI(ctx);
+    expect(result).toContain("'zh': {");
+    expect(result).toContain("'en': {");
+    expect(result).toContain("'ja': {");
+  });
+
+  it('should throw when languages array is empty', () => {
+    const ctx = { config: { name: 'T', i18n: { languages: [] } } };
+    expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
+  });
+
+  it('should throw when languages is undefined', () => {
+    const ctx = { config: { name: 'T', i18n: { enabled: true } } };
+    expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
+  });
+
+  it('should throw when i18n config is missing', () => {
+    const ctx = { config: { name: 'T' } };
+    expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
+  });
+});
+
+describe('generateMiddleware', () => {
+  it('should use i18n.defaultLanguage as defaultLanguage', () => {
+    const result = generateMiddleware(i18nCtx);
+    expect(result).toContain("const defaultLanguage = 'zh'");
+  });
+
+  it('should fallback to config.locale when defaultLanguage not set', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        locale: 'en',
+      },
+    };
+    const result = generateMiddleware(ctx);
+    expect(result).toContain("const defaultLanguage = 'en'");
+  });
+
+  it('should fallback to zh when neither defaultLanguage nor locale set', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+      },
+    };
+    const result = generateMiddleware(ctx);
+    expect(result).toContain("const defaultLanguage = 'zh'");
+  });
+
+  it('should contain complete middleware template structure', () => {
+    const result = generateMiddleware(i18nCtx);
+    expect(result).toContain('NextResponse.redirect');
+    expect(result).toContain("pathname === '/'");
+    expect(result).toContain('matcher');
+    expect(result).toContain('_next/static');
+  });
+});
+
+describe('generateRawContentRoute - i18n modes', () => {
+  it('should generate dir parser route with lang param and content/{lang}/{slug} path', () => {
+    const result = generateRawContentRoute(i18nCtxDir);
+    // dir parser: params include lang
+    expect(result).toContain('{ path: string[]; lang: string }');
+    // dir parser: file path uses content/{lang}/{slug}
+    expect(result).toContain("'content', lang,");
+    expect(result).toContain('${slug}${ext}');
+    // dir parser: has defaultLang inline
+    expect(result).toContain('const defaultLang');
+    // dir parser: 404 handling
+    expect(result).toContain("'Not found'");
+    expect(result).toContain('status: 404');
+  });
+
+  it('should generate dot parser route with fallback logic', () => {
+    const result = generateRawContentRoute(i18nCtx);
+    // dot parser: params include lang
+    expect(result).toContain('{ path: string[]; lang: string }');
+    // dot parser: suffix logic for non-default language
+    expect(result).toContain('suffix = lang !== defaultLang');
+    // dot parser: try with suffix first
+    expect(result).toContain('${slug}${suffix}${ext}');
+    // dot parser: fallback without suffix
+    expect(result).toContain('${slug}${ext}');
+    // dot parser: 404 handling
+    expect(result).toContain("'Not found'");
+    expect(result).toContain('status: 404');
+  });
+
+  it('dot parser should try .mdx and .md extensions in order', () => {
+    const result = generateRawContentRoute(i18nCtx);
+    const mdxIndex = result.indexOf("'.mdx'");
+    const mdIndex = result.indexOf("'.md'");
+    expect(mdxIndex).toBeGreaterThan(-1);
+    expect(mdIndex).toBeGreaterThan(mdxIndex);
+  });
+
+  it('dir parser should use correct file path pattern', () => {
+    const result = generateRawContentRoute(i18nCtxDir);
+    // dir parser path: join(cwd(), 'content', lang, `${slug}.ext`)
+    expect(result).toContain("'content', lang,");
+  });
+
+  it('dot parser should handle 404 after all extensions exhausted', () => {
+    const result = generateRawContentRoute(i18nCtx);
+    // 404 should be outside both extension loops
+    const last404 = result.lastIndexOf("'Not found'");
+    expect(last404).toBeGreaterThan(-1);
+    expect(result.indexOf('status: 404')).toBeGreaterThan(last404 - 20);
+  });
+
+  it('dir parser should handle 404 after all extensions exhausted', () => {
+    const result = generateRawContentRoute(i18nCtxDir);
+    expect(result).toContain("'Not found'");
+    expect(result).toContain('status: 404');
+  });
+
+  // --- 显式断言确保分支覆盖 ---
+
+  it('dir parser route should embed defaultLang variable with resolved value', () => {
+    const result = generateRawContentRoute(i18nCtxDir);
+    expect(result).toContain("const defaultLang = 'zh'");
+  });
+
+  it('dot parser route should embed defaultLang variable with resolved value', () => {
+    const result = generateRawContentRoute(i18nCtx);
+    expect(result).toContain("const defaultLang = 'zh'");
+  });
+});
+
+describe('generatePage - i18n mode', () => {
+  it('should generate i18n page with lang param in Page signature', () => {
+    const result = generatePage(i18nCtx);
+    // i18n page: params includes lang
+    expect(result).toContain('{ slug?: string[]; lang: string }');
+    // i18n page: getPage takes (slug, lang)
+    expect(result).toMatch(/getPage\(slug,\s*lang\)/);
+    // i18n page: exports generateStaticParams
+    expect(result).toContain('export function generateStaticParams()');
+  });
+
+  it('should include allowedSlugs and isAllowed in strict i18n mode', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [
+              { slug: 'index', title: 'Home' },
+              { slug: 'guide', title: 'Guide' },
+            ],
+          },
+        ],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).toContain('allowedSlugs');
+    expect(result).toContain('isAllowed');
+    expect(result).toContain('!isAllowed(slug)');
+    expect(result).toContain('params.filter');
+  });
+
+  it('should not include allowedSlugs when contentPolicy is all in i18n mode', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        contentPolicy: 'all' as const,
+        sidebar: [{ group: 'Guide', pages: [{ slug: 'index', title: 'Home' }] }],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).not.toContain('allowedSlugs');
+    expect(result).not.toContain('isAllowed');
+  });
+
+  it('should import PageActions and use flex layout by default in i18n mode', () => {
+    const result = generatePage(i18nCtx);
+    expect(result).toContain("from '@/components/page-actions'");
+    expect(result).toContain('PageActions');
+    expect(result).toContain('flex items-start justify-between');
+  });
+
+  it('should not include PageActions when disabled in i18n mode', () => {
+    const ctx = {
+      config: { ...i18nConfig, pageActions: { enabled: false } },
+    };
+    const result = generatePage(ctx);
+    expect(result).not.toContain("from '@/components/page-actions'");
+    expect(result).not.toContain('PageActions');
+    expect(result).not.toContain('flex items-start justify-between');
+    expect(result).toContain('<DocsTitle>');
+  });
+
+  it('i18n staticParams filter should have lang in param type', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [{ group: 'G', pages: [{ slug: 'index', title: 'Home' }] }],
+      },
+    };
+    const result = generatePage(ctx);
+    // i18n version: filter param type includes lang
+    expect(result).toContain('{ slug: string[]; lang: string }');
+  });
+
+  it('i18n strict mode should use slug.join and index fallback', () => {
+    const ctx = {
+      config: {
+        ...i18nConfig,
+        sidebar: [{ group: 'G', pages: [{ slug: 'index', title: 'Home' }] }],
+      },
+    };
+    const result = generatePage(ctx);
+    expect(result).toContain("slug.join('/')");
+    expect(result).toContain("'index'");
+  });
+});
+
+describe('generateLibSource - i18n mode', () => {
+  it('should import i18n and include i18n in loader config', () => {
+    const result = generateLibSource(i18nCtx);
+    expect(result).toContain("import { i18n } from '@/lib/i18n'");
+    expect(result).toContain('i18n,');
+  });
+
+  it('should keep baseUrl and source in i18n mode', () => {
+    const result = generateLibSource(i18nCtx);
+    expect(result).toContain("baseUrl: '/'");
+    expect(result).toContain('source: docs.toFumadocsSource()');
+  });
+});
+
+describe('generateProvider - i18n mode', () => {
+  it('should generate AppProvider with lang param and i18n prop', () => {
+    const result = generateProvider(i18nCtx);
+    // i18n provider: AppProvider accepts lang
+    expect(result).toContain('{ children, lang }: { children: ReactNode; lang: string }');
+    // i18n provider: passes i18nUI.provider(lang)
+    expect(result).toContain('i18n={i18nUI.provider(lang)}');
+    // imports i18nUI
+    expect(result).toContain("import { i18nUI } from '@/lib/i18n-ui'");
+  });
+
+  it('should enable search by default in i18n mode', () => {
+    const result = generateProvider(i18nCtx);
+    expect(result).toContain('enabled: true');
+  });
+
+  it('should disable search when search.enabled is false in i18n mode', () => {
+    const ctx = { config: { ...i18nConfig, search: { enabled: false } } };
+    const result = generateProvider(ctx);
+    expect(result).toContain('enabled: false');
+  });
+
+  it('i18n provider should differ from single-language provider', () => {
+    const i18nResult = generateProvider(i18nCtx);
+    const singleResult = generateProvider(baseCtx);
+
+    // i18n version has i18n prop, single does not
+    expect(i18nResult).toContain('i18n={i18nUI.provider(lang)}');
+    expect(singleResult).not.toContain('i18n=');
+    expect(singleResult).not.toContain('i18nUI');
+
+    // i18n version has lang param, single does not
+    expect(i18nResult).toContain('lang: string');
+    expect(singleResult).not.toContain('lang:');
   });
 });

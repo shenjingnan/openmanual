@@ -1,0 +1,70 @@
+---
+title: Card
+description: Use the Card component to create card layouts with link navigation and card grids.
+---
+
+The Card component creates card-style content layouts, commonly used for navigation, feature introductions, etc. Combined with the `Cards` component, you can quickly create card grid layouts.
+
+## Basic Usage
+
+Use `Card` to create a single card:
+
+```mdx
+<Card title="Quick Start" href="/quickstart">
+  Set up your documentation site in minutes.
+</Card>
+```
+
+<Card title="Quick Start" href="/quickstart">
+  Set up your documentation site in minutes.
+</Card>
+
+## Card Grid
+
+Wrap multiple `Card` components with `Cards` for automatic grid layout:
+
+```mdx
+<Cards>
+  <Card title="Configuration" href="/guide/configuration">
+    Learn about all available configuration options.
+  </Card>
+  <Card title="Writing Docs" href="/guide/writing-docs">
+    Learn how to write documents using MDX.
+  </Card>
+  <Card title="Theme" href="/guide/theme">
+    Customize your documentation site's appearance.
+  </Card>
+</Cards>
+```
+
+<Cards>
+  <Card title="Configuration" href="/guide/configuration">
+    Learn about all available configuration options.
+  </Card>
+  <Card title="Writing Docs" href="/guide/writing-docs">
+    Learn how to write documents using MDX.
+  </Card>
+  <Card title="Theme" href="/guide/theme">
+    Customize your documentation site's appearance.
+  </Card>
+</Cards>
+
+## Props
+
+### Cards
+
+`Cards` is a container component with no extra props. Used to wrap multiple `Card` components and automatically arrange them in a grid layout.
+
+### Card
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `title` | string | Yes | Card title |
+| `href` | string | No | Click navigation link |
+| `children` | ReactNode | No | Card description content |
+
+## Notes
+
+- `Card` and `Cards` are default components from `fumadocs-ui/mdx`; no extra import needed
+- When `Card` has an `href`, clicking navigates to the target page
+- Cards without `href` are non-clickable, suitable for pure display scenarios

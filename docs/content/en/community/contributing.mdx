@@ -1,0 +1,109 @@
+---
+title: Contributing
+description: Learn how to contribute to the OpenManual project.
+---
+
+# Contributing Guide
+
+Thank you for your interest in the OpenManual project! Contributions of all kinds are welcome.
+
+## Code of Conduct
+
+By participating in this project, you agree to abide by the Contributor Covenant, maintaining a friendly and respectful attitude in all interactions.
+
+## How to Contribute
+
+### Report Bugs
+
+Report issues via [GitHub Issues](https://github.com/shenjingnan/openmanual/issues). Please include:
+
+1. **Clear title** — Brief description of the issue
+2. **Steps to reproduce** — Detailed instructions on how to reproduce
+3. **Expected behavior** — What you expected to happen
+4. **Actual behavior** — What actually happened
+5. **Environment info** — Operating system, Node.js version, etc.
+
+### Suggest Features
+
+Describe in an Issue:
+
+1. **Feature description** — What feature you'd like added
+2. **Use case** — Why you need this feature
+3. **Alternatives considered** — Other approaches you've thought about
+
+### Submit Code
+
+#### Development Environment Setup
+
+```bash
+# Clone repository
+git clone https://github.com/shenjingnan/openmanual.git
+cd openmanual
+
+# Install dependencies
+pnpm install
+
+# Dev mode
+pnpm run dev
+
+# Build project
+pnpm run build
+
+# Run tests
+pnpm run test
+
+# Code quality check
+pnpm run check
+```
+
+#### Branch Strategy
+
+- `main` — Main branch, kept stable
+- `feature/*` — Feature branches
+- `fix/*` — Bug fix branches
+- `docs/*` — Documentation update branches
+
+#### Commit Convention
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+<type>(<scope>): <description>
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `chore`
+
+#### Pull Request Workflow
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes
+4. Ensure tests pass (`pnpm run test`)
+5. Ensure linting passes (`pnpm run check`)
+6. Commit changes (`git commit -m "feat: add my feature"`)
+7. Push branch (`git push origin feature/my-feature`)
+8. Create a Pull Request
+
+#### PR Checklist
+
+- Code passes all tests
+- Code passes lint checks
+- Code passes type checking
+- New features have corresponding tests
+- Documentation updated (if needed)
+- Commit messages follow conventions
+
+## Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `pnpm run dev` | Development mode (watch) |
+| `pnpm run build` | Build project |
+| `pnpm run test` | Run tests |
+| `pnpm run lint` | Lint code |
+| `pnpm run typecheck` | TypeScript type check |
+| `pnpm run check` | Full check |
+
+## License
+
+By contributing code, you agree that your contributions will be released under the MIT license.

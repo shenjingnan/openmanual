@@ -1,7 +1,7 @@
 import type { OpenManualConfig } from '../config/schema.js';
 
 /**
- * 生成 app/provider.tsx
+ * 生成 app/provider.tsx（或 app/[lang]/provider.tsx）
  *
  * 重要：直接从 fumadocs-ui 导入组件，而非通过 openmanual/components/provider 中转。
  * 这避免了 pnpm file: 协议下 fumadocs-ui 被安装两次（一次作为 openmanual 的依赖，
@@ -9,6 +9,31 @@ import type { OpenManualConfig } from '../config/schema.js';
  */
 export function generateProvider(ctx: { config: OpenManualConfig }): string {
   const searchEnabled = ctx.config.search?.enabled !== false;
+  const isI18n = ctx.config.i18n?.enabled === true;
+
+  if (isI18n) {
+    return `'use client';
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import SafeSearchDialog from './components/search-dialog';
+import { i18nUI } from '@/lib/i18n-ui';
+import type { ReactNode } from 'react';
+
+export function AppProvider({ children, lang }: { children: ReactNode; lang: string }) {
+  return (
+    <RootProvider
+      i18n={i18nUI.provider(lang)}
+      search={{
+        enabled: ${searchEnabled},
+        SearchDialog: SafeSearchDialog,
+        options: { type: 'static', api: '/api/search' },
+      }}
+    >
+      {children}
+    </RootProvider>
+  );
+}
+`;
+  }
 
   return `'use client';
 import { RootProvider } from 'fumadocs-ui/provider/next';

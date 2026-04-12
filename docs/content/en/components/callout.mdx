@@ -1,0 +1,110 @@
+---
+title: Callout
+description: Use the Callout component to add prominent notices, warnings, and notes in your documentation.
+---
+
+The Callout component displays prominent notice information in documents, helping readers notice important notes, warnings, or tips.
+
+## Basic Usage
+
+Use the `Callout` component to create a notice box:
+
+```mdx
+<Callout>
+  This is a general notice.
+</Callout>
+```
+
+<Callout>
+  This is a general notice.
+</Callout>
+
+## Type Variants
+
+Set different types via the `type` attribute:
+
+```mdx
+<Callout type="note">Note</Callout>
+<Callout type="info">Info</Callout>
+<Callout type="warning">Warning</Callout>
+<Callout type="tip">Tip</Callout>
+<Callout type="check">Check</Callout>
+<Callout type="danger">Danger</Callout>
+<Callout type="key">Key</Callout>
+```
+
+<Callout type="note">
+  This is a note for general remarks.
+</Callout>
+
+<Callout type="info">
+  This is info for additional information.
+</Callout>
+
+<Callout type="warning">
+  This is a warning — please pay attention.
+</Callout>
+
+<Callout type="tip">
+  This is a tip with practical advice.
+</Callout>
+
+<Callout type="check">
+  This confirms successful operation.
+</Callout>
+
+<Callout type="danger">
+  This indicates a dangerous situation.
+</Callout>
+
+<Callout type="key">
+  This highlights key information.
+</Callout>
+
+## With Title
+
+Use `CalloutTitle` for title and `CalloutDescription` for description:
+
+```mdx
+<Callout type="warning">
+  <CalloutTitle>Attention</CalloutTitle>
+  <CalloutDescription>
+    Please ensure you have backed up data before proceeding.
+  </CalloutDescription>
+</Callout>
+```
+
+<Callout type="warning">
+  <CalloutTitle>Attention</CalloutTitle>
+  <CalloutDescription>
+    Please ensure you have backed up data before proceeding.
+  </CalloutDescription>
+</Callout>
+
+## Props
+
+### Callout
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `type` | `'note' \| 'info' \| 'warning' \| 'tip' \| 'check' \| 'danger' \| 'key'` | `'info'` | Notice type |
+
+Legacy type names `warn`, `error`, `success`, `idea` are preserved as aliases for backward compatibility:
+- `warn` → `warning`
+- `error` → `danger`
+- `success` → `check`
+- `idea` → `tip`
+
+### CalloutTitle
+
+`CalloutTitle` has no additional props. Used as a child component of `Callout` to display the notice title.
+
+### CalloutDescription
+
+`CalloutDescription` has no additional props. Used as a child component of `Callout` to display the notice body content.
+
+## Notes
+
+- `CalloutTitle` and `CalloutDescription` are optional child components
+- Without child components, direct content of `Callout` is displayed as the body
+- `Callout` is one of the default components from `fumadocs-ui/mdx`; no extra import needed

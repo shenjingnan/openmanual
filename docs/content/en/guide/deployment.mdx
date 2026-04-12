@@ -1,0 +1,248 @@
+---
+title: Deployment
+description: Learn how to build and deploy OpenManual documentation sites to various platforms.
+---
+
+# Deployment
+
+OpenManual supports building documentation as static sites that can be deployed to any static hosting platform.
+
+## Prerequisites
+
+OpenManual requires **Node.js >= 24.0.0**. Please verify your build environment meets this requirement before deploying.
+
+## Build Site
+
+```bash
+openmanual build
+```
+
+After building, static files are output to the directory specified by `outputDir` (default: `dist`).
+
+## Preview Build Output
+
+```bash
+openmanual preview
+```
+
+Default preview URL is `http://localhost:8080`. You can specify port and directory:
+
+```bash
+openmanual preview -p 3000 -d ./out
+```
+
+## Configure siteUrl (Required)
+
+You **must** configure `siteUrl` in `openmanual.json` before deployment. Only with `siteUrl` configured will OpenManual enable Next.js static export mode (`output: 'export'`) and generate deployable static files.
+
+**Without `siteUrl`, `openmanual build` will not generate the `out/` directory and the build output will be empty.**
+
+```json
+{
+  "name": "My Docs",
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+`siteUrl` is also used for generating correct sitemaps and canonical URLs. If using a custom domain, set it to the final domain name.
+
+## Deploy to Vercel
+
+### Method 1: Git Integration (Recommended)
+
+Connect your GitHub repository for automatic deployment; Vercel builds and deploys on every push.
+
+1. Push your project to GitHub
+2. Log in to [Vercel Dashboard](https://vercel.com/dashboard), click **Add New** → **Project**
+3. Select your GitHub repository and import
+4. Configure in **Configure Project**:
+   - **Framework Preset**: Select `Next.js` (or keep `Other`)
+   - **Build Command**: `npx openmanual build`
+   - **Output Directory**: Match `outputDir` in `openmanual.json` (default: `dist`)
+   - **Install Command**: `npm install`
+5. Add in **Environment Variables**:
+   - `NODE_VERSION` = `24` (ensure correct Node.js version)
+6. Click **Deploy** to start deployment
+
+You can also create `vercel.json` in the project root to pin configuration:
+
+```json
+{
+  "buildCommand": "npx openmanual build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install"
+}
+```
+
+> **Note**: If your `outputDir` is not the default `dist`, update `outputDirectory` in `vercel.json` accordingly.
+
+### Method 2: Vercel CLI
+
+Suitable for temporary deployments or testing:
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy from project root
+vercel
+```
+
+Follow prompts for initial setup. For subsequent updates, just run `vercel` again.
+
+Production deployment:
+
+```bash
+vercel --prod
+```
+
+## Deploy to Netlify
+
+### Method 1: Git Integration (Recommended)
+
+1. Push your project to GitHub
+2. Log in to [Netlify](https://app.netlify.com/), click **Add new site** → **Import an existing project**
+3. Select your GitHub repository
+4. Configure build settings:
+   - **Build command**: `npx openmanual build`
+   - **Publish directory**: Match `outputDir` in `openmanual.json` (default: `dist`)
+5. Set in **Environment variables**:
+   - `NODE_VERSION` = `24`
+6. Click **Deploy site**
+
+### Method 2: netlify.toml Configuration
+
+Create `netlify.toml` in the project root:
+
+```toml
+[build]
+  command = "npx openmanual build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+```
+
+After committing this file, Netlify reads the configuration automatically.
+
+## Deploy to GitHub Pages
+
+### Method 1: GitHub Actions (Recommended)
+
+Create `.github/workflows/deploy.yml` in your repository:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install openmanual
+        run: npm install -g openmanual
+
+      - name: Build
+        run: openmanual build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+When using this workflow, `siteUrl` should be configured as:
+
+```json
+{
+  "siteUrl": "https://<username>.github.io/<repo-name>"
+}
+```
+
+For custom domains, replace with your domain name.
+
+### Method 2: Manual Deployment
+
+```bash
+# Build site
+openmanual build
+
+# Enter output directory
+cd dist
+
+# Create gh-pages branch and push
+git init
+git checkout -b gh-pages
+git add .
+git commit -m "deploy"
+git remote add origin <your-repo-url>
+git push -f origin gh-pages
+```
+
+Then select the `gh-pages` branch as the publish source in **Settings** → **Pages**.
+
+## Troubleshooting
+
+### Empty Build Output
+
+Check if `siteUrl` is configured in `openmanual.json`. Without it, OpenManual won't enable static export mode and no static files will be generated.
+
+```json
+{
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+### Node.js Version Mismatch
+
+OpenManual requires Node.js >= 24.0.0. If the build fails with syntax errors or missing modules, check the Node.js version:
+
+```bash
+node -v
+```
+
+Version configuration methods per platform:
+
+| Platform | Configuration Method |
+|----------|---------------------|
+| Vercel | Environment variable `NODE_VERSION=24` or `engines.node` in package.json |
+| Netlify | `[build.environment]` in `netlify.toml` or environment variables |
+| GitHub Actions | `node-version: 24` in `actions/setup-node` |
+
+### Custom Domain
+
+When using a custom domain, you need to:
+
+1. Add a CNAME record at your DNS provider pointing to the hosting platform
+2. Set `siteUrl` in `openmanual.json` to your custom domain
+3. Configure the domain on the hosting platform (Vercel/Netlify in project settings, GitHub Pages in repo settings)

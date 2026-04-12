@@ -1,0 +1,104 @@
+---
+title: Theme Customization
+description: Learn how to customize your OpenManual site's appearance, including primary color and dark mode.
+---
+
+# Theme Customization
+
+OpenManual provides a simple theme customization approach via the `theme` configuration field.
+
+## Primary Color
+
+Adjust brand color via `primaryHue` hue value. Range is 0-360:
+
+```json
+{
+  "theme": {
+    "primaryHue": 250
+  }
+}
+```
+
+### Common Hue Reference
+
+| Hue | Color | Effect |
+|-----|-------|--------|
+| 0 | Red | Passionate, eye-catching |
+| 30 | Orange | Energetic, warm |
+| 60 | Yellow | Bright, friendly |
+| 120 | Green | Natural, fresh |
+| 200 | Blue | Professional, reliable |
+| 250 | Purple | Creative, mysterious |
+| 300 | Pink | Soft, approachable |
+
+## Dark Mode
+
+Dark mode is enabled by default; you can disable it:
+
+```json
+{
+  "theme": {
+    "darkMode": false
+  }
+}
+```
+
+## Complete Theme Configuration
+
+```json
+{
+  "theme": {
+    "primaryHue": 250,
+    "darkMode": true
+  }
+}
+```
+
+## Theme Configuration Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `primaryHue` | number | — | Primary color hue value (0-360) |
+| `darkMode` | boolean | `true` | Whether dark mode is enabled |
+
+## Static Assets
+
+Place custom static assets (Logo, Favicon) in the `public` directory:
+
+```
+my-docs/
+├── openmanual.json
+├── content/
+└── public/
+    ├── logo.svg
+    └── favicon.ico
+```
+
+Reference in configuration:
+
+```json
+{
+  "navbar": {
+    "logo": "/logo.svg"
+  }
+}
+```
+
+## Logo Theme Adaptation
+
+If you need different logos for Light and Dark modes, use object form:
+
+```json
+{
+  "navbar": {
+    "logo": {
+      "light": "/logo-light.svg",
+      "dark": "/logo-dark.svg"
+    }
+  }
+}
+```
+
+When `light` and `dark` paths differ, the navbar renders two `<img>` tags, using Tailwind's `dark:hidden` / `hidden dark:block` for automatic switching.
+
+If no custom logo image is provided, OpenManual auto-generates an SVG logo from the site name. In dark mode, warm-colored text (`#E8E0D4`) is used to coordinate with the dark theme background.

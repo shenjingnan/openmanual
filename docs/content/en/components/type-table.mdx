@@ -1,0 +1,96 @@
+---
+title: TypeTable
+description: Use the TypeTable component to display TypeScript type definitions in a clear table format.
+---
+
+The TypeTable component displays TypeScript type definitions in structured table format, ideal for showing interfaces, type aliases, etc. in API documentation.
+
+## Basic Usage
+
+```mdx
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: 'User name',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: 'User age',
+    },
+    email: {
+      type: 'string',
+      description: 'User email address',
+      default: 'user@example.com',
+    },
+  }}
+/>
+```
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: 'User name',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: 'User age',
+    },
+    email: {
+      type: 'string',
+      description: 'User email address',
+      default: 'user@example.com',
+    },
+    role: {
+      type: "'admin' | 'user' | 'guest'",
+      description: 'User role',
+      default: 'user',
+    },
+  }}
+/>
+
+## Configuration Example
+
+Here's a type definition for the `theme` configuration in `openmanual.json`:
+
+<TypeTable
+  type={{
+    primaryHue: {
+      type: 'number',
+      description: 'Theme color hue value, range 0-360',
+    },
+    darkMode: {
+      type: 'boolean',
+      description: 'Whether dark mode is enabled',
+      default: 'true',
+    },
+  }}
+/>
+
+## Props
+
+### TypeTable
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `type` | `Record<string, TypeField>` | Yes | Type field definition object |
+
+### TypeField
+
+Each field definition contains the following properties:
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `type` | string | Yes | Field type description |
+| `description` | string | No | Field description |
+| `required` | boolean | No | Whether required |
+| `default` | string | No | Default value |
+
+## Notes
+
+- Keys of the `type` prop are field names; values are field definition objects
+- The `type` field content is free-form text and can be any type description string
+- Suitable for displaying configuration options, API parameters, component props, and other type information

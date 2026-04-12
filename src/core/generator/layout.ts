@@ -17,6 +17,7 @@ export function resolveLogoPaths(logo: LogoConfig): { light: string; dark: strin
 export function generateLayout(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
   const logo = config.navbar?.logo ?? config.name;
+  const isI18n = config.i18n?.enabled === true;
 
   let logoProps: string;
   if (typeof logo === 'string' && isImagePath(logo)) {
@@ -30,6 +31,21 @@ export function generateLayout(ctx: { config: OpenManualConfig }): string {
     }
   } else {
     logoProps = `type="text" text="${logo}"`;
+  }
+
+  if (isI18n) {
+    return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import type { ReactNode } from 'react';
+import { NavLogo } from 'openmanual/components/nav-layout';
+
+export function baseOptions(_locale: string): BaseLayoutProps {
+  return {
+    nav: {
+      title: <NavLogo ${logoProps} /> as ReactNode,
+    },
+  };
+}
+`;
   }
 
   return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';

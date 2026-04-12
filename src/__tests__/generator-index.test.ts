@@ -16,6 +16,27 @@ const baseCtx = {
   contentDir: 'content',
 };
 
+// === i18n 测试用共享配置 ===
+const i18nConfig: OpenManualConfig = {
+  name: 'TestI18n',
+  i18n: {
+    enabled: true,
+    defaultLanguage: 'zh',
+    languages: [
+      { code: 'zh', name: '中文' },
+      { code: 'en', name: 'English' },
+    ],
+    parser: 'dot',
+  },
+};
+
+const i18nCtx = {
+  config: i18nConfig,
+  projectDir: '/tmp/project',
+  appDir: '/tmp/project/.openmanual/app',
+  contentDir: 'content',
+};
+
 describe('generateAll', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -750,5 +771,291 @@ describe('generateAll - favicon handling', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getRootLayoutContent(calls);
     expect(content).toContain("icon: '/assets/icons/favicon.svg'");
+  });
+});
+
+// ============================================================
+// generateAll — i18n 多语言模式
+// ============================================================
+
+describe('generateAll - i18n mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /** 从 writeFile calls 中提取 [lang]/layout.tsx 的内容 */
+  function getI18nRootLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).endsWith('layout.tsx') &&
+        !(c[0] as string).includes('[[...slug]]')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  /** 从 writeFile calls 中提取 [lang]/[[...slug]]/layout.tsx 的内容 */
+  function getI18nDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  // --- 文件列表 ---
+
+  it('should write additional i18n files in i18n non-dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    // base=12 + search=1 + i18n核心(lib/i18n.ts + lib/i18n-ui.ts)=2 + middleware=1
+    // + [lang] routes(layout+provider+search-dialog+docs-layout+page)=5 = 21+
+    // + meta files 取决于 sidebar 配置
+    expect(calls.length).toBeGreaterThan(17);
+  });
+
+  it('should write raw content route in i18n dev mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll({ ...i18nCtx, dev: true });
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const rawRouteCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('api/raw') &&
+        (c[0] as string).endsWith('route.ts')
+    );
+    expect(rawRouteCall).toBeDefined();
+  });
+
+  it('should generate lib/i18n.ts and lib/i18n-ui.ts in i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+
+    const i18nCall = calls.find(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('lib/i18n.ts')
+    );
+    expect(i18nCall).toBeDefined();
+    expect((i18nCall as unknown[])[1]).toContain('defineI18n');
+    expect((i18nCall as unknown[])[1]).toContain("'zh'");
+    expect((i18nCall as unknown[])[1]).toContain("'en'");
+
+    const i18nUICall = calls.find(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('lib/i18n-ui.ts')
+    );
+    expect(i18nUICall).toBeDefined();
+    expect((i18nUICall as unknown[])[1]).toContain('defineI18nUI');
+    expect((i18nUICall as unknown[])[1]).toContain("displayName: '中文'");
+    expect((i18nUICall as unknown[])[1]).toContain("displayName: 'English'");
+  });
+
+  it('should generate middleware.ts with redirect logic', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mwCall = calls.find(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('middleware.ts')
+    );
+    expect(mwCall).toBeDefined();
+    expect((mwCall as unknown[])[1]).toContain('NextResponse.redirect');
+    expect((mwCall as unknown[])[1]).toContain("pathname === '/'");
+  });
+
+  // --- [lang]/ 路由结构 ---
+
+  it('should generate app/[lang]/layout.tsx with async params and lang prop', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nRootLayoutContent(calls);
+
+    expect(content).toContain('AppLayout lang={lang}');
+    expect(content).toContain('AppProvider lang={lang}');
+    expect(content).toContain('await params');
+    expect(content).toContain('Promise<{ lang: string }>');
+  });
+
+  it('should generate app/[lang]/provider.tsx with i18nUI.provider(lang)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const providerCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).endsWith('provider.tsx')
+    );
+    expect(providerCall).toBeDefined();
+    expect((providerCall as unknown[])[1]).toContain('i18n={i18nUI.provider(lang)}');
+    expect((providerCall as unknown[])[1]).toContain('{ children, lang }');
+  });
+
+  it('should generate app/[lang]/[[...slug]]/layout.tsx with DocsLayoutWrapper', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain('DocsLayoutWrapper');
+    expect(content).toContain('async function DocsLayoutWrapper');
+    expect(content).toContain('params: Promise<{ lang: string }>');
+    expect(content).toContain('baseOptions(lang)');
+  });
+
+  it('should generate app/[lang]/[[...slug]]/page.tsx with getPageTree(slug, lang)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const pageCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('page.tsx')
+    );
+    expect(pageCall).toBeDefined();
+    expect((pageCall as unknown[])[1]).toMatch(/getPage\(slug,\s*lang\)/);
+  });
+
+  // --- docs layout 细节 ---
+
+  it('should use getPageTree(lang) in i18n docs layout when no sidebar', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain('getPageTree(lang)');
+    expect(content).not.toContain('getPageTree()');
+  });
+
+  it('should use restructureTree(getPageTree(lang), sidebarConfig) when i18n + sidebar', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: '开始',
+            pages: [{ slug: 'index', title: '首页' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig)');
+  });
+
+  it('should include lucide-react import and iconMap when i18n + sidebar with icons', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            pages: [{ slug: 'index', title: '首页', icon: 'Home' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain("import { BookOpen, Home } from 'lucide-react'");
+    expect(content).toContain('const iconMap = {');
+    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig, iconMap)');
+  });
+
+  // --- meta.en.json 生成 ---
+
+  it('should generate meta.en.json for each sidebar group directory in i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: '指南',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+          {
+            group: '进阶',
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaEnCalls = calls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.en.json')
+    );
+    expect(metaEnCalls).toHaveLength(2);
+    expect(metaEnCalls[0]?.[1]).toContain('"title": "指南"');
+    expect(metaEnCalls[1]?.[1]).toContain('"title": "进阶"');
+  });
+
+  it('should not overwrite existing meta.en.json', async () => {
+    const { access, writeFile } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
+      if (typeof path === 'string' && path.includes('guide') && path.endsWith('meta.en.json')) {
+        return Promise.resolve();
+      }
+      return Promise.reject(new Error('ENOENT'));
+    });
+
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        sidebar: [
+          {
+            group: '指南',
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+          {
+            group: '进阶',
+            pages: [{ slug: 'advanced/search', title: '搜索' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaEnCalls = calls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.en.json')
+    );
+    // Only advanced/meta.en.json should be written; guide/meta.en.json skipped
+    expect(metaEnCalls).toHaveLength(1);
+    expect(metaEnCalls[0]?.[0]).toContain('advanced');
+  });
+
+  it('should include Metadata export in i18n root layout when favicon configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: { ...i18nConfig, favicon: '/favicon.ico' },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nRootLayoutContent(calls);
+
+    expect(content).toContain("import type { Metadata } from 'next'");
+    expect(content).toContain('export const metadata: Metadata = {');
+    expect(content).toContain("icon: '/favicon.ico'");
   });
 });
