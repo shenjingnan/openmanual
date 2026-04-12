@@ -27,6 +27,20 @@ export async function cleanTempDir(cwd: string): Promise<void> {
   if (existsSync(tempDir)) {
     await rm(tempDir, { recursive: true, force: true });
   }
+
+  // 清理 SSR 模式下可能创建的平台部署锚点符号链接
+  const anchorFiles = ['next.config.mjs', '.next'];
+  for (const file of anchorFiles) {
+    const filePath = resolve(cwd, file);
+    try {
+      const stat = await lstat(filePath);
+      if (stat.isSymbolicLink()) {
+        await rm(filePath, { force: true });
+      }
+    } catch {
+      // 不存在或无法访问，忽略
+    }
+  }
 }
 
 export async function createSymlink(target: string, linkPath: string): Promise<void> {

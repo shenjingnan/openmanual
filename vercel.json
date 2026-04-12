@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm install && pnpm run build && cd docs && pnpm install && pnpm exec openmanual build --ssr",
+  "buildCommand": "pnpm run build && cd docs && pnpm install && pnpm exec openmanual build --ssr",
   "installCommand": "pnpm install"
 }

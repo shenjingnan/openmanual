@@ -99,6 +99,7 @@ export const buildCommand = new Command('build')
       } else {
         // SSR 模式：保留应用目录供部署平台使用
         logger.success(`SSR 构建完成，应用目录保留在: ${appDir}`);
+        await prepareForPlatformDeployment(cwd, appDir);
       }
 
       logger.success('构建完成！');
@@ -108,3 +109,34 @@ export const buildCommand = new Command('build')
       process.exit(1);
     }
   });
+
+/**
+ * 在 SSR 构建完成后，为 Vercel 等 PaaS 平台准备部署所需的文件结构。
+ *
+ * 平台（如 Vercel）的 Next.js 框架预设会在项目根目录查找 next.config.* 和 .next/ 目录。
+ * 但 OpenManual 将 Next.js 应用生成在 .openmanual/app/ 子目录中，
+ * 因此在根目录创建符号链接指向实际文件，让平台的检测逻辑能找到标准 Next.js 项目结构。
+ */
+async function prepareForPlatformDeployment(cwd: string, appDir: string): Promise<void> {
+  const { symlink } = await import('node:fs/promises');
+
+  // 创建 next.config.mjs 符号链接 -> .openmanual/app/next.config.mjs
+  const nextConfigSrc = resolve(appDir, 'next.config.mjs');
+  const nextConfigDest = resolve(cwd, 'next.config.mjs');
+  try {
+    await symlink(nextConfigSrc, nextConfigDest, 'junction');
+    logger.info('已创建 next.config.mjs 符号链接（供平台部署检测）');
+  } catch {
+    // 忽略已存在或其他错误
+  }
+
+  // 创建 .next 符号链接 -> .openmanual/app/.next
+  const nextDirSrc = resolve(appDir, '.next');
+  const nextDirDest = resolve(cwd, '.next');
+  try {
+    await symlink(nextDirSrc, nextDirDest, 'junction');
+    logger.info('已创建 .next 符号链接（供平台部署检测）');
+  } catch {
+    // 忽略已存在或其他错误
+  }
+}
