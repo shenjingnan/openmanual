@@ -1,6 +1,5 @@
 {
   "framework": "nextjs",
-  "rootDirectory": "docs/.openmanual/app",
   "buildCommand": "cd ../.. && pnpm install && pnpm run build && cd docs && pnpm install && pnpm exec openmanual build --ssr",
   "installCommand": "cd ../.. && pnpm install"
 }
