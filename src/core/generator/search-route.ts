@@ -61,16 +61,26 @@ export function generateSearchRoute(ctx?: { config: OpenManualConfig }): string 
     const localeMapEntries = (i18nCfg?.languages ?? [])
       .map((l) => {
         const langName = resolveLanguageName(l.code);
-        return `    ${l.code}: ${langName ? `'${langName}'` : '{}'}`;
+        if (langName) {
+          return `  ${l.code}: '${langName}'`;
+        }
+        // 不支持的语言（如中文 zh）：传空对象让 Orama 使用默认分词器
+        return `  ${l.code}: {}`;
       })
       .join(',\n');
 
+    // 将 localeMap 定义为独立变量（Record<string, unknown>），
+    // 再通过 as any 传入 createFromSource 以绕过 fumadocs-core 的严格类型约束。
+    // 不能直接在对象字面量中用 (key as any)，因为 Turbopack 不支持该语法。
     return `import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
 export const revalidate = false;
+const _localeMap: Record<string, unknown> = {
+${localeMapEntries},
+};
 export const { staticGET: GET } = createFromSource(source, {
-  ${localeMapEntries},
+  localeMap: _localeMap as any,
 });
 `;
   }

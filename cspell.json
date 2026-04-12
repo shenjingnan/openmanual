@@ -29,7 +29,8 @@
     "shiki",
     "badlang",
     "anotherbad",
-    "Blockquotes"
+    "Blockquotes",
+    "Turbopack"
   ],
   "ignorePaths": [
     "node_modules",
