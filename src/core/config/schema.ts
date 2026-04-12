@@ -51,6 +51,17 @@ export const PageActionsSchema = z.object({
   enabled: z.boolean().optional(),
 });
 
+export const I18nLocaleSchema = z.object({
+  code: z.string().min(1),
+  name: z.string().min(1),
+});
+
+export const I18nConfigSchema = z.object({
+  enabled: z.boolean().optional(),
+  defaultLanguage: z.string().optional(),
+  languages: z.array(I18nLocaleSchema).optional(),
+});
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -67,6 +78,7 @@ export const OpenManualConfigSchema = z.object({
   search: SearchSchema.optional(),
   mdx: MdxSchema.optional(),
   pageActions: PageActionsSchema.optional(),
+  i18n: I18nConfigSchema.optional(),
 });
 
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;
@@ -77,6 +89,8 @@ export type SidebarPage = z.infer<typeof SidebarPageSchema>;
 export type ThemeConfig = z.infer<typeof ThemeSchema>;
 export type LogoConfig = z.infer<typeof LogoSchema>;
 export type FaviconConfig = z.infer<typeof FaviconSchema>;
+export type I18nLocale = z.infer<typeof I18nLocaleSchema>;
+export type I18nConfig = z.infer<typeof I18nConfigSchema>;
 
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
   const slugs = new Set<string>();
@@ -100,4 +114,8 @@ export function buildTitleMap(config: OpenManualConfig): Record<string, string> 
     }
   }
   return map;
+}
+
+export function isI18nEnabled(config: OpenManualConfig): boolean {
+  return config.i18n?.enabled === true && (config.i18n.languages?.length ?? 0) > 1;
 }

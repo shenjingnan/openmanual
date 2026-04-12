@@ -1,11 +1,15 @@
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
+import { isI18nEnabled } from '../config/schema.js';
 import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
+import { generateI18nConfig } from './i18n-config.js';
+import { generateI18nUI } from './i18n-ui.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
+import { generateMiddleware } from './middleware.js';
 import { generateNextConfig } from './next-config.js';
 import { generatePackageJson } from './package-json.js';
 import { generatePage } from './page.js';
@@ -32,7 +36,10 @@ export interface GenerateContext {
 }
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
-  const files: Array<{ path: string; content: string }> = [
+  const isI18n = isI18nEnabled(ctx.config);
+
+  // 基础配置文件（两种模式共用）
+  const baseFiles: Array<{ path: string; content: string }> = [
     {
       path: 'source.config.ts',
       content: generateSourceConfig(ctx),
@@ -59,7 +66,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     },
     {
       path: 'lib/source.ts',
-      content: generateLibSource(),
+      content: generateLibSource(ctx),
     },
     {
       path: 'lib/layout.tsx',
@@ -77,34 +84,81 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       path: 'components/page-actions.tsx',
       content: generatePageActionsComponent(),
     },
-    // API 路由：raw content 仅 dev 模式（动态读取文件系统）；搜索路由两种模式都生成（staticGET 兼容静态导出）
-    ...(ctx.dev
-      ? [
-          { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute() },
-          { path: 'app/api/search/route.ts', content: generateSearchRoute() },
-        ]
-      : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
-    {
-      path: 'app/layout.tsx',
-      content: generateRootLayout(ctx),
-    },
-    {
-      path: 'app/provider.tsx',
-      content: generateProvider(ctx),
-    },
-    {
-      path: 'app/components/search-dialog.tsx',
-      content: generateSearchDialog(),
-    },
-    {
-      path: 'app/[[...slug]]/layout.tsx',
-      content: generateDocsLayout(ctx),
-    },
-    {
-      path: 'app/[[...slug]]/page.tsx',
-      content: generatePage(ctx),
-    },
   ];
+
+  let files: Array<{ path: string; content: string }>;
+
+  if (isI18n) {
+    // === 多语言模式：[lang]/ 动态路由结构 ===
+    files = [
+      ...baseFiles,
+      // i18n 核心文件
+      { path: 'lib/i18n.ts', content: generateI18nConfig(ctx) },
+      { path: 'lib/i18n-ui.ts', content: generateI18nUI(ctx) },
+      // 中间件：重定向 / 到默认语言
+      { path: 'middleware.ts', content: generateMiddleware(ctx) },
+      // API 路由（放在 app/ 下，middleware 排除 /api/）
+      ...(ctx.dev
+        ? [
+            { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute(ctx) },
+            { path: 'app/api/search/route.ts', content: generateSearchRoute() },
+          ]
+        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
+      // [lang]/ 路由结构
+      {
+        path: 'app/[lang]/layout.tsx',
+        content: generateRootLayoutI18n(ctx),
+      },
+      {
+        path: 'app/[lang]/provider.tsx',
+        content: generateProvider(ctx),
+      },
+      {
+        path: 'app/[lang]/components/search-dialog.tsx',
+        content: generateSearchDialog(),
+      },
+      {
+        path: 'app/[lang]/[[...slug]]/layout.tsx',
+        content: generateDocsLayout(ctx),
+      },
+      {
+        path: 'app/[lang]/[[...slug]]/page.tsx',
+        content: generatePage(ctx),
+      },
+    ];
+  } else {
+    // === 单语言模式（原有结构，不变）===
+    files = [
+      ...baseFiles,
+      // API 路由：raw content 仅 dev 模式；搜索路由两种模式都生成
+      ...(ctx.dev
+        ? [
+            { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute(ctx) },
+            { path: 'app/api/search/route.ts', content: generateSearchRoute() },
+          ]
+        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
+      {
+        path: 'app/layout.tsx',
+        content: generateRootLayout(ctx),
+      },
+      {
+        path: 'app/provider.tsx',
+        content: generateProvider(ctx),
+      },
+      {
+        path: 'app/components/search-dialog.tsx',
+        content: generateSearchDialog(),
+      },
+      {
+        path: 'app/[[...slug]]/layout.tsx',
+        content: generateDocsLayout(ctx),
+      },
+      {
+        path: 'app/[[...slug]]/page.tsx',
+        content: generatePage(ctx),
+      },
+    ];
+  }
 
   for (const file of files) {
     const fullPath = join(ctx.appDir, file.path);
@@ -162,11 +216,63 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 `;
 }
 
+/**
+ * 生成 app/[lang]/layout.tsx — 多语言模式的根布局
+ *
+ * 与单语言模式的关键区别：
+ * 1. 从 params 中获取 lang 参数
+ * 2. html 标签设置 lang={lang}
+ * 3. AppProvider 接收 lang 参数用于 i18n UI
+ */
+function generateRootLayoutI18n(ctx: GenerateContext): string {
+  const { config } = ctx;
+  const favicon = config.favicon;
+
+  const metadataExport = favicon
+    ? `import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '${favicon}',
+  },
+};
+
+`
+    : '';
+
+  return `${metadataExport}import { AppLayout } from 'openmanual/components/app-layout';
+import { AppProvider } from './provider';
+import type { ReactNode } from 'react';
+import '../../global.css';
+
+export default async function RootLayout({
+  params,
+  children,
+}: {
+  params: Promise<{ lang: string }>;
+  children: ReactNode;
+}) {
+  const { lang } = await params;
+
+  return (
+    <html lang={lang}>
+      <body>
+        <AppLayout>
+          <AppProvider lang={lang}>{children}</AppProvider>
+        </AppLayout>
+      </body>
+    </html>
+  );
+}
+`;
+}
+
 function generateDocsLayout(ctx: GenerateContext): string {
   const { config } = ctx;
   const githubLink = config.navbar?.github ?? '';
   const navLinks = config.navbar?.links ?? [];
   const footerText = config.footer?.text ?? '';
+  const isI18n = isI18nEnabled(config);
 
   const linksArray = navLinks.map((l) => ({
     text: l.label,
@@ -224,15 +330,53 @@ function generateDocsLayout(ctx: GenerateContext): string {
 `
     : '';
 
+  // i18n 模式下需要传入 lang 参数
   const treeLine = hasSidebar
     ? hasIcons
-      ? 'tree: restructureTree(source.getPageTree(), sidebarConfig, iconMap),'
-      : 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
-    : 'tree: source.getPageTree(),';
+      ? isI18n
+        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, iconMap),'
+        : 'tree: restructureTree(source.getPageTree(), sidebarConfig, iconMap),'
+      : isI18n
+        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig),'
+        : 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
+    : isI18n
+      ? 'tree: source.getPageTree(lang),'
+      : 'tree: source.getPageTree(),';
 
   const restructureTreeImport = hasSidebar
     ? "\nimport { restructureTree } from 'openmanual/utils/restructure-tree';"
     : '';
+
+  // i18n 模式下的组件签名和 baseOptions 调用
+  if (isI18n) {
+    return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { baseOptions } from '@/lib/layout';
+import { source } from '@/lib/source';
+import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLine}
+${sidebarConfigSnippet}${iconMapSnippet}
+
+export default async function DocsLayoutWrapper({
+  params,
+  children,
+}: {
+  params: Promise<{ lang: string }>;
+  children: ReactNode;
+}) {
+  const { lang } = await params;
+
+  const docsOptions = {
+    ...baseOptions(lang),
+    ${treeLine}${githubLine}${linksLine}${footerLine}
+  };
+
+  return (
+    <DocsLayout {...docsOptions}>
+      {children}
+    </DocsLayout>
+  );
+}
+`;
+  }
 
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
@@ -285,15 +429,15 @@ async function ensureLogoFile(
 }
 
 /**
- * Generate meta.json for each sidebar group directory so that
- * fumadocs displays the configured Chinese group name instead of
- * auto-capitalizing the English directory name.
+ * Generate meta.json (and meta.en.json in i18n mode) for each sidebar
+ * group directory so that fumadocs displays the configured group name.
  */
 async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
   const sidebar = ctx.config.sidebar;
   if (!sidebar || sidebar.length === 0) return;
 
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
+  const isI18n = isI18nEnabled(ctx.config);
 
   for (const group of sidebar) {
     // Extract directory prefix from the first page slug that contains "/"
@@ -305,17 +449,30 @@ async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
     if (!dirPrefix) continue; // Root-level pages, no meta.json needed
 
     const dirPath = join(contentAbsDir, dirPrefix);
-    const metaPath = join(dirPath, 'meta.json');
 
-    // Skip if meta.json already exists
+    // 生成默认语言的 meta.json
+    const metaPath = join(dirPath, 'meta.json');
     try {
       await access(metaPath);
-      continue;
     } catch {
-      // File doesn't exist, proceed to create it
+      await mkdir(dirPath, { recursive: true });
+      await writeFile(metaPath, `${JSON.stringify({ title: group.group }, null, 2)}\n`, 'utf-8');
     }
 
-    await mkdir(dirPath, { recursive: true });
-    await writeFile(metaPath, `${JSON.stringify({ title: group.group }, null, 2)}\n`, 'utf-8');
+    // i18n 模式下生成 meta.en.json（如果不存在）
+    if (isI18n) {
+      const metaEnPath = join(dirPath, 'meta.en.json');
+      try {
+        await access(metaEnPath);
+      } catch {
+        await mkdir(dirPath, { recursive: true });
+        // 初始使用原始 group 名称，用户可后续翻译为英文
+        await writeFile(
+          metaEnPath,
+          `${JSON.stringify({ title: group.group }, null, 2)}\n`,
+          'utf-8'
+        );
+      }
+    }
   }
 }

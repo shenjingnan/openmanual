@@ -80,5 +80,12 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       ...DEFAULT_CONFIG.pageActions,
       ...config.pageActions,
     },
+    i18n: config.i18n
+      ? {
+          enabled: config.i18n.enabled ?? false,
+          defaultLanguage: config.i18n.defaultLanguage ?? config.locale ?? 'zh',
+          languages: config.i18n.languages ?? [],
+        }
+      : undefined,
   };
 }

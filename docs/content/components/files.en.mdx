@@ -1,0 +1,78 @@
+---
+title: Files
+description: Use the Files component to display project directory structures and file trees.
+---
+
+The Files component displays project directories in a tree structure, clearly presenting file organization.
+
+## Basic Usage
+
+Wrap `File` and `Folder` components with `Files`:
+
+```mdx
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+```
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+
+## File Type Icons
+
+The `File` component automatically matches icons based on file extension:
+
+<Files>
+  <Folder name="project" defaultOpen>
+    <File name="app.tsx" />
+    <File name="styles.css" />
+    <File name="utils.ts" />
+    <File name="data.json" />
+    <File name="README.md" />
+    <File name=".env" />
+  </Folder>
+</Files>
+
+## Props
+
+### Files
+
+`Files` is a container component with no extra props. Used to wrap `File` and `Folder` child components.
+
+### Folder
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Folder name |
+| `defaultOpen` | boolean | No | `false` | Whether expanded by default |
+| `children` | ReactNode | No | — | Child files/folders |
+
+### File
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `name` | string | Yes | Filename (with extension) |
+
+## Notes
+
+- The `name` prop of `File` should include the full filename with extension
+- Setting `defaultOpen` on a `Folder` expands it by default
+- Nested `Folder` components can display multi-level directory structures
+- File icons are auto-matched by extension; common file types are supported

@@ -1,4 +1,9 @@
-import { buildTitleMap, collectConfiguredSlugs, type OpenManualConfig } from '../config/schema.js';
+import {
+  buildTitleMap,
+  collectConfiguredSlugs,
+  isI18nEnabled,
+  type OpenManualConfig,
+} from '../config/schema.js';
 
 export function generateSourceConfig(_ctx: { config: OpenManualConfig }): string {
   const titleMap = buildTitleMap(_ctx.config);
@@ -8,6 +13,7 @@ export function generateSourceConfig(_ctx: { config: OpenManualConfig }): string
   const titleMapStr = titleMapEntries ? `{\n${titleMapEntries}\n}` : '{}';
 
   const isStrict = _ctx.config.contentPolicy !== 'all';
+  const isI18n = isI18nEnabled(_ctx.config);
 
   const allowedSlugsSnippet = isStrict
     ? `
@@ -18,7 +24,14 @@ function slugFromPath(path: string): string {
   const normalized = path.replace(/\\\\/g, '/');
   const idx = normalized.indexOf('content/');
   const relative = idx >= 0 ? normalized.slice(idx + 'content/'.length) : normalized;
-  return relative.replace(/\\.(md|mdx)$/i, '');
+  let slug = relative.replace(/\\.(md|mdx)$/i, '');
+${
+  isI18n
+    ? `  // 剥离语言后缀：index.en -> index
+  slug = slug.replace(/\\.([a-z]{2}(-[A-Z]{2})?)$/, '');`
+    : ''
+}
+  return slug;
 }
 `
     : '';
@@ -43,7 +56,13 @@ function titleFromPath(path: string): string {
   const normalized = path.replace(/\\\\/g, '/');
   const idx = normalized.indexOf('content/');
   const relative = idx >= 0 ? normalized.slice(idx + 'content/'.length) : normalized;
-  const slug = relative.replace(/\\.(md|mdx)$/i, '');
+  let slug = relative.replace(/\\.(md|mdx)$/i, '');
+${
+  isI18n
+    ? `  // 剥离语言后缀：guide/configuration.en -> guide/configuration
+  slug = slug.replace(/\\.([a-z]{2}(-[A-Z]{2})?)$/, '');`
+    : ''
+}
   return titleMap[slug] || slug.split('/').pop() || slug;
 }
 

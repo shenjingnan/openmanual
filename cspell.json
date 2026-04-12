@@ -27,7 +27,8 @@
     "Neue",
     "shiki",
     "badlang",
-    "anotherbad"
+    "anotherbad",
+    "Blockquotes"
   ],
   "ignorePaths": [
     "node_modules",

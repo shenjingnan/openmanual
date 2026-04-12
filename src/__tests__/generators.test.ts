@@ -205,13 +205,13 @@ describe('resolveLogoPaths', () => {
 
 describe('generateLibSource', () => {
   it('should import from .source/server and use loader', () => {
-    const result = generateLibSource();
+    const result = generateLibSource(baseCtx);
     expect(result).toContain("from '@/.source/server'");
     expect(result).toContain("from 'fumadocs-core/source'");
   });
 
   it('should configure loader with baseUrl and source', () => {
-    const result = generateLibSource();
+    const result = generateLibSource(baseCtx);
     expect(result).toContain("baseUrl: '/'");
     expect(result).toContain('source: docs.toFumadocsSource()');
   });
@@ -771,39 +771,39 @@ describe('generatePageActionsComponent', () => {
 
 describe('generateRawContentRoute', () => {
   it('should import readFile from node:fs/promises', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { readFile } from 'node:fs/promises'");
   });
 
   it('should import NextResponse from next/server', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { NextResponse } from 'next/server'");
   });
 
   it('should export GET handler', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain('export async function GET');
   });
 
   it('should try .mdx and .md extensions', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'.mdx'");
     expect(result).toContain("'.md'");
   });
 
   it('should return text/plain content type', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Content-Type': 'text/plain; charset=utf-8'");
   });
 
   it('should return 404 when file not found', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
   });
 
   it('should read from content directory', () => {
-    const result = generateRawContentRoute();
+    const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'content'");
   });
 });

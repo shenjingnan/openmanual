@@ -1,0 +1,129 @@
+---
+title: Configuration Reference
+description: Complete reference for OpenManual configuration file, including all available fields and descriptions.
+---
+
+# Configuration Reference
+
+Create `openmanual.json` in your project root to configure your documentation site. The configuration file uses Zod Schema for strict validation with clear and friendly error messages.
+
+## Full Configuration Example
+
+```json
+{
+  "name": "My Docs",
+  "description": "Project Documentation",
+  "contentDir": "content",
+  "outputDir": "dist",
+  "siteUrl": "https://docs.example.com",
+  "locale": "en",
+  "navbar": {
+    "logo": "/logo.svg",
+    "github": "https://github.com/user/repo",
+    "links": [
+      { "label": "Blog", "href": "https://blog.example.com" }
+    ]
+  },
+  "footer": {
+    "text": "Built with OpenManual"
+  },
+  "sidebar": [
+    {
+      "group": "Getting Started",
+      "icon": "Rocket",
+      "collapsed": false,
+      "pages": [
+        { "slug": "getting-started", "title": "Installation", "icon": "Download" },
+        { "slug": "configuration", "title": "Configuration", "icon": "Settings" }
+      ]
+    }
+  ],
+  "theme": {
+    "primaryHue": 240,
+    "darkMode": true
+  },
+  "search": {
+    "enabled": true
+  },
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+## Field Reference
+
+### Basic Configuration
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | string | Yes | — | Site name, displayed in navbar and page title |
+| `description` | string | No | — | Site description, used for SEO meta tags |
+| `contentDir` | string | No | `content` | Documentation content directory path |
+| `outputDir` | string | No | `dist` | Build output directory |
+| `siteUrl` | string | No | — | Site URL, required when static export is enabled |
+| `locale` | string | No | — | Site language, e.g. `zh`, `en` |
+
+### Navbar
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `navbar.logo` | `string \| { light, dark }` | No | — | Logo config. String form: image path or text; Object form: separate light/dark mode image paths |
+| `navbar.github` | string | No | — | GitHub repository URL |
+| `navbar.links` | array | No | — | Navbar links list |
+
+`navbar.logo` supports two forms:
+
+```jsonc
+// String form (backward compatible)
+"logo": "/logo.svg"     // Image path
+"logo": "MyProject"     // Plain text
+
+// Object form, separate light/dark mode logos
+"logo": {
+  "light": "/logo-light.svg",
+  "dark": "/logo-dark.svg"
+}
+```
+
+### Footer
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `footer.text` | string | No | — | Footer text |
+
+### Sidebar
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `sidebar[].group` | string | Yes | — | Group name |
+| `sidebar[].icon` | string | No | — | Group icon name |
+| `sidebar[].collapsed` | boolean | No | `false` | Whether collapsed by default |
+| `sidebar[].pages[].slug` | string | Yes | — | Page slug, corresponds to file path |
+| `sidebar[].pages[].title` | string | Yes | — | Page title |
+| `sidebar[].pages[].icon` | string | No | — | Page icon name |
+
+### Theme
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `theme.primaryHue` | number | No | — | Primary color hue value (0-360) |
+| `theme.darkMode` | boolean | No | `true` | Whether dark mode is enabled |
+
+### Search
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `search.enabled` | boolean | No | `true` | Whether search is enabled |
+
+### MDX
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `mdx.latex` | boolean | No | `false` | Whether LaTeX formula support is enabled |
+
+## Page Tree Generation Rules
+
+- MDX files not declared in `sidebar` configuration will not appear in navigation
+- The `slug` field corresponds to the file path under `contentDir` (without extension)
+- For example, `slug: "advanced/theme"` corresponds to `content/advanced/theme.mdx`

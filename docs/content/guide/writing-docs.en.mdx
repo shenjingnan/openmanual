@@ -1,0 +1,107 @@
+---
+title: Writing Docs
+description: Learn how to write and organize documentation content using MDX.
+---
+
+# Writing Docs
+
+OpenManual uses MDX as its document format, allowing you to use React components on top of Markdown.
+
+## Basic Format
+
+Each MDX file can contain frontmatter metadata:
+
+```mdx
+---
+title: Page Title
+description: Page description (optional, for SEO)
+---
+
+# Page Title
+
+Body content here, supports standard Markdown syntax.
+```
+
+### Frontmatter Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Page title, shown in navigation and browser tab |
+| `description` | string | No | Page description, used for SEO meta tags |
+
+## Markdown Syntax
+
+OpenManual supports standard Markdown syntax:
+
+### Headings
+
+```markdown
+# Heading 1
+## Heading 2
+### Heading 3
+```
+
+### Lists
+
+```markdown
+- Unordered item
+- Another item
+
+1. Ordered item
+2. Another item
+```
+
+### Code Blocks
+
+Syntax highlighting supported:
+
+```typescript
+function hello(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+### Tables
+
+```markdown
+| Field | Type | Description |
+|-------|------|-------------|
+| name | string | Name |
+| age  | number | Age |
+```
+
+### Links and Images
+
+```markdown
+[Link text](https://example.com)
+![Image description](./image.png)
+```
+
+## File Organization
+
+### Directory Structure
+
+MDX files can be placed in any subdirectory under `contentDir`:
+
+```
+content/
+├── index.mdx           # slug: index
+├── guide.mdx           # slug: guide
+└── advanced/
+    ├── theme.mdx       # slug: advanced/theme
+    └── search.mdx      # slug: advanced/search
+```
+
+### Slug Mapping Rules
+
+The `slug` in `sidebar` configuration maps to file paths:
+
+- `slug: "index"` → `content/index.mdx`
+- `slug: "guide/setup"` → `content/guide/setup.mdx`
+- `slug: "advanced/search"` → `content/advanced/search.mdx`
+
+## Notes
+
+- Files not declared in `sidebar` configuration won't appear in navigation but are still accessible via URL
+- It's recommended to set `title` frontmatter for each file
+- Use kebab-case for filenames (e.g., `writing-docs.mdx`)

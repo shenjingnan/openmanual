@@ -1,0 +1,95 @@
+---
+title: Tabs
+description: Use the Tabs component to create tabbed content switching within the same area.
+---
+
+The Tabs component switches between different content via tabs within the same area, ideal for comparing code or documentation in different languages or approaches.
+
+## Basic Usage
+
+Wrap multiple `Tab` components with `Tabs`:
+
+```mdx
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    npm install openmanual
+  </Tab>
+  <Tab value="pnpm">
+    pnpm add openmanual
+  </Tab>
+  <Tab value="yarn">
+    yarn add openmanual
+  </Tab>
+</Tabs>
+```
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install openmanual
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add openmanual
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add openmanual
+    ```
+  </Tab>
+</Tabs>
+
+## Code Example Switching
+
+Tabs are especially useful for showing code in different programming languages or frameworks:
+
+<Tabs items={['TypeScript', 'JavaScript']}>
+  <Tab value="TypeScript">
+    ```typescript
+    interface Config {
+      name: string;
+      theme?: {
+        primaryHue: number;
+      };
+    }
+
+    const config: Config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+## Props
+
+### Tabs
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `items` | `string[]` | Yes | Array of tab titles |
+| `defaultIndex` | number | No | Default selected tab index |
+| `children` | ReactNode | Yes | `Tab` child components |
+
+### Tab
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `value` | string | Yes | Tab value, corresponds to an item in `items` |
+| `children` | ReactNode | Yes | Tab content |
+
+## Notes
+
+- Values in the `items` array must correspond one-to-one with `Tab` `value` attributes
+- Content within tabs supports full Markdown/MDX syntax
+- Suitable for multi-language code examples, comparing different approaches

@@ -1,0 +1,118 @@
+---
+title: Sidebar Customization
+description: Learn how to customize the OpenManual sidebar navigation, including groups, icons, and collapse control.
+---
+
+# Sidebar Customization
+
+The sidebar is the core navigation component of a documentation site, configured via the `sidebar` field in `openmanual.json`.
+
+## Basic Structure
+
+The sidebar consists of multiple groups, each containing multiple pages:
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        { "slug": "index", "title": "Introduction" },
+        { "slug": "quickstart", "title": "Quick Start" }
+      ]
+    },
+    {
+      "group": "Guide",
+      "pages": [
+        { "slug": "guide/configuration", "title": "Configuration" }
+      ]
+    }
+  ]
+}
+```
+
+## Group Configuration
+
+Each group supports the following fields:
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `group` | string | Yes | — | Group name |
+| `icon` | string | No | — | Group icon |
+| `collapsed` | boolean | No | `false` | Whether collapsed by default |
+| `pages` | array | Yes | — | List of pages within the group |
+
+## Icons
+
+Setting icons for groups or pages makes navigation more intuitive:
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "Getting Started",
+      "icon": "Rocket",
+      "pages": [
+        { "slug": "index", "title": "Introduction", "icon": "Home" },
+        { "slug": "quickstart", "title": "Quick Start", "icon": "Zap" }
+      ]
+    }
+  ]
+}
+```
+
+## Collapse Control
+
+Set `collapsed: true` to make groups collapsed by default; users click to expand:
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "Advanced",
+      "collapsed": true,
+      "pages": [
+        { "slug": "advanced/search", "title": "Search Config" },
+        { "slug": "advanced/mdx", "title": "MDX Enhancements" }
+      ]
+    }
+  ]
+}
+```
+
+## Multi-level Navigation
+
+Use subdirectories to organize documents for multi-level navigation:
+
+```
+content/
+├── index.mdx
+└── guide/
+    ├── configuration.mdx
+    ├── writing-docs.mdx
+    └── theme.mdx
+```
+
+Corresponding configuration:
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "Guide",
+      "pages": [
+        { "slug": "guide/configuration", "title": "Configuration" },
+        { "slug": "guide/writing-docs", "title": "Writing Docs" },
+        { "slug": "guide/theme", "title": "Theme" }
+      ]
+    }
+  ]
+}
+```
+
+## Best Practices
+
+- Organize groups by topic or functionality for clear logic
+- Place frequently-used pages in earlier groups; use collapse for advanced content
+- Add appropriate icons to groups and pages for better visual experience
+- For groups with many pages, consider setting `collapsed: true`

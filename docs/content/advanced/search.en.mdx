@@ -1,0 +1,41 @@
+---
+title: Search Configuration
+description: Learn how to configure and use OpenManual's built-in full-text search.
+---
+
+# Search Configuration
+
+OpenManual includes built-in full-text search, enabled by default.
+
+## Enable/Disable Search
+
+```json
+{
+  "search": {
+    "enabled": true
+  }
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `search.enabled` | boolean | `true` | Whether search is enabled |
+
+## Search Behavior
+
+The search feature automatically indexes all pages registered in `sidebar`, including:
+
+- Page titles
+- Page body content
+- Text within code blocks
+
+Users can quickly locate relevant content through the search box.
+
+## Optimizing Search Results
+
+Here are some suggestions for optimizing search effectiveness:
+
+- Set a clear `title` for each page
+- Use descriptive heading hierarchy (h1-h6)
+- Use appropriate contextual text around important concepts
+- Avoid placing large amounts of irrelevant content in code blocks
