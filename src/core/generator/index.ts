@@ -11,7 +11,7 @@ import { generatePackageJson } from './package-json.js';
 import { generatePage } from './page.js';
 import { generatePageActionsComponent } from './page-actions-component.js';
 import { generatePostcssConfig } from './postcss-config.js';
-import { generateProvider } from './provider.js';
+import { generateProvider, generateSearchDialog } from './provider.js';
 import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSearchRoute } from './search-route.js';
 import { generateSourceConfig } from './source-config.js';
@@ -91,6 +91,10 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     {
       path: 'app/provider.tsx',
       content: generateProvider(ctx),
+    },
+    {
+      path: 'app/components/search-dialog.tsx',
+      content: generateSearchDialog(),
     },
     {
       path: 'app/[[...slug]]/layout.tsx',

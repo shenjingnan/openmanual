@@ -27,7 +27,6 @@ import {
   SearchDialogOverlay,
   TagsList,
   TagsListItem,
-  useSearch,
 } from 'fumadocs-ui/components/dialog/search';
 import { useI18n } from 'fumadocs-ui/contexts/i18n';
 import { useMemo, useState } from 'react';
@@ -41,8 +40,8 @@ interface SafeSearchDialogProps {
   allowClear?: boolean;
   links?: [string, string][];
   footer?: React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export default function SafeSearchDialog({
@@ -54,10 +53,11 @@ export default function SafeSearchDialog({
   allowClear = false,
   links = [],
   footer,
+  open = false,
+  onOpenChange = (): void => {},
 }: SafeSearchDialogProps) {
   const { locale } = useI18n();
   const [tag, setTag] = useState(defaultTag);
-  const { open, onOpenChange } = useSearch();
   const { search, setSearch, query } = useDocsSearch(
     type === 'fetch'
       ? {
