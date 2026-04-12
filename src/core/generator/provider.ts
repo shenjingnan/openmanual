@@ -80,7 +80,8 @@ export default function SafeSearchDialog({
   allowClear = false,
   links = [],
   footer,
-  ...props
+  open = false,
+  onOpenChange = (): void => {},
 }: SafeSearchDialogProps) {
   const { locale } = useI18n();
   const [tag, setTag] = useState(defaultTag);
@@ -121,7 +122,8 @@ export default function SafeSearchDialog({
 
   return (
     <SearchDialog
-      {...props}
+      open={open}
+      onOpenChange={onOpenChange}
       search={search}
       onSearchChange={setSearch}
       isLoading={query.isLoading}
