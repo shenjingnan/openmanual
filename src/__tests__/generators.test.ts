@@ -10,7 +10,7 @@ import { generatePackageJson } from '../core/generator/package-json.js';
 import { generatePage } from '../core/generator/page.js';
 import { generatePageActionsComponent } from '../core/generator/page-actions-component.js';
 import { generatePostcssConfig } from '../core/generator/postcss-config.js';
-import { generateProvider } from '../core/generator/provider.js';
+import { generateProvider, generateSearchDialog } from '../core/generator/provider.js';
 import { generateRawContentRoute } from '../core/generator/raw-content-route.js';
 import { generateSearchRoute } from '../core/generator/search-route.js';
 import { generateSourceConfig } from '../core/generator/source-config.js';
@@ -496,7 +496,7 @@ describe('generateProvider', () => {
 
   it('should enable search by default', () => {
     const result = generateProvider(baseCtx);
-    expect(result).toContain('searchEnabled={true}');
+    expect(result).toContain('enabled: true');
   });
 
   it('should disable search when config.search.enabled is false', () => {
@@ -504,17 +504,46 @@ describe('generateProvider', () => {
       config: { ...baseConfig, search: { enabled: false } },
     };
     const result = generateProvider(ctx);
-    expect(result).toContain('searchEnabled={false}');
+    expect(result).toContain('enabled: false');
   });
 
-  it('should import Provider from openmanual/components/provider', () => {
+  it('should import RootProvider from fumadocs-ui/provider/next', () => {
     const result = generateProvider(baseCtx);
-    expect(result).toContain("import { Provider } from 'openmanual/components/provider'");
+    expect(result).toContain("import { RootProvider } from 'fumadocs-ui/provider/next'");
+  });
+
+  it('should import SafeSearchDialog from local components', () => {
+    const result = generateProvider(baseCtx);
+    expect(result).toContain("import SafeSearchDialog from './components/search-dialog'");
   });
 
   it('should export AppProvider', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain('export function AppProvider');
+  });
+});
+
+describe('generateSearchDialog', () => {
+  it('should have use client directive', () => {
+    const result = generateSearchDialog();
+    expect(result).toContain("'use client'");
+  });
+
+  it('should import from fumadocs-ui directly', () => {
+    const result = generateSearchDialog();
+    expect(result).toContain("from 'fumadocs-ui/components/dialog/search'");
+    expect(result).toContain("from 'fumadocs-ui/contexts/i18n'");
+    expect(result).toContain("from 'fumadocs-core/search/client'");
+  });
+
+  it('should export SafeSearchDialog as default', () => {
+    const result = generateSearchDialog();
+    expect(result).toContain('export default function SafeSearchDialog');
+  });
+
+  it('should include Array.isArray guard for safeItems', () => {
+    const result = generateSearchDialog();
+    expect(result).toContain('Array.isArray(query.data) ? query.data : defaultItems');
   });
 });
 
