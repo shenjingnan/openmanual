@@ -858,6 +858,58 @@ describe('generateSearchRoute', () => {
     const result = generateSearchRoute();
     expect(result).toMatch(/createFromSource\(source\)/);
   });
+
+  it('should not include localeMap when i18n is not enabled', () => {
+    const result = generateSearchRoute();
+    expect(result).not.toContain('localeMap');
+  });
+
+  it('should generate localeMap with i18n config (zh + en)', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          parser: 'dir',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as any,
+    });
+
+    // zh 不在支持列表中，应使用空对象
+    expect(result).toContain('zh: {}');
+    // en 在支持列表中，应映射为 'english'
+    expect(result).toContain("en: 'english'");
+    // 应包含带 localeMap 的 options 对象
+    expect(result).toContain('createFromSource(source, {');
+    expect(result).toContain('zh: {}');
+    expect(result).toContain("en: 'english'");
+  });
+
+  it('should map all supported languages correctly in i18n mode', () => {
+    const result = generateSearchRoute({
+      config: {
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'en',
+          languages: [
+            { code: 'en', name: 'English' },
+            { code: 'fr', name: 'French' },
+            { code: 'ja', name: 'Japanese' },
+          ],
+        },
+      } as any,
+    });
+
+    // en 和 fr 在支持列表中
+    expect(result).toContain("en: 'english'");
+    expect(result).toContain("fr: 'french'");
+    // ja 不在支持列表中，应使用空对象
+    expect(result).toContain('ja: {}');
+  });
 });
 
 // ============================================================

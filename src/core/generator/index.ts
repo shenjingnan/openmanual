@@ -101,9 +101,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       ...(ctx.dev
         ? [
             { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute(ctx) },
-            { path: 'app/api/search/route.ts', content: generateSearchRoute() },
+            { path: 'app/api/search/route.ts', content: generateSearchRoute(ctx) },
           ]
-        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
+        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute(ctx) }]),
       // [lang]/ 路由结构
       {
         path: 'app/[lang]/layout.tsx',
@@ -134,9 +134,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       ...(ctx.dev
         ? [
             { path: 'app/api/raw/[...path]/route.ts', content: generateRawContentRoute(ctx) },
-            { path: 'app/api/search/route.ts', content: generateSearchRoute() },
+            { path: 'app/api/search/route.ts', content: generateSearchRoute(ctx) },
           ]
-        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute() }]),
+        : [{ path: 'app/api/search/route.ts', content: generateSearchRoute(ctx) }]),
       {
         path: 'app/layout.tsx',
         content: generateRootLayout(ctx),
