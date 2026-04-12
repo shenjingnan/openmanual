@@ -221,7 +221,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
  *
  * 与单语言模式的关键区别：
  * 1. 从 params 中获取 lang 参数
- * 2. html 标签设置 lang={lang}
+ * 2. AppLayout 接收 lang 参数设置 html lang 属性
  * 3. AppProvider 接收 lang 参数用于 i18n UI
  */
 function generateRootLayoutI18n(ctx: GenerateContext): string {
@@ -255,13 +255,9 @@ export default async function RootLayout({
   const { lang } = await params;
 
   return (
-    <html lang={lang}>
-      <body>
-        <AppLayout>
-          <AppProvider lang={lang}>{children}</AppProvider>
-        </AppLayout>
-      </body>
-    </html>
+    <AppLayout lang={lang}>
+      <AppProvider lang={lang}>{children}</AppProvider>
+    </AppLayout>
   );
 }
 `;

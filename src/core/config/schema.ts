@@ -60,6 +60,7 @@ export const I18nConfigSchema = z.object({
   enabled: z.boolean().optional(),
   defaultLanguage: z.string().optional(),
   languages: z.array(I18nLocaleSchema).optional(),
+  parser: z.enum(['dot', 'dir']).optional(),
 });
 
 export const OpenManualConfigSchema = z.object({
@@ -118,4 +119,8 @@ export function buildTitleMap(config: OpenManualConfig): Record<string, string> 
 
 export function isI18nEnabled(config: OpenManualConfig): boolean {
   return config.i18n?.enabled === true && (config.i18n.languages?.length ?? 0) > 1;
+}
+
+export function isDirParser(config: OpenManualConfig): boolean {
+  return config.i18n?.parser === 'dir';
 }

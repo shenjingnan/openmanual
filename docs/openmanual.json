@@ -9,6 +9,7 @@
   "i18n": {
     "enabled": true,
     "defaultLanguage": "zh",
+    "parser": "dir",
     "languages": [{ "code": "zh", "name": "中文" }, { "code": "en", "name": "English" }]
   },
   "navbar": {

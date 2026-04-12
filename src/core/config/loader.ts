@@ -85,6 +85,7 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
           enabled: config.i18n.enabled ?? false,
           defaultLanguage: config.i18n.defaultLanguage ?? config.locale ?? 'zh',
           languages: config.i18n.languages ?? [],
+          parser: config.i18n.parser ?? 'dot',
         }
       : undefined,
   };

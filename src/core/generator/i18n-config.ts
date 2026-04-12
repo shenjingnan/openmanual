@@ -13,12 +13,13 @@ export function generateI18nConfig(_ctx: { config: OpenManualConfig }): string {
 
   const defaultLang = i18nCfg.defaultLanguage ?? _ctx.config.locale ?? 'zh';
   const languageCodes = i18nCfg.languages.map((l) => `'${l.code}'`).join(', ');
+  const parserLine = i18nCfg.parser === 'dir' ? `\n  parser: 'dir',` : '';
 
   return `import { defineI18n } from 'fumadocs-core/i18n';
 
 export const i18n = defineI18n({
   defaultLanguage: '${defaultLang}',
-  languages: [${languageCodes}],
+  languages: [${languageCodes}],${parserLine}
 });
 `;
 }
