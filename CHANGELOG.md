@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.2](https://github.com/shenjingnan/openmanual/compare/v0.10.0...v0.10.2) (2026-04-12)
+
+### Bug Fixes
+
+* **search:** 修复 pnpm file: 协议下 SearchDialog 多实例导致 Missing <SearchDialog /> 报错 ([#77](https://github.com/shenjingnan/openmanual/issues/77)) ([48ebc75](https://github.com/shenjingnan/openmanual/commit/48ebc752ce04548249c2d02a2dde5ea2dba96d76))
+
 ## [0.10.0](https://github.com/shenjingnan/openmanual/compare/v0.9.0...v0.10.0) (2026-04-10)
 
 ### Features
