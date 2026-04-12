@@ -287,6 +287,25 @@ describe('generateNextConfig', () => {
     expect(result).not.toContain("output: 'export'");
   });
 
+  it('should not include output when ssr mode is enabled', () => {
+    const ctx = {
+      config: { ...baseConfig, siteUrl: 'https://example.com' },
+      ssr: true,
+    };
+    const result = generateNextConfig(ctx);
+    expect(result).not.toContain("output: 'export'");
+  });
+
+  it('should not include output when both dev and ssr are true', () => {
+    const ctx = {
+      config: { ...baseConfig, siteUrl: 'https://example.com' },
+      dev: true,
+      ssr: true,
+    };
+    const result = generateNextConfig(ctx);
+    expect(result).not.toContain("output: 'export'");
+  });
+
   it('should always set images.unoptimized to true', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain('unoptimized: true');
