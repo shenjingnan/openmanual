@@ -1,7 +1,6 @@
 {
   "framework": "nextjs",
   "buildCommand": "pnpm run build && cd docs && pnpm install && pnpm exec openmanual build",
-  "outputDirectory": "docs/docs-dist",
   "installCommand": "pnpm install",
   "cleanUrls": true
 }
