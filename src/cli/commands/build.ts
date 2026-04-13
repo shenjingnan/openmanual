@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { loadConfig } from '../../core/config/loader.js';
 import { generateAll } from '../../core/generator/index.js';
-import { copyRawMarkdown } from '../../utils/copy-raw-markdown.js';
 import { installDeps } from '../../utils/install-deps.js';
 import { logger } from '../../utils/logger.js';
 import { cleanTempDir, createSymlink, ensureTempDir, getAppDir } from '../../utils/temp-dir.js';
@@ -100,9 +99,6 @@ export const buildCommand = new Command('build').description('构建静态站点
 </html>`;
       await writeFile(resolve(outputDir, 'index.html'), redirectHtml, 'utf-8');
     }
-
-    logger.step('复制原始 Markdown 文件...');
-    await copyRawMarkdown(contentDir, outputDir);
 
     logger.step('清理临时文件...');
     await cleanTempDir(cwd);
