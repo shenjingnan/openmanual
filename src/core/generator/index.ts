@@ -115,7 +115,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       },
       {
         path: 'app/[lang]/components/search-dialog.tsx',
-        content: generateSearchDialog(),
+        content: generateSearchDialog(ctx),
       },
       {
         path: 'app/[lang]/[[...slug]]/layout.tsx',
@@ -147,7 +147,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       },
       {
         path: 'app/components/search-dialog.tsx',
-        content: generateSearchDialog(),
+        content: generateSearchDialog(ctx),
       },
       {
         path: 'app/[[...slug]]/layout.tsx',
