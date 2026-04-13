@@ -1,9 +1,10 @@
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
-import { isI18nEnabled } from '../config/schema.js';
+import { isI18nEnabled, isSsrMode } from '../config/schema.js';
 import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
+import { generateHelloRoute } from './hello-route.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
@@ -19,6 +20,7 @@ import { generateProvider, generateSearchDialog } from './provider.js';
 import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSearchRoute } from './search-route.js';
 import { generateSourceConfig } from './source-config.js';
+import { generateSsrTestButton } from './ssr-test-button.jsx';
 import { generateTsconfig } from './tsconfig.js';
 
 export interface GenerateContext {
@@ -37,6 +39,18 @@ export interface GenerateContext {
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
   const isI18n = isI18nEnabled(ctx.config);
+  const ssr = isSsrMode(ctx.config);
+
+  // SSR 模式专属文件：API 路由 + 测试按钮
+  const ssrFiles: Array<{ path: string; content: string }> = ssr
+    ? [
+        { path: 'app/api/hello/route.ts', content: generateHelloRoute() },
+        {
+          path: 'components/ssr-test-button.tsx',
+          content: generateSsrTestButton(),
+        },
+      ]
+    : [];
 
   // 基础配置文件（两种模式共用）
   const baseFiles: Array<{ path: string; content: string }> = [
@@ -92,6 +106,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     // === 多语言模式：[lang]/ 动态路由结构 ===
     files = [
       ...baseFiles,
+      ...ssrFiles,
       // i18n 核心文件
       { path: 'lib/i18n.ts', content: generateI18nConfig(ctx) },
       { path: 'lib/i18n-ui.ts', content: generateI18nUI(ctx) },
@@ -130,6 +145,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     // === 单语言模式（原有结构，不变）===
     files = [
       ...baseFiles,
+      ...ssrFiles,
       // API 路由：raw content 仅 dev 模式；搜索路由两种模式都生成
       ...(ctx.dev
         ? [
@@ -188,6 +204,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
 function generateRootLayout(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
+  const ssr = isSsrMode(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -201,15 +218,20 @@ export const metadata: Metadata = {
 `
     : '';
 
+  const ssrButtonImport = ssr
+    ? "\nimport { SsrTestButton } from '../components/ssr-test-button';"
+    : '';
+  const ssrButtonRender = ssr ? '\n      <SsrTestButton />' : '';
+
   return `import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';${ssrButtonImport}
 ${metadataExport}import '../global.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <AppLayout>
-      <AppProvider>{children}</AppProvider>
+      <AppProvider>{children}</AppProvider>${ssrButtonRender}
     </AppLayout>
   );
 }
@@ -227,6 +249,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 function generateRootLayoutI18n(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
+  const ssr = isSsrMode(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -240,9 +263,14 @@ export const metadata: Metadata = {
 `
     : '';
 
+  const ssrButtonImport = ssr
+    ? "\nimport { SsrTestButton } from '../../components/ssr-test-button';"
+    : '';
+  const ssrButtonRender = ssr ? '\n      <SsrTestButton />' : '';
+
   return `${metadataExport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';${ssrButtonImport}
 import '../../global.css';
 
 export default async function RootLayout({
@@ -256,7 +284,7 @@ export default async function RootLayout({
 
   return (
     <AppLayout lang={lang}>
-      <AppProvider lang={lang}>{children}</AppProvider>
+      <AppProvider lang={lang}>{children}</AppProvider>${ssrButtonRender}
     </AppLayout>
   );
 }

@@ -1,9 +1,10 @@
 import { spawn } from 'node:child_process';
-import { cp, mkdir, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import { loadConfig } from '../../core/config/loader.js';
+import { isSsrMode } from '../../core/config/schema.js';
 import { generateAll } from '../../core/generator/index.js';
 import { installDeps } from '../../utils/install-deps.js';
 import { logger } from '../../utils/logger.js';
@@ -74,13 +75,61 @@ export const buildCommand = new Command('build').description('构建静态站点
     const outputDir = resolve(cwd, config.outputDir ?? 'dist');
     await mkdir(outputDir, { recursive: true });
 
-    const nextOutput = resolve(appDir, 'out');
-    try {
-      await cp(nextOutput, outputDir, { recursive: true });
-      logger.success(`静态站点已输出到: ${outputDir}`);
-    } catch {
-      // If no 'out' dir, check .next/static
-      logger.warn('未找到静态导出产物，请检查 next.config.mjs 中 output: "export" 配置');
+    const ssr = isSsrMode(config);
+
+    if (ssr) {
+      // SSR 模式：复制 app 目录（不含 node_modules）到输出目录，供 Vercel 等平台作为 Next.js 应用运行
+      try {
+        // 先清理旧的输出目录，避免残留文件干扰
+        await rm(outputDir, { recursive: true, force: true });
+        await mkdir(outputDir, { recursive: true });
+
+        // 逐项复制顶层目录/文件，排除 node_modules（pnpm 符号链接结构会导致 fs.cp 报 EINVAL）
+        const entries = await readdir(appDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.name === 'node_modules') continue;
+          const srcPath = resolve(appDir, entry.name);
+          const destPath = resolve(outputDir, entry.name);
+          if (entry.isDirectory()) {
+            await cp(srcPath, destPath, { recursive: true, verbatimSymlinks: true });
+          } else {
+            await cp(srcPath, destPath);
+          }
+        }
+
+        // pnpm 的 node_modules 使用符号链接，复制后需要重新安装依赖以修复链接
+        // 修复 package.json 中的 file: 依赖为实际版本号，否则 pnpm install 无法在输出目录解析相对路径
+        const pkgPath = resolve(outputDir, 'package.json');
+        const pkg = JSON.parse(await readFile(pkgPath, 'utf-8'));
+        if (
+          typeof pkg.dependencies?.openmanual === 'string' &&
+          pkg.dependencies.openmanual.startsWith('file:')
+        ) {
+          const rootPkg = JSON.parse(
+            await readFile(resolve(openmanualRoot, 'package.json'), 'utf-8')
+          );
+          pkg.dependencies.openmanual = `^${rootPkg.version}`;
+          await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+        }
+
+        logger.step('重新安装输出目录依赖...');
+        await installDeps(outputDir);
+        logger.success(`SSR 应用已输出到: ${outputDir}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.error(`复制 SSR 产物失败: ${message}`);
+        throw err;
+      }
+    } else {
+      // SSG 模式：复制 out/ 静态文件到输出目录
+      const nextOutput = resolve(appDir, 'out');
+      try {
+        await cp(nextOutput, outputDir, { recursive: true });
+        logger.success(`静态站点已输出到: ${outputDir}`);
+      } catch {
+        // If no 'out' dir, check .next/static
+        logger.warn('未找到静态导出产物，请检查 next.config.mjs 中 output: "export" 配置');
+      }
     }
 
     // i18n 模式下生成根目录 index.html，重定向到默认语言路径

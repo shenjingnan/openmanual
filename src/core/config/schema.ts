@@ -63,11 +63,14 @@ export const I18nConfigSchema = z.object({
   parser: z.enum(['dot', 'dir']).optional(),
 });
 
+export const OutputModeSchema = z.enum(['ssg', 'ssr']).default('ssg').optional();
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   contentDir: z.string().optional(),
   outputDir: z.string().optional(),
+  outputMode: OutputModeSchema,
   siteUrl: z.url().optional(),
   locale: z.string().optional(),
   contentPolicy: z.enum(['strict', 'all']).optional(),
@@ -82,6 +85,7 @@ export const OpenManualConfigSchema = z.object({
   i18n: I18nConfigSchema.optional(),
 });
 
+export type OutputMode = z.infer<typeof OutputModeSchema>;
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;
 export type NavbarConfig = z.infer<typeof NavbarSchema>;
 export type FooterConfig = z.infer<typeof FooterSchema>;
@@ -123,4 +127,8 @@ export function isI18nEnabled(config: OpenManualConfig): boolean {
 
 export function isDirParser(config: OpenManualConfig): boolean {
   return config.i18n?.parser === 'dir';
+}
+
+export function isSsrMode(config: OpenManualConfig): boolean {
+  return config.outputMode === 'ssr';
 }
