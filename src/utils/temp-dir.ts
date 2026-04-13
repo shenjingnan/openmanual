@@ -22,7 +22,7 @@ export async function ensureTempDir(cwd: string): Promise<string> {
   return tempDir;
 }
 
-export async function cleanTempDir(cwd: string): Promise<void> {
+export async function cleanTempDir(cwd: string, outputDir?: string): Promise<void> {
   const tempDir = getTempDir(cwd);
   if (existsSync(tempDir)) {
     await rm(tempDir, { recursive: true, force: true });
@@ -30,6 +30,9 @@ export async function cleanTempDir(cwd: string): Promise<void> {
 
   // 清理 SSR 模式下可能创建的平台部署锚点符号链接
   const anchorFiles = ['next.config.mjs', '.next'];
+  if (outputDir) {
+    anchorFiles.push(outputDir);
+  }
   for (const file of anchorFiles) {
     const filePath = resolve(cwd, file);
     try {

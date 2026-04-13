@@ -95,11 +95,11 @@ export const buildCommand = new Command('build')
         await copyRawMarkdown(contentDir, outputDir);
 
         logger.step('清理临时文件...');
-        await cleanTempDir(cwd);
+        await cleanTempDir(cwd, config.outputDir);
       } else {
         // SSR 模式：保留应用目录供部署平台使用
         logger.success(`SSR 构建完成，应用目录保留在: ${appDir}`);
-        await prepareForPlatformDeployment(cwd, appDir);
+        await prepareForPlatformDeployment(cwd, appDir, config.outputDir);
       }
 
       logger.success('构建完成！');
@@ -117,7 +117,11 @@ export const buildCommand = new Command('build')
  * 但 OpenManual 将 Next.js 应用生成在 .openmanual/app/ 子目录中，
  * 因此在根目录创建符号链接指向实际文件，让平台的检测逻辑能找到标准 Next.js 项目结构。
  */
-async function prepareForPlatformDeployment(cwd: string, appDir: string): Promise<void> {
+async function prepareForPlatformDeployment(
+  cwd: string,
+  appDir: string,
+  outputDir?: string
+): Promise<void> {
   const { symlink } = await import('node:fs/promises');
 
   // 创建 next.config.mjs 符号链接 -> .openmanual/app/next.config.mjs
@@ -138,5 +142,17 @@ async function prepareForPlatformDeployment(cwd: string, appDir: string): Promis
     logger.info('已创建 .next 符号链接（供平台部署检测）');
   } catch {
     // 忽略已存在或其他错误
+  }
+
+  // 创建 outputDir 符号链接 -> .openmanual/app/.next
+  // 解决 Vercel 等平台设置了静态 Output Directory 但实际使用 SSR 模式部署的场景
+  if (outputDir) {
+    const outputDirDest = resolve(cwd, outputDir);
+    try {
+      await symlink(nextDirSrc, outputDirDest, 'junction');
+      logger.info(`已创建 ${outputDir} 符号链接 -> .next（供平台 Output Directory 检测）`);
+    } catch {
+      // 忽略已存在或其他错误
+    }
   }
 }
