@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { cp, mkdir } from 'node:fs/promises';
+import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
@@ -82,6 +82,23 @@ export const buildCommand = new Command('build').description('构建静态站点
     } catch {
       // If no 'out' dir, check .next/static
       logger.warn('未找到静态导出产物，请检查 next.config.mjs 中 output: "export" 配置');
+    }
+
+    // i18n 模式下生成根目录 index.html，重定向到默认语言路径
+    if (config.i18n?.enabled) {
+      const defaultLang = config.i18n.defaultLanguage ?? config.locale ?? 'zh';
+      const redirectHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="refresh" content="0;url=/${defaultLang}" />
+  <script>window.location.href='/${defaultLang}';</script>
+</head>
+<body>
+  <p>Redirecting to <a href="/${defaultLang}">/${defaultLang}</a>...</p>
+</body>
+</html>`;
+      await writeFile(resolve(outputDir, 'index.html'), redirectHtml, 'utf-8');
     }
 
     logger.step('复制原始 Markdown 文件...');

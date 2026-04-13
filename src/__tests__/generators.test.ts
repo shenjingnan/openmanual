@@ -1236,26 +1236,33 @@ describe('generateMiddleware', () => {
 });
 
 describe('generateRawContentRoute - i18n modes', () => {
-  it('should generate dir parser route with lang param and content/{lang}/{slug} path', () => {
+  it('should generate dir parser route with correct params type (no lang in params)', () => {
     const result = generateRawContentRoute(i18nCtxDir);
-    // dir parser: params include lang
-    expect(result).toContain('{ path: string[]; lang: string }');
+    // dir parser: params 中只有 path，不含 lang（因为路由路径是 app/api/raw/[...path]/route.ts）
+    expect(result).toContain('{ path: string[] }');
+    expect(result).not.toContain('{ path: string[]; lang: string }');
+    // 从 request.url 的 searchParams 获取 lang
+    expect(result).toContain("searchParams.get('lang')");
+    expect(result).toContain('new URL(request.url)');
     // dir parser: file path uses content/{lang}/{slug}
     expect(result).toContain("'content', lang,");
     expect(result).toContain(`\${slug}\${ext}`);
-    // dir parser: has defaultLang inline
-    expect(result).toContain('const defaultLang');
+    // dir parser: has _defaultLang as module-level constant
+    expect(result).toContain('_defaultLang');
     // dir parser: 404 handling
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
   });
 
-  it('should generate dot parser route with fallback logic', () => {
+  it('should generate dot parser route with fallback logic and lang from query param', () => {
     const result = generateRawContentRoute(i18nCtx);
-    // dot parser: params include lang
-    expect(result).toContain('{ path: string[]; lang: string }');
+    // dot parser: params 中只有 path，不含 lang
+    expect(result).toContain('{ path: string[] }');
+    expect(result).not.toContain('{ path: string[]; lang: string }');
+    // 从 request.url 的 searchParams 获取 lang
+    expect(result).toContain("searchParams.get('lang')");
     // dot parser: suffix logic for non-default language
-    expect(result).toContain('suffix = lang !== defaultLang');
+    expect(result).toContain('suffix = lang !== _defaultLang');
     // dot parser: try with suffix first
     expect(result).toContain(`\${slug}\${suffix}\${ext}`);
     // dot parser: fallback without suffix
@@ -1295,14 +1302,14 @@ describe('generateRawContentRoute - i18n modes', () => {
 
   // --- 显式断言确保分支覆盖 ---
 
-  it('dir parser route should embed defaultLang variable with resolved value', () => {
+  it('dir parser route should embed _defaultLang constant with resolved value', () => {
     const result = generateRawContentRoute(i18nCtxDir);
-    expect(result).toContain("const defaultLang = 'zh'");
+    expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  it('dot parser route should embed defaultLang variable with resolved value', () => {
+  it('dot parser route should embed _defaultLang constant with resolved value', () => {
     const result = generateRawContentRoute(i18nCtx);
-    expect(result).toContain("const defaultLang = 'zh'");
+    expect(result).toContain("_defaultLang = 'zh'");
   });
 });
 
