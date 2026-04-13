@@ -12,13 +12,17 @@ export function generateRawContentRoute(ctx: { config: OpenManualConfig }): stri
 import { join } from 'node:path';
 import { NextResponse } from 'next/server';
 
+const _defaultLang = '${defaultLang}';
+
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ path: string[]; lang: string }> },
+  request: Request,
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path: segments, lang } = await params;
+  const { path: segments } = await params;
   const slug = segments.join('/');
-  const defaultLang = '${defaultLang}';
+  // 从查询参数获取语言，回退到默认语言（API 路由不在 [lang] 路径段下）
+  const { searchParams } = new URL(request.url);
+  const lang = searchParams.get('lang') ?? _defaultLang;
   // dir parser: 文件位于 content/{lang}/{slug}.ext
   for (const ext of ['.mdx', '.md']) {
     try {
@@ -43,15 +47,19 @@ export async function GET(
 import { join } from 'node:path';
 import { NextResponse } from 'next/server';
 
+const _defaultLang = '${defaultLang}';
+
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ path: string[]; lang: string }> },
+  request: Request,
+  { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path: segments, lang } = await params;
+  const { path: segments } = await params;
   const slug = segments.join('/');
-  const defaultLang = '${defaultLang}';
+  // 从查询参数获取语言，回退到默认语言（API 路由不在 [lang] 路径段下）
+  const { searchParams } = new URL(request.url);
+  const lang = searchParams.get('lang') ?? _defaultLang;
   // 尝试带语言后缀的文件，再回退到默认语言文件
-  const suffix = lang !== defaultLang ? \`.\${lang}\` : '';
+  const suffix = lang !== _defaultLang ? \`.\${lang}\` : '';
   for (const ext of ['.mdx', '.md']) {
     // 先尝试带后缀
     if (suffix) {
