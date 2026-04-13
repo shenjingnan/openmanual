@@ -1,3 +1,6 @@
 node_modules
 .openmanual
 docs-dist
+next.config.mjs
+.next
+app/

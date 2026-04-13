@@ -41,6 +41,12 @@ export const buildCommand = new Command('build')
         openmanualRoot,
       };
 
+      // SSR 模式：在生成应用之前先创建预检锚点
+      // 解决 Vercel 等平台在 buildCommand 执行前的框架结构检测
+      if (isSSR) {
+        await createPreBuildAnchors(cwd);
+      }
+
       await generateAll(ctx);
 
       // Symlink content directory
@@ -111,6 +117,43 @@ export const buildCommand = new Command('build')
   });
 
 /**
+ * 在 SSR 构建的最开始阶段，于项目根目录 (cwd) 创建最小化的锚点文件，
+ * 用于通过 Vercel 等平台在执行 buildCommand 之前的 Next.js 框架预检。
+ *
+ * 当 vercel.json 使用 framework: "nextjs" 时，Vercel 会在运行 buildCommand 之前
+ * 检查项目根目录是否存在：
+ *   1. next.config.* 文件
+ *   2. app/ 或 pages/ 目录
+ *
+ * OpenManual 的真实 Next.js 应用位于 .openmanual/app/ 子目录中（构建时才生成），
+ * 因此需要在此阶段放置最小化锚点通过预检。
+ * 这些锚点将在 generateAll() 执行后被 prepareForPlatformDeployment() 覆盖为真实文件的符号链接。
+ */
+async function createPreBuildAnchors(cwd: string): Promise<void> {
+  const { writeFile, mkdir } = await import('node:fs/promises');
+
+  // 写入最小化 next.config.mjs 锚点到 cwd
+  const nextConfigPath = resolve(cwd, 'next.config.mjs');
+  const minimalConfig =
+    "/** @type {import('next').NextConfig} */\nconst config = {};\nexport default config;\n";
+  try {
+    await writeFile(nextConfigPath, minimalConfig, 'utf-8');
+    logger.info('已创建 next.config.mjs 预检锚点（供 Vercel 框架检测）');
+  } catch {
+    // 忽略写入失败
+  }
+
+  // 创建空的 app/ 目录占位符（Vercel 同时检查 app/ 或 pages/ 目录是否存在）
+  const appDirPlaceholder = resolve(cwd, 'app');
+  try {
+    await mkdir(appDirPlaceholder, { recursive: true });
+    logger.info('已创建 app/ 目录占位符（供 Vercel 框架检测）');
+  } catch {
+    // 忽略创建失败
+  }
+}
+
+/**
  * 在 SSR 构建完成后，为 Vercel 等 PaaS 平台准备部署所需的文件结构。
  *
  * 平台（如 Vercel）的 Next.js 框架预设会在项目根目录查找 next.config.* 和 .next/ 目录。
@@ -122,34 +165,43 @@ async function prepareForPlatformDeployment(
   appDir: string,
   outputDir?: string
 ): Promise<void> {
-  const { symlink } = await import('node:fs/promises');
+  const { symlink, rm, lstat } = await import('node:fs/promises');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
 
   // 创建 next.config.mjs 符号链接 -> .openmanual/app/next.config.mjs
+  // 先删除可能存在的预检锚点普通文件
   const nextConfigSrc = resolve(appDir, 'next.config.mjs');
   const nextConfigDest = resolve(cwd, 'next.config.mjs');
   try {
-    await symlink(nextConfigSrc, nextConfigDest, 'junction');
+    const existing = await lstat(nextConfigDest);
+    if (!existing.isSymbolicLink()) {
+      await rm(nextConfigDest, { force: true });
+    }
+  } catch {
+    // 不存在，继续
+  }
+  try {
+    await symlink(nextConfigSrc, nextConfigDest, symlinkType);
     logger.info('已创建 next.config.mjs 符号链接（供平台部署检测）');
   } catch {
-    // 忽略已存在或其他错误
+    // 忽略
   }
 
   // 创建 .next 符号链接 -> .openmanual/app/.next
   const nextDirSrc = resolve(appDir, '.next');
   const nextDirDest = resolve(cwd, '.next');
   try {
-    await symlink(nextDirSrc, nextDirDest, 'junction');
+    await symlink(nextDirSrc, nextDirDest, symlinkType);
     logger.info('已创建 .next 符号链接（供平台部署检测）');
   } catch {
     // 忽略已存在或其他错误
   }
 
   // 创建 outputDir 符号链接 -> .openmanual/app/.next
-  // 解决 Vercel 等平台设置了静态 Output Directory 但实际使用 SSR 模式部署的场景
   if (outputDir) {
     const outputDirDest = resolve(cwd, outputDir);
     try {
-      await symlink(nextDirSrc, outputDirDest, 'junction');
+      await symlink(nextDirSrc, outputDirDest, symlinkType);
       logger.info(`已创建 ${outputDir} 符号链接 -> .next（供平台 Output Directory 检测）`);
     } catch {
       // 忽略已存在或其他错误

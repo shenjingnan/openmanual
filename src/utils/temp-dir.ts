@@ -28,8 +28,8 @@ export async function cleanTempDir(cwd: string, outputDir?: string): Promise<voi
     await rm(tempDir, { recursive: true, force: true });
   }
 
-  // 清理 SSR 模式下可能创建的平台部署锚点符号链接
-  const anchorFiles = ['next.config.mjs', '.next'];
+  // 清理 SSR 模式下可能创建的平台部署锚点（符号链接、普通文件、占位目录）
+  const anchorFiles = ['next.config.mjs', '.next', 'app'];
   if (outputDir) {
     anchorFiles.push(outputDir);
   }
@@ -38,6 +38,12 @@ export async function cleanTempDir(cwd: string, outputDir?: string): Promise<voi
     try {
       const stat = await lstat(filePath);
       if (stat.isSymbolicLink()) {
+        await rm(filePath, { force: true });
+      } else if (file === 'app') {
+        // app/ 占位符目录
+        await rm(filePath, { force: true, recursive: true });
+      } else if (file === 'next.config.mjs') {
+        // 普通文件锚点（预检阶段创建）
         await rm(filePath, { force: true });
       }
     } catch {
@@ -58,5 +64,6 @@ export async function createSymlink(target: string, linkPath: string): Promise<v
     // link doesn't exist, that's fine
   }
 
-  await symlink(resolvedTarget, resolvedLink, 'junction');
+  const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+  await symlink(resolvedTarget, resolvedLink, symlinkType);
 }

@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "pnpm run build && cd docs && pnpm install && pnpm exec openmanual build --ssr",
-  "installCommand": "pnpm install"
+  "rootDirectory": "docs",
+  "installCommand": "cd .. && pnpm install && cd docs && pnpm install",
+  "buildCommand": "pnpm exec openmanual build --ssr"
 }
