@@ -5,14 +5,8 @@ description: 分析并修复 Vercel 部署报错
 
 ## 上下文
 
-- 项目根目录 vercel.json 配置:
-```json
-!`cat vercel.json`
-```
-- 项目 package.json (构建相关脚本):
-```json
-!`cat package.json | grep -A 20 '"scripts"'`
-```
+- 项目根目录 vercel.json 配置: !`cat vercel.json`
+- 项目 package.json (构建相关脚本): !`cat package.json | grep -A 20 '"scripts"'`
 
 ## 你的任务
 
@@ -38,14 +32,14 @@ description: 分析并修复 Vercel 部署报错
 
 ### 常见 Vercel 部署错误类型参考
 
-| 错误类型 | 常见原因 | 排查方向 |
-|---------|---------|---------|
-| Build Error | TypeScript 编译错误、模块找不到、语法错误 | 源代码、tsconfig、imports |
-| Runtime Error | SSR 渲染失败、API 路由异常、缺少环境变量 | 页面组件、API routes、env |
-| Memory Limit | 构建内存超限、大文件处理 | 优化构建、拆分代码 |
-| Timeout | 构建/部署超时 | 减少构建产物、优化依赖安装 |
-| Dependency Error | peer dependency 冲突、锁文件不一致 | package.json、lockfile |
-| Framework Error | Next.js 版本不兼容、配置冲突 | next.config、framework 版本 |
+| 错误类型         | 常见原因                                  | 排查方向                    |
+| ---------------- | ----------------------------------------- | --------------------------- |
+| Build Error      | TypeScript 编译错误、模块找不到、语法错误 | 源代码、tsconfig、imports   |
+| Runtime Error    | SSR 渲染失败、API 路由异常、缺少环境变量  | 页面组件、API routes、env   |
+| Memory Limit     | 构建内存超限、大文件处理                  | 优化构建、拆分代码          |
+| Timeout          | 构建/部署超时                             | 减少构建产物、优化依赖安装  |
+| Dependency Error | peer dependency 冲突、锁文件不一致        | package.json、lockfile      |
+| Framework Error  | Next.js 版本不兼容、配置冲突              | next.config、framework 版本 |
 
 ### 注意事项
 
