@@ -114,6 +114,23 @@ export const buildCommand = new Command('build').description('构建静态站点
 
         logger.step('重新安装输出目录依赖...');
         await installDeps(outputDir);
+
+        // 在输出目录中再次执行 next build，确保 .next/ 产物自包含
+        // 避免 Vercel 等 platform 做 output file tracing 时追溯到已删除的临时目录
+        logger.step('在输出目录中执行 final next build...');
+        const finalBuild = spawn('npx', ['next', 'build'], {
+          cwd: outputDir,
+          stdio: 'inherit',
+          env: { ...process.env, NODE_ENV: 'production' },
+        });
+        await new Promise<void>((resolve, reject) => {
+          finalBuild.on('error', reject);
+          finalBuild.on('exit', (code) => {
+            if (code === 0) resolve();
+            else reject(new Error(`Final next build failed with code ${code}`));
+          });
+        });
+
         logger.success(`SSR 应用已输出到: ${outputDir}`);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
