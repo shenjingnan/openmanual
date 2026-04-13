@@ -38,7 +38,7 @@ const i18nConfig: OpenManualConfig = {
 
 const i18nConfigDirParser: OpenManualConfig = {
   ...i18nConfig,
-  i18n: { ...i18nConfig.i18n!, parser: 'dir' },
+  i18n: { ...(i18nConfig.i18n ?? {}), parser: 'dir' },
 };
 
 const i18nCtx = { config: i18nConfig, projectDir: '/tmp/test' };
@@ -1008,7 +1008,7 @@ describe('generateSearchRoute', () => {
             { code: 'en', name: 'English' },
           ],
         },
-      } as any,
+      } as OpenManualConfig,
     });
 
     // zh 不在支持列表中，应使用空对象
@@ -1033,7 +1033,7 @@ describe('generateSearchRoute', () => {
             { code: 'ja', name: 'Japanese' },
           ],
         },
-      } as any,
+      } as OpenManualConfig,
     });
 
     // en 和 fr 在支持列表中
@@ -1050,7 +1050,7 @@ describe('generateSearchRoute', () => {
           enabled: true,
           languages: [{ code: 'zh', name: '中文' }],
         },
-      } as any,
+      } as OpenManualConfig,
     });
     expect(result).not.toContain('localeMap');
     expect(result).not.toContain('_localeMap');
@@ -1082,7 +1082,7 @@ describe('generateI18nConfig', () => {
     const ctx = {
       config: {
         ...i18nConfig,
-        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        i18n: { ...(i18nConfig.i18n ?? {}), defaultLanguage: undefined },
         locale: 'ja',
       },
     };
@@ -1094,7 +1094,7 @@ describe('generateI18nConfig', () => {
     const ctx = {
       config: {
         ...i18nConfig,
-        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        i18n: { ...(i18nConfig.i18n ?? {}), defaultLanguage: undefined },
       },
     };
     const result = generateI18nConfig(ctx);
@@ -1207,7 +1207,7 @@ describe('generateMiddleware', () => {
     const ctx = {
       config: {
         ...i18nConfig,
-        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        i18n: { ...(i18nConfig.i18n ?? {}), defaultLanguage: undefined },
         locale: 'en',
       },
     };
@@ -1219,7 +1219,7 @@ describe('generateMiddleware', () => {
     const ctx = {
       config: {
         ...i18nConfig,
-        i18n: { ...i18nConfig.i18n!, defaultLanguage: undefined },
+        i18n: { ...(i18nConfig.i18n ?? {}), defaultLanguage: undefined },
       },
     };
     const result = generateMiddleware(ctx);
@@ -1242,7 +1242,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain('{ path: string[]; lang: string }');
     // dir parser: file path uses content/{lang}/{slug}
     expect(result).toContain("'content', lang,");
-    expect(result).toContain('${slug}${ext}');
+    expect(result).toContain(`\${slug}\${ext}`);
     // dir parser: has defaultLang inline
     expect(result).toContain('const defaultLang');
     // dir parser: 404 handling
@@ -1257,9 +1257,9 @@ describe('generateRawContentRoute - i18n modes', () => {
     // dot parser: suffix logic for non-default language
     expect(result).toContain('suffix = lang !== defaultLang');
     // dot parser: try with suffix first
-    expect(result).toContain('${slug}${suffix}${ext}');
+    expect(result).toContain(`\${slug}\${suffix}\${ext}`);
     // dot parser: fallback without suffix
-    expect(result).toContain('${slug}${ext}');
+    expect(result).toContain(`\${slug}\${ext}`);
     // dot parser: 404 handling
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
