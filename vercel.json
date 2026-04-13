@@ -2,5 +2,6 @@
   "framework": null,
   "buildCommand": "pnpm run build && cd docs && pnpm install && pnpm exec openmanual build",
   "outputDirectory": "docs/docs-dist",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "cleanUrls": true
 }
