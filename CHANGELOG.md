@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0](https://github.com/shenjingnan/openmanual/compare/v0.11.0...v0.12.0) (2026-04-14)
+
+### Features
+
+* **generator:** 添加 @orama/orama 依赖到生成的 package.json ([#95](https://github.com/shenjingnan/openmanual/issues/95)) ([5a72902](https://github.com/shenjingnan/openmanual/commit/5a72902e99449d062668302a74556769ed9b7ffe))
+
 ## [0.11.0](https://github.com/shenjingnan/openmanual/compare/v0.10.2...v0.11.0) (2026-04-14)
 
 ### Features
