@@ -4,7 +4,7 @@
   "favicon": "/favicon.svg",
   "siteUrl": "https://openmanual.dev",
   "contentDir": "content",
-  "outputDir": "docs-dist",
+  "outputDir": "dist",
   "locale": "zh",
   "i18n": {
     "enabled": true,

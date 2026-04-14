@@ -12,7 +12,7 @@ const baseConfig: OpenManualConfig = { name: 'Test' };
 const baseCtx = {
   config: baseConfig,
   projectDir: '/tmp/project',
-  appDir: '/tmp/project/.openmanual/app',
+  appDir: '/tmp/project/.cache/app',
   contentDir: 'content',
 };
 
@@ -33,7 +33,7 @@ const i18nConfig: OpenManualConfig = {
 const i18nCtx = {
   config: i18nConfig,
   projectDir: '/tmp/project',
-  appDir: '/tmp/project/.openmanual/app',
+  appDir: '/tmp/project/.cache/app',
   contentDir: 'content',
 };
 

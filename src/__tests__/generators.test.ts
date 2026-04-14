@@ -354,7 +354,7 @@ describe('generatePackageJson', () => {
     const ctx = {
       config: baseConfig,
       projectDir: '/tmp/test',
-      appDir: '/tmp/test/.openmanual/app',
+      appDir: '/tmp/test/.cache/app',
       openmanualRoot: '/tmp/test',
     };
     const result = generatePackageJson(ctx);
@@ -366,7 +366,7 @@ describe('generatePackageJson', () => {
     const ctx = {
       config: baseConfig,
       projectDir: '/tmp/myproject',
-      appDir: '/tmp/myproject/.openmanual/app',
+      appDir: '/tmp/myproject/.cache/app',
       openmanualRoot: '/tmp/myproject',
     };
     const result = generatePackageJson(ctx);

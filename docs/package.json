@@ -2,8 +2,9 @@
   "name": "openmanual-docs",
   "private": true,
   "scripts": {
-    "dev": "pnpm install && rm -rf .openmanual && openmanual dev",
-    "build": "openmanual build"
+    "dev": "pnpm install && rm -rf .cache && openmanual dev",
+    "build": "openmanual build",
+    "start": "npx -y serve dist -p 3000"
   },
   "dependencies": {
     "openmanual": "file:.."
