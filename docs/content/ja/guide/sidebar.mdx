@@ -1,0 +1,118 @@
+---
+title: サイドバーのカスタマイズ
+description: OpenManual のサイドバーナビゲーションをカスタマイズする方法を学びます。グループ、アイコン、折りたたみ制御について説明します。
+---
+
+# サイドバーのカスタマイズ
+
+サイドバーはドキュメントサイトの中核となるナビゲーションコンポーネントであり、`openmanual.json` の `sidebar` フィールドで設定します。
+
+## 基本構造
+
+サイドバーは複数のグループ（group）で構成され、各グループには複数のページ（page）が含まれます：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "はじめに",
+      "pages": [
+        { "slug": "index", "title": "プロジェクト紹介" },
+        { "slug": "quickstart", "title": "クイックスタート" }
+      ]
+    },
+    {
+      "group": "ガイド",
+      "pages": [
+        { "slug": "guide/configuration", "title": "設定リファレンス" }
+      ]
+    }
+  ]
+}
+```
+
+## グループ設定
+
+各グループは以下のフィールドに対応しています：
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `group` | string | はい | — | グループ名 |
+| `icon` | string | いいえ | — | グループアイコン |
+| `collapsed` | boolean | いいえ | `false` | デフォルトで折りたたむかどうか |
+| `pages` | array | はい | — | グループ内のページ一覧 |
+
+## アイコン
+
+グループやページにアイコンを設定すると、ナビゲーションがより直感的になります：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "はじめに",
+      "icon": "Rocket",
+      "pages": [
+        { "slug": "index", "title": "プロジェクト紹介", "icon": "Home" },
+        { "slug": "quickstart", "title": "クイックスタート", "icon": "Zap" }
+      ]
+    }
+  ]
+}
+```
+
+## 折りたたみ制御
+
+`collapsed: true` を設定すると、グループがデフォルトで折りたたまれた状態になり、ユーザーがクリックすると展開されます：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "応用",
+      "collapsed": true,
+      "pages": [
+        { "slug": "advanced/search", "title": "検索設定" },
+        { "slug": "advanced/mdx", "title": "MDX 拡張機能" }
+      ]
+    }
+  ]
+}
+```
+
+## マルチレベルナビゲーション
+
+サブディレクトリを使用してドキュメントを整理することで、マルチレベルなナビゲーションを実現できます：
+
+```
+content/
+├── index.mdx
+└── guide/
+    ├── configuration.mdx
+    ├── writing-docs.mdx
+    └── theme.mdx
+```
+
+対応する設定：
+
+```json
+{
+  "sidebar": [
+    {
+      "group": "ガイド",
+      "pages": [
+        { "slug": "guide/configuration", "title": "設定リファレンス" },
+        { "slug": "guide/writing-docs", "title": "ドキュメントの作成" },
+        { "slug": "guide/theme", "title": "テーマのカスタマイズ" }
+      ]
+    }
+  ]
+}
+```
+
+## ベストプラクティス
+
+- テーマや機能別にグループを分け、論理的な構成を維持してください
+- よく使うページは前のグループに配置し、応用的な内容は折りたたみを使用してください
+- グループとページに適切なアイコンを追加し、視覚的体験を向上させてください
+- ページ数が多いグループでは `collapsed: true` の設定をお勧めします

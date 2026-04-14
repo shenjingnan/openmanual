@@ -1,0 +1,87 @@
+---
+title: MDX 拡張機能
+description: OpenManual の MDX 拡張機能について学びます。LaTeX 数式サポートを含みます。
+---
+
+# MDX 拡張機能
+
+MDX は Markdown のスーパーセットであり、ドキュメント内で JSX/React コンポーネントを使用できます。OpenManual はこれをベースにさらに多くの拡張機能を提供しています。
+
+## LaTeX 数式
+
+設定で LaTeX サポートを有効にします：
+
+```json
+{
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+有効にすると、ドキュメント内で LaTeX 構文を使用できるようになります。
+
+### インライン数式
+
+`$...$` 構文を使用します：
+
+```markdown
+質量エネルギー等価式 $E = mc^2$ は物理学の有名な式です。
+```
+
+### ブロックレベル数式
+
+`$$...$$` 構文を使用します：
+
+```markdown
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+## MDX 設定フィールド
+
+| フィールド | 型 | デフォルト値 | 説明 |
+|------|------|--------|------|
+| `mdx.latex` | boolean | `false` | LaTeX 数式サポートを有効にするかどうか |
+
+## 標準 Markdown サポート
+
+OpenManual はすべての標準 Markdown 構文をサポートしています：
+
+- 見出し（h1-h6）
+- リスト（順序あり、順序なし）
+- コードブロック（シンタックスハイライト付き）
+- テーブル
+- リンクと画像
+- 引用
+- 水平線
+- 太字、斜線、取り消し線
+
+## コードブロック
+
+シンタックスハイライトと行番号表示をサポートしています：
+
+````markdown
+```typescript showLineNumbers
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
+
+## MDX コンポーネント
+
+OpenManual には豊富な MDX コンポーネントが組み込まれており、追加の import なしでドキュメント内で直接使用できます。
+
+| コンポーネント | 説明 | 詳細ドキュメント |
+|------|------|----------|
+| Callout | 重要な情報を表示するためのコールアウトボックス | [Callout コールアウト](/components/callout) |
+| Card / Cards | カードおよびカードグリッドレイアウト | [Card カード](/components/card) |
+| Steps / Step | 番号付きステップガイド | [Steps ステップ](/components/steps) |
+| Tabs / Tab | タブコンテンツ切り替え | [Tabs タブ](/components/tabs) |
+| Files / File / Folder | ファイルツリー表示 | [Files ファイルツリー](/components/files) |
+| Accordion / Accordions | 折りたたみ可能なコンテンツパネル | [Accordion アコーディオン](/components/accordion) |
+| TypeTable | TypeScript 型定義テーブル | [TypeTable タイプテーブル](/components/type-table) |
+
+コンポーネント名をクリックして、詳細な使用方法とパラメータドキュメントをご確認ください。

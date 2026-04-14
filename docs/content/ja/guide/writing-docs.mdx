@@ -1,0 +1,107 @@
+---
+title: ドキュメントの作成
+description: MDX を使用して OpenManual ドキュメントを作成・整理する方法を学びます。
+---
+
+# ドキュメントの作成
+
+OpenManual はドキュメント形式として MDX を採用しており、Markdown の基盤上で React コンポーネントを使用できます。
+
+## 基本フォーマット
+
+各 MDX ファイルは frontmatter メタデータを含めることができます：
+
+```mdx
+---
+title: ページタイトル
+description: ページ説明（オプション、SEO 用）
+---
+
+# ページタイトル
+
+ここが本文です。標準の Markdown 構文に対応しています。
+```
+
+### Frontmatter フィールド
+
+| フィールド | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `title` | string | はい | ページタイトル。ナビゲーションとブラウザタブに表示されます |
+| `description` | string | いいえ | ページ説明。SEO meta タグに使用されます |
+
+## Markdown 構文
+
+OpenManual は標準の Markdown 構文に対応しています：
+
+### 見出し
+
+```markdown
+# 見出し1
+## 見出し2
+### 見出し3
+```
+
+### リスト
+
+```markdown
+- 箇条書き項目
+- 別の箇条書き項目
+
+1. 番号付きリスト項目
+2. 別の番号付きリスト項目
+```
+
+### コードブロック
+
+シンタックスハイライトに対応しています：
+
+```typescript
+function hello(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+### テーブル
+
+```markdown
+| フィールド | 型 | 説明 |
+|------|------|------|
+| name | string | 名前 |
+| age  | number | 年齢 |
+```
+
+### リンクと画像
+
+```markdown
+[リンクテキスト](https://example.com)
+![画像説明](./image.png)
+```
+
+## ファイル構成
+
+### ディレクトリ構造
+
+MDX ファイルは `contentDir` 配下の任意のサブディレクトリに配置できます：
+
+```
+content/
+├── index.mdx           # slug: index
+├── guide.mdx           # slug: guide
+└── advanced/
+    ├── theme.mdx       # slug: advanced/theme
+    └── search.mdx      # slug: advanced/search
+```
+
+### Slug マッピングルール
+
+`sidebar` 設定内の `slug` はファイルパスに対応します：
+
+- `slug: "index"` → `content/index.mdx`
+- `slug: "guide/setup"` → `content/guide/setup.mdx`
+- `slug: "advanced/search"` → `content/advanced/search.mdx`
+
+## 注意事項
+
+- `sidebar` 設定で宣言されていないファイルはナビゲーションに表示されませんが、URL から直接アクセスすることは可能です
+- 各ファイルに `title` frontmatter を設定することをお勧めします
+- ファイル名は kebab-case 命名規則を使用してください（例: `writing-docs.mdx`）

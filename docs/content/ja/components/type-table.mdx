@@ -1,0 +1,96 @@
+---
+title: TypeTable タイプテーブル
+description: TypeTable コンポーネントを使用して TypeScript の型定義をわかりやすいテーブル形式で表示します。
+---
+
+TypeTable コンポーネントは、TypeScript の型定義を構造化されたテーブル形式で表示するために使用されます。API ドキュメントでのインターフェース、型エイリアスなどの表示に適しています。
+
+## 基本的な使い方
+
+```mdx
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: 'ユーザー名',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: 'ユーザーの年齢',
+    },
+    email: {
+      type: 'string',
+      description: 'ユーザーのメールアドレス',
+      default: 'user@example.com',
+    },
+  }}
+/>
+```
+
+<TypeTable
+  type={{
+    name: {
+      type: 'string',
+      description: 'ユーザー名',
+      required: true,
+    },
+    age: {
+      type: 'number',
+      description: 'ユーザーの年齢',
+    },
+    email: {
+      type: 'string',
+      description: 'ユーザーのメールアドレス',
+      default: 'user@example.com',
+    },
+    role: {
+      type: "'admin' | 'user' | 'guest'",
+      description: 'ユーザーロール',
+      default: 'user',
+    },
+  }}
+/>
+
+## 設定例
+
+以下は `openmanual.json` 内の `theme` 設定の型定義です：
+
+<TypeTable
+  type={{
+    primaryHue: {
+      type: 'number',
+      description: 'テーマの色相値。範囲 0-360',
+    },
+    darkMode: {
+      type: 'boolean',
+      description: 'ダークモードを有効にするかどうか',
+      default: 'true',
+    },
+  }}
+/>
+
+## プロパティ
+
+### TypeTable
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `type` | `Record<string, TypeField>` | はい | タイプフィールド定義オブジェクト |
+
+### TypeField
+
+各フィールドの定義には以下のプロパティが含まれます：
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `type` | string | はい | フィールドタイプの説明 |
+| `description` | string | いいえ | フィールドの説明 |
+| `required` | boolean | いいえ | 必須かどうか |
+| `default` | string | いいえ | デフォルト値 |
+
+## 注意事項
+
+- `type` プロパティのキーがフィールド名となり、値はフィールド定義オブジェクトです
+- `type` フィールドの内容は自由形式のテキストで、任意のタイプ記述文字列を使用できます
+- 設定項目、API パラメータ、コンポーネント Props などのタイプ情報の表示に適しています

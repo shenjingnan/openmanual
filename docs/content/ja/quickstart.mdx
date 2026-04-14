@@ -1,0 +1,107 @@
+---
+title: クイックスタート
+description: 5 分で最初の OpenManual ドキュメントサイトを作成しましょう。
+---
+
+# クイックスタート
+
+このガイドでは、5分以内に完全なドキュメントサイトを作成する方法をご案内します。
+
+## インストール
+
+```bash
+npm install -g openmanual
+```
+
+または pnpm を使用：
+
+```bash
+pnpm add -g openmanual
+```
+
+## プロジェクトの作成
+
+### 1. プロジェクトディレクトリの作成
+
+```bash
+mkdir my-docs && cd my-docs
+```
+
+### 2. 設定ファイルの作成
+
+最小限の `openmanual.json` 設定を作成します：
+
+```json
+{
+  "name": "My Docs"
+}
+```
+
+### 3. トップページドキュメントの作成
+
+```bash
+mkdir content
+```
+
+`content/index.mdx` を作成します：
+
+```mdx
+---
+title: ようこそ
+---
+
+# Hello OpenManual
+
+これは私の最初のドキュメントです。
+```
+
+### 4. 開発サーバーの起動
+
+```bash
+openmanual dev
+```
+
+`http://localhost:3000` にアクセスすると、ドキュメントサイトが表示されます。
+
+## CLI コマンド
+
+| コマンド | 説明 |
+|------|------|
+| `openmanual dev` | 開発サーバーを起動（デフォルトポート 3000） |
+| `openmanual dev -p 8080` | ポート指定で起動 |
+| `openmanual build` | 静的サイトをビルド |
+| `openmanual preview` | ビルド成果物をプレビュー（デフォルトポート 8080） |
+| `openmanual preview -d ./out` | 成果物ディレクトリ指定でプレビュー |
+
+## ページの追加
+
+新しい MDX ファイルを作成し、`sidebar` 設定に登録するだけです：
+
+```json
+{
+  "name": "My Docs",
+  "sidebar": [
+    {
+      "group": "ドキュメント",
+      "pages": [
+        { "slug": "index", "title": "トップページ" },
+        { "slug": "guide", "title": "利用ガイド" }
+      ]
+    }
+  ]
+}
+```
+
+対応するファイル構造：
+
+```
+content/
+├── index.mdx      # slug: index
+└── guide.mdx      # slug: guide
+```
+
+## 次のステップ
+
+- [設定リファレンス](/guide/configuration) — 利用可能なすべての設定オプションを確認
+- [ドキュメント作成](/guide/writing-docs) — MDX ファイルの書き方を学ぶ
+- [テーマカスタマイズ](/guide/theme) — サイト外観のカスタマイズ
