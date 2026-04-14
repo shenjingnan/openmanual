@@ -43,6 +43,7 @@ export function generatePackageJson(ctx: {
       start: 'next start',
     },
     dependencies: {
+      '@orama/orama': '^3.1.0',
       '@tailwindcss/postcss': '^4.1.15',
       'fumadocs-core': '^16.7.7',
       'fumadocs-mdx': '^14.2.11',
