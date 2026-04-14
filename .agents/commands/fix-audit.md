@@ -5,7 +5,7 @@ description: 安全审计技能，用于检查和修复依赖安全问题
 
 ## 上下文
 
-- 当前依赖审计报告: !`pnpm audit --audit-level moderate 2>&1`
+- 当前依赖审计报告: !`pnpm audit --audit-level moderate 2>&1 || true`
 - package.json 内容: (将在步骤中读取)
 
 ## 你的任务
