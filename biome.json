@@ -53,10 +53,10 @@
       "!!**/coverage",
       "!!**/*.min.js",
       "!!**/.husky",
-      "!!**/.openmanual",
+      "!!**/.cache",
       "!!**/.next",
       "!!**/.source",
-      "!!**/docs-dist"
+      "!!**/dist"
     ]
   },
   "overrides": [

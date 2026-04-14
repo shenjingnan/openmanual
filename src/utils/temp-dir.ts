@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { lstat, mkdir, rm, symlink } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-const TEMP_DIR_NAME = '.openmanual';
+const TEMP_DIR_NAME = '.cache';
 
 export function getTempDir(cwd: string): string {
   return join(cwd, TEMP_DIR_NAME);
@@ -15,6 +15,9 @@ export function getAppDir(cwd: string): string {
 export async function ensureTempDir(cwd: string): Promise<string> {
   const tempDir = getTempDir(cwd);
   const appDir = getAppDir(cwd);
+
+  // 清理残留文件（防止 dev 模式的文件在 build 时残留导致报错）
+  await cleanTempDir(cwd);
 
   await mkdir(tempDir, { recursive: true });
   await mkdir(join(appDir, 'app'), { recursive: true });

@@ -25,7 +25,7 @@ export interface GenerateContext {
   config: OpenManualConfig;
   /** Absolute path to user's project root */
   projectDir: string;
-  /** Absolute path to .openmanual/app */
+  /** Absolute path to .cache/app */
   appDir: string;
   /** Content directory relative to project root */
   contentDir: string;

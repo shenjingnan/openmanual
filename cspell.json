@@ -39,7 +39,7 @@
     "*.min.js",
     "*.min.d.ts",
     "pnpm-lock.yaml",
-    "docs-dist",
+    "dist",
     ".git"
   ],
   "enableFiletypes": true

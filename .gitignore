@@ -150,8 +150,8 @@ coverage
 # Build output
 dist
 
-# OpenManual temp directory
-.openmanual
+# OpenManual cache directory
+.cache
 
 # OS files
 .DS_Store

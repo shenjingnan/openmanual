@@ -19,30 +19,40 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 describe('getTempDir', () => {
-  it('should return .openmanual directory under cwd', () => {
+  it('should return .cache directory under cwd', () => {
     const result = getTempDir('/tmp/project');
-    expect(result).toBe('/tmp/project/.openmanual');
+    expect(result).toBe('/tmp/project/.cache');
   });
 });
 
 describe('getAppDir', () => {
   it('should return app directory under temp dir', () => {
     const result = getAppDir('/tmp/project');
-    expect(result).toBe('/tmp/project/.openmanual/app');
+    expect(result).toBe('/tmp/project/.cache/app');
   });
 });
 
 describe('ensureTempDir', () => {
-  it('should create temp and app/app directories', async () => {
-    const { mkdir } = await import('node:fs/promises');
+  it('should clean existing dir then create temp and app/app directories', async () => {
+    const { existsSync } = await import('node:fs');
+    const { mkdir, rm } = await import('node:fs/promises');
+    (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+
     await ensureTempDir('/tmp/project');
-    expect(mkdir).toHaveBeenCalledWith('/tmp/project/.openmanual', { recursive: true });
-    expect(mkdir).toHaveBeenCalledWith('/tmp/project/.openmanual/app/app', { recursive: true });
+
+    // 先清理残留
+    expect(rm).toHaveBeenCalledWith('/tmp/project/.cache', {
+      recursive: true,
+      force: true,
+    });
+    // 再创建目录
+    expect(mkdir).toHaveBeenCalledWith('/tmp/project/.cache', { recursive: true });
+    expect(mkdir).toHaveBeenCalledWith('/tmp/project/.cache/app/app', { recursive: true });
   });
 
   it('should return temp dir path', async () => {
     const result = await ensureTempDir('/tmp/project');
-    expect(result).toBe('/tmp/project/.openmanual');
+    expect(result).toBe('/tmp/project/.cache');
   });
 });
 
@@ -57,7 +67,7 @@ describe('cleanTempDir', () => {
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
 
     await cleanTempDir('/tmp/project');
-    expect(rm).toHaveBeenCalledWith('/tmp/project/.openmanual', {
+    expect(rm).toHaveBeenCalledWith('/tmp/project/.cache', {
       recursive: true,
       force: true,
     });
