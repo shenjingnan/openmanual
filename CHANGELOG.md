@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.13.0](https://github.com/shenjingnan/openmanual/compare/v0.12.0...v0.13.0) (2026-04-14)
+
+### Features
+
+* **generator:** 迁移 sidebar 配置至 Fumadocs 原生 meta.json + frontmatter ([#99](https://github.com/shenjingnan/openmanual/issues/99)) ([919251a](https://github.com/shenjingnan/openmanual/commit/919251ab729bb6ad64dadfc78dfbd1125273bd9a))
+* **i18n:** 侧边栏和描述支持多语言显示 ([#97](https://github.com/shenjingnan/openmanual/issues/97)) ([bdfe2c7](https://github.com/shenjingnan/openmanual/commit/bdfe2c780969f9ce5ebecac7e82e200d2c17ed9a))
+
+### Bug Fixes
+
+* **generator:** 移除 i18n dir parser 模式下冗余的根级别 meta 目录 ([#98](https://github.com/shenjingnan/openmanual/issues/98)) ([94c3959](https://github.com/shenjingnan/openmanual/commit/94c3959cf55daa9a7d8d00664b88399ab8c45063))
+
+### Documentation
+
+* 更新站点 URL 并移除 PNG favicon ([#96](https://github.com/shenjingnan/openmanual/issues/96)) ([ef1c1af](https://github.com/shenjingnan/openmanual/commit/ef1c1af01957cc3bfac8d96db691000469f52b5f))
+
 ## [0.12.0](https://github.com/shenjingnan/openmanual/compare/v0.11.0...v0.12.0) (2026-04-14)
 
 ### Features
