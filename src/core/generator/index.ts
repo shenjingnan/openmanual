@@ -1,4 +1,4 @@
-import { access, mkdir, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { isDirParser, isI18nEnabled } from '../config/schema.js';
@@ -292,64 +292,9 @@ function generateDocsLayout(ctx: GenerateContext): string {
       : `description: '${configDesc.replace(/'/g, "\\'")}',`
     : '';
 
-  // Build sidebar config for tree restructuring (including icon names)
-  const sidebar = config.sidebar;
-  const hasSidebar = sidebar && sidebar.length > 0;
-
-  // Collect all unique icon names from sidebar config
-  const iconNames = new Set<string>();
-  if (hasSidebar) {
-    for (const g of sidebar ?? []) {
-      if (g.icon) iconNames.add(g.icon);
-      for (const p of g.pages) {
-        if (p.icon) iconNames.add(p.icon);
-      }
-    }
-  }
-  const hasIcons = iconNames.size > 0;
-  const iconNameList = [...iconNames];
-
-  const sidebarConfigSnippet = hasSidebar
-    ? `\nconst sidebarConfig = ${JSON.stringify(
-        (sidebar ?? []).map((g) => ({
-          group: g.group,
-          icon: g.icon,
-          collapsed: g.collapsed,
-          pages: g.pages.map((p) => ({ slug: p.slug, icon: p.icon })),
-        })),
-        null,
-        2
-      )} as const;
-`
-    : '';
-
-  // Generate lucide-react import statement
-  const lucideImportLine = hasIcons
-    ? `\nimport { ${iconNameList.join(', ')} } from 'lucide-react';`
-    : '';
-
-  // Generate iconMap mapping icon names to React elements
-  const iconMapSnippet = hasIcons
-    ? `\nconst iconMap = {${iconNameList.map((name) => `\n  ${name}: <${name} />,`).join('')}\n} as const;
-`
-    : '';
-
-  // i18n 模式下需要传入 lang 参数
-  const treeLine = hasSidebar
-    ? hasIcons
-      ? isI18n
-        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, iconMap, { preserveNames: true }),'
-        : 'tree: restructureTree(source.getPageTree(), sidebarConfig, iconMap),'
-      : isI18n
-        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, undefined, { preserveNames: true }),'
-        : 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
-    : isI18n
-      ? 'tree: source.getPageTree(lang),'
-      : 'tree: source.getPageTree(),';
-
-  const restructureTreeImport = hasSidebar
-    ? "\nimport { restructureTree } from 'openmanual/utils/restructure-tree';"
-    : '';
+  // Fumadocs reads title/icon/defaultOpen/pages from meta.json and icon from frontmatter natively.
+  // No need for restructureTree() — use getPageTree() directly.
+  const treeLine = isI18n ? 'tree: source.getPageTree(lang),' : 'tree: source.getPageTree(),';
 
   // i18n 模式下的组件签名和 baseOptions 调用
   if (isI18n) {
@@ -360,8 +305,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
     return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLine}
-${sidebarConfigSnippet}${iconMapSnippet}${configDescSnippet}
+import type { ReactNode } from 'react';${configDescSnippet}
 export default async function DocsLayoutWrapper({
   params,
   children,
@@ -396,8 +340,7 @@ export default async function DocsLayoutWrapper({
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLine}
-${sidebarConfigSnippet}${iconMapSnippet}
+import type { ReactNode } from 'react';
 const docsOptions = {
   ...baseOptions(),
   ${treeLine}${githubLine}${linksLine}${footerLine}${descLine}
@@ -444,54 +387,228 @@ async function ensureLogoFile(
 }
 
 /**
- * Generate meta.json (and meta.en.json in i18n mode) for each sidebar
- * group directory so that fumadocs displays the configured group name.
+ * Generate complete meta.json for each sidebar group directory.
+ * Writes title, icon, defaultOpen, and pages ordering so that Fumadocs
+ * can render the sidebar natively without restructureTree().
+ *
+ * In dir-parser mode, generates meta.json inside each language subdirectory
+ * (e.g. content/zh/guide/meta.json). In dot-parser mode, generates at the
+ * group directory level with locale-suffixed files for i18n.
  */
 async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
   const sidebar = ctx.config.sidebar;
   if (!sidebar || sidebar.length === 0) return;
 
-  // dir parser 模式下，meta.json 应位于各语言子目录内（如 content/en/guide/meta.json），
-  // 根级别 content/{group}/meta.json 不会被 fumadocs 读取，无需生成
-  if (isDirParser(ctx.config)) return;
-
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
   const isI18n = isI18nEnabled(ctx.config);
+  const useDirParser = isDirParser(ctx.config);
+  const languages = isI18n ? (ctx.config.i18n?.languages ?? []).map((l) => l.code) : [];
 
   for (const group of sidebar) {
-    // Extract directory prefix from the first page slug that contains "/"
+    // Determine if this is a root-level group (all slugs have no "/")
+    const isRootGroup = group.pages.every((p) => !p.slug.includes('/'));
+
+    if (isRootGroup) {
+      // Root-level pages: generate meta.json at content root (or per-language root)
+      await generateRootMetaJson(ctx, group, contentAbsDir, languages, useDirParser);
+      continue;
+    }
+
+    // Directory-level group: extract directory prefix from slug
     const dirPrefix = group.pages
       .map((p) => p.slug)
       .find((slug) => slug.includes('/'))
       ?.split('/')[0];
 
-    if (!dirPrefix) continue; // Root-level pages, no meta.json needed
+    if (!dirPrefix) continue;
 
-    const dirPath = join(contentAbsDir, dirPrefix);
+    // Build complete meta object from sidebar group config
+    const metaObj: Record<string, unknown> = {
+      title: group.group,
+    };
+    if (group.icon) metaObj.icon = group.icon;
+    if (group.collapsed !== undefined) metaObj.defaultOpen = !group.collapsed;
 
-    // 生成默认语言的 meta.json
-    const metaPath = join(dirPath, 'meta.json');
-    try {
-      await access(metaPath);
-    } catch {
-      await mkdir(dirPath, { recursive: true });
-      await writeFile(metaPath, `${JSON.stringify({ title: group.group }, null, 2)}\n`, 'utf-8');
-    }
+    // Extract page filenames (strip directory prefix: "guide/configuration" -> "configuration")
+    const pageFiles = group.pages
+      .filter((p) => p.slug.startsWith(`${dirPrefix}/`))
+      .map((p) => p.slug.split('/').slice(1).join('/'));
+    if (pageFiles.length > 0) metaObj.pages = pageFiles;
 
-    // i18n 模式下生成 meta.en.json（如果不存在）
-    if (isI18n) {
-      const metaEnPath = join(dirPath, 'meta.en.json');
-      try {
-        await access(metaEnPath);
-      } catch {
-        await mkdir(dirPath, { recursive: true });
-        // 初始使用原始 group 名称，用户可后续翻译为英文
-        await writeFile(
-          metaEnPath,
-          `${JSON.stringify({ title: group.group }, null, 2)}\n`,
-          'utf-8'
-        );
+    if (useDirParser) {
+      // Dir parser: write meta.json into each language subdirectory
+      for (const lang of languages) {
+        const langDir = join(contentAbsDir, lang, dirPrefix);
+        await writeMetaIfNotExists(join(langDir, 'meta.json'), metaObj);
+      }
+    } else {
+      // Dot parser: write at group directory level
+      const dirPath = join(contentAbsDir, dirPrefix);
+      await writeMetaIfNotExists(join(dirPath, 'meta.json'), metaObj);
+
+      // i18n dot-parser: generate locale-suffixed meta files
+      if (isI18n) {
+        for (const lang of languages) {
+          if (lang === ctx.config.i18n?.defaultLanguage) continue;
+          await writeMetaIfNotExists(join(dirPath, `meta.${lang}.json`), metaObj);
+        }
       }
     }
   }
+
+  // Inject page-level icon/title into frontmatter for all pages
+  await injectPageFrontmatter(ctx);
+}
+
+/**
+ * Generate meta.json for root-level page groups (pages without directory prefix).
+ * Writes to content/{lang}/meta.json (dir-parser) or content/meta.json (dot-parser).
+ */
+async function generateRootMetaJson(
+  _ctx: GenerateContext,
+  group: {
+    group: string;
+    icon?: string | undefined;
+    collapsed?: boolean | undefined;
+    pages: Array<{ slug: string; title: string; icon?: string | undefined }>;
+  },
+  contentAbsDir: string,
+  languages: string[],
+  useDirParser: boolean
+): Promise<void> {
+  const metaObj: Record<string, unknown> = {
+    title: group.group,
+  };
+  if (group.icon) metaObj.icon = group.icon;
+  if (group.collapsed !== undefined) metaObj.defaultOpen = !group.collapsed;
+
+  // Root-level pages are just filenames (no directory prefix)
+  const pageFiles = group.pages.map((p) => p.slug);
+  if (pageFiles.length > 0) metaObj.pages = pageFiles;
+
+  if (useDirParser) {
+    for (const lang of languages) {
+      await writeMetaIfNotExists(join(contentAbsDir, lang, 'meta.json'), metaObj);
+    }
+  } else {
+    await writeMetaIfNotExists(join(contentAbsDir, 'meta.json'), metaObj);
+  }
+}
+
+/**
+ * Write meta.json only if it does not already exist (preserve user edits).
+ */
+async function writeMetaIfNotExists(
+  filePath: string,
+  data: Record<string, unknown>
+): Promise<void> {
+  try {
+    await access(filePath);
+    // File already exists — skip to preserve user customizations
+  } catch {
+    await mkdir(join(filePath, '..'), { recursive: true });
+    await writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
+  }
+}
+
+/**
+ * Inject page-level title and icon from sidebar config into each .mdx file's frontmatter.
+ * Uses upsert semantics: only writes fields that are missing from existing frontmatter.
+ */
+async function injectPageFrontmatter(ctx: GenerateContext): Promise<void> {
+  const sidebar = ctx.config.sidebar;
+  if (!sidebar) return;
+
+  const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
+  const useDirParser = isDirParser(ctx.config);
+  const languages = isI18nEnabled(ctx.config)
+    ? (ctx.config.i18n?.languages ?? []).map((l) => l.code)
+    : [];
+
+  for (const group of sidebar) {
+    for (const page of group.pages) {
+      const fieldsToInject: Record<string, string> = {};
+      if (page.title) fieldsToInject.title = page.title;
+      if (page.icon) fieldsToInject.icon = page.icon;
+
+      if (Object.keys(fieldsToInject).length === 0) continue;
+
+      // Determine target file paths based on parser mode
+      const targets = resolveMdxPaths(contentAbsDir, page.slug, useDirParser, languages);
+
+      for (const mdxPath of targets) {
+        try {
+          const content = await readFile(mdxPath, 'utf-8');
+          const updated = upsertFrontmatter(content, fieldsToInject);
+          if (updated !== content) {
+            await writeFile(mdxPath, updated, 'utf-8');
+          }
+        } catch {
+          // File does not exist yet — skip (will be created by generatePage)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Resolve .mdx file paths for a given slug across all applicable locales.
+ */
+function resolveMdxPaths(
+  contentAbsDir: string,
+  slug: string,
+  useDirParser: boolean,
+  languages: string[]
+): string[] {
+  if (useDirParser) {
+    // Dir parser: content/{lang}/{slug}.mdx for each language
+    return languages.map((lang) => join(contentAbsDir, lang, `${slug}.mdx`));
+  }
+  // Dot parser: content/{slug}.mdx
+  return [join(contentAbsDir, `${slug}.mdx`)];
+}
+
+/**
+ * Upsert fields into MDX frontmatter. Only adds missing fields; never overwrites existing ones.
+ *
+ * Handles:
+ * - No frontmatter → creates one with the injected fields
+ * - Existing frontmatter missing some fields → adds only the missing ones
+ * - All fields already present → returns original content unchanged
+ */
+function upsertFrontmatter(content: string, fields: Record<string, string>): string {
+  const FRONTMATTER_REGEX = /^---\r?\n([\s\S]*?)\r?\n---/;
+  const match = content.match(FRONTMATTER_REGEX);
+
+  if (!match) {
+    // No frontmatter — insert at the beginning
+    const fieldLines = Object.entries(fields)
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+    return `---\n${fieldLines}\n---\n\n${content}`;
+  }
+
+  // Parse existing frontmatter lines into a set of existing keys
+  const existingContent = match[1] ?? '';
+  const existingLines = existingContent.split('\n');
+  const existingKeys = new Set<string>();
+  for (const line of existingLines) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const keyMatch = trimmed.match(/^(\w[\w-]*)\s*:/);
+      if (keyMatch?.[1]) existingKeys.add(keyMatch[1]);
+    }
+  }
+
+  // Only inject fields that don't already exist
+  const newFields = Object.entries(fields).filter(([key]) => !existingKeys.has(key));
+  if (newFields.length === 0) return content; // All fields already present
+
+  const newFieldLines = newFields.map(([key, value]) => `${key}: ${value}`).join('\n');
+
+  // Insert new fields before the closing ---
+  const insertionPoint = (match.index ?? 0) + match[0].length - 3;
+  return (
+    content.slice(0, insertionPoint) + '\n' + newFieldLines + '\n' + content.slice(insertionPoint)
+  );
 }

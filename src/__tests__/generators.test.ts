@@ -613,12 +613,13 @@ describe('generateSourceConfig', () => {
     expect(result).toContain('remarkPlugins: [remarkMdxMermaid]');
   });
 
-  it('should generate empty titleMap when sidebar is not configured', () => {
+  it('should NOT contain titleMap (titles come from frontmatter natively)', () => {
     const result = generateSourceConfig(baseCtx);
-    expect(result).toContain('const titleMap: Record<string, string> = {}');
+    expect(result).not.toContain('titleMap');
+    expect(result).not.toContain('titleFromPath');
   });
 
-  it('should generate titleMap with slug-title pairs from sidebar config', () => {
+  it('should NOT contain titleMap even when sidebar is configured', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -630,101 +631,19 @@ describe('generateSourceConfig', () => {
               { slug: 'quickstart', title: '快速上手' },
             ],
           },
-          {
-            group: '指南',
-            pages: [{ slug: 'guide/intro', title: '指南介绍' }],
-          },
         ],
       },
     };
     const result = generateSourceConfig(ctx);
-    expect(result).toContain("'index': '项目介绍'");
-    expect(result).toContain("'quickstart': '快速上手'");
-    expect(result).toContain("'guide/intro': '指南介绍'");
+    expect(result).not.toContain('titleMap');
+    expect(result).not.toContain('项目介绍');
   });
 
-  it('should escape single quotes in titles', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '测试',
-            pages: [{ slug: 'test', title: "It's a test" }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).toContain("'test': 'It\\'s a test'");
-  });
-
-  it('should use titleFromPath that looks up titleMap first', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [{ slug: 'intro', title: '介绍' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).toContain('titleMap[slug]');
-    expect(result).toContain("slug.split('/').pop()");
-  });
-
-  it('should use indexOf to find content/ in path for titleMap lookup', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: '开始',
-            pages: [
-              { slug: 'index', title: '项目介绍' },
-              { slug: 'guide/intro', title: '指南介绍' },
-            ],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    // titleFromPath must use indexOf('content/') to handle both relative and absolute paths
-    expect(result).toContain("indexOf('content/')");
-    expect(result).toContain("'content/'.length");
-  });
-
-  it('should include allowedSlugs and refine filter in strict mode', () => {
+  it('should NOT contain allowedSlugs or strict mode filtering', () => {
     const ctx = {
       config: {
         ...baseConfig,
         contentPolicy: 'strict' as const,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [
-              { slug: 'index', title: 'Home' },
-              { slug: 'guide', title: 'Guide' },
-            ],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).toContain('allowedSlugs');
-    expect(result).toContain('.refine(');
-    expect(result).toContain('allowedSlugs.has(slug)');
-    expect(result).toContain('slugFromPath');
-  });
-
-  it('should not include allowedSlugs when contentPolicy is all', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        contentPolicy: 'all' as const,
         sidebar: [
           {
             group: 'Guide',
@@ -736,133 +655,32 @@ describe('generateSourceConfig', () => {
     const result = generateSourceConfig(ctx);
     expect(result).not.toContain('allowedSlugs');
     expect(result).not.toContain('.refine(');
+    expect(result).not.toContain('slugFromPath');
   });
 
-  it('should default to strict mode when contentPolicy is not set', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).toContain('allowedSlugs');
-    expect(result).toContain('.refine(');
+  it('should contain simple defineDocs with dir content only', () => {
+    const result = generateSourceConfig(baseCtx);
+    expect(result).toContain('export const docs = defineDocs({');
+    expect(result).toContain("dir: 'content',");
+    // No schema transform with title fallback
+    expect(result).not.toContain('titleFromPath');
+    // No zod import needed for simple schema
+    expect(result).not.toContain("import { z } from 'zod'");
   });
 
-  // --- i18n / dir parser 模式 ---
-
-  it('should strip language directory prefix in slugFromPath when dir parser + strict', () => {
-    const ctx = {
-      config: {
-        ...i18nConfigDirParser,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    // dir parser: 剥离语言目录前缀
-    expect(result).toContain('dir parser: 剥离语言目录前缀');
-    expect(result).toContain('parts.slice(1)');
-    expect(result).toContain('/^[a-z]{2}(-[A-Z]{2})?$/i');
-  });
-
-  it('should strip .lang suffix in slugFromPath when i18n dot parser + strict', () => {
-    const ctx = {
-      config: {
-        ...i18nConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    // dot parser: 剥离语言后缀
-    expect(result).toContain('剥离语言后缀：index.en -> index');
-    // 验证生成了语言后缀剥离的 regex（模板字面量中 \\.\. 会输出 \.）
-    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
-  });
-
-  it('should NOT strip language suffix in slugFromPath when not i18n + strict', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'index', title: 'Home' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).not.toContain('剥离语言后缀');
-    expect(result).not.toContain('剥离语言目录前缀');
-  });
-
-  it('should strip language dir prefix in titleFromPath when dir parser', () => {
-    const ctx = {
-      config: {
-        ...i18nConfigDirParser,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    // titleFromPath with dir parser
-    expect(result).toContain('dir parser: 剥离语言目录前缀');
-    expect(result).toContain('parts.slice(1)');
-  });
-
-  it('should strip .lang suffix in titleFromPath when i18n dot parser', () => {
-    const ctx = {
-      config: {
-        ...i18nConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    // titleFromPath with i18n dot parser
-    expect(result).toContain('剥离语言后缀：guide/configuration.en -> guide/configuration');
-    expect(result).toMatch(/slug\.replace\(\/\\\.\(\[a-z\]\{2\}/);
-  });
-
-  it('should NOT have i18n stripping in titleFromPath when not i18n', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        sidebar: [
-          {
-            group: 'Guide',
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    const result = generateSourceConfig(ctx);
-    expect(result).not.toContain('剥离语言后缀');
-    expect(result).not.toContain('剥离语言目录前缀');
+  it('should work identically regardless of i18n or parser mode', () => {
+    const results = [
+      generateSourceConfig(baseCtx),
+      generateSourceConfig({ config: { ...baseConfig, ...i18nConfig } }),
+      generateSourceConfig({ config: { ...baseConfig, ...i18nConfigDirParser } }),
+    ];
+    // All should produce the same simplified output structure
+    for (const result of results) {
+      expect(result).toContain('defineDocs({');
+      expect(result).toContain("dir: 'content',");
+      expect(result).not.toContain('titleMap');
+      expect(result).not.toContain('allowedSlugs');
+    }
   });
 });
 
