@@ -410,4 +410,157 @@ describe('restructureTree', () => {
       expect((folder.children[0] as PageTree.Item).icon).toBeUndefined();
     });
   });
+
+  describe('preserveNames option', () => {
+    it('should preserve original folder name when preserveNames is true (directory-level)', () => {
+      const tree = makeRoot([
+        makeFolder('Guide', [makePage('/guide/intro', 'Intro'), makePage('/guide/api', 'API')]),
+      ]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南（来自配置，应被忽略）',
+          collapsed: false,
+          pages: [{ slug: 'guide/intro' }, { slug: 'guide/api' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, undefined, { preserveNames: true });
+      const folder = result.children[0] as PageTree.Folder;
+      // 名称应保持原始树中的 "Guide"，而非 sidebar 配置中的值
+      expect(folder.name).toBe('Guide');
+    });
+
+    it('should still overwrite folder name when preserveNames is false (default behavior)', () => {
+      const tree = makeRoot([makeFolder('Guide', [makePage('/guide/intro', 'Intro')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [{ slug: 'guide/intro' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.name).toBe('指南');
+    });
+
+    it('should still overwrite folder name when preserveNames is undefined (default behavior)', () => {
+      const tree = makeRoot([makeFolder('Guide', [makePage('/guide/intro', 'Intro')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [{ slug: 'guide/intro' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, undefined, undefined);
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.name).toBe('指南');
+    });
+
+    it('should use group name as fallback for root-level created folders even with preserveNames', () => {
+      const tree = makeRoot([makePage('/', 'Home'), makePage('/quickstart', 'Quick Start')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Getting Started',
+          pages: [{ slug: 'index' }, { slug: 'quickstart' }],
+        },
+      ];
+
+      // 根级页面分组会创建新文件夹，没有原始名称可保留，仍使用 group 值
+      const result = restructureTree(tree, sidebarConfig, undefined, { preserveNames: true });
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.name).toBe('Getting Started');
+    });
+
+    it('should still inject icons and collapsed state when preserveNames is true', () => {
+      const iconMap = { BookIcon: 'book-icon' };
+      const tree = makeRoot([makeFolder('Guide', [makePage('/guide/intro', 'Intro')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '配置指南（应被忽略）',
+          icon: 'BookIcon',
+          collapsed: true,
+          pages: [{ slug: 'guide/intro' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, iconMap, { preserveNames: true });
+      const folder = result.children[0] as PageTree.Folder;
+      expect(folder.name).toBe('Guide'); // 保留原始名称
+      expect(folder.icon).toBe('book-icon'); // 图标仍然注入
+      expect(folder.defaultOpen).toBe(false); // 折叠状态仍然生效
+    });
+
+    it('should handle multiple directory groups with preserveNames', () => {
+      const tree = makeRoot([
+        makeFolder('Guide', [makePage('/guide/intro', 'Intro')]),
+        makeFolder('Components', [makePage('/components/card', 'Card')]),
+        makeFolder('Advanced', [makePage('/advanced/search', 'Search')]),
+      ]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南配置名',
+          icon: 'BookIcon',
+          pages: [{ slug: 'guide/intro' }],
+        },
+        {
+          group: '组件配置名',
+          pages: [{ slug: 'components/card' }],
+        },
+        {
+          group: '高级配置名',
+          pages: [{ slug: 'advanced/search' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig, undefined, { preserveNames: true });
+      expect(result.children).toHaveLength(3);
+
+      expect((result.children[0] as PageTree.Folder).name).toBe('Guide');
+      expect((result.children[1] as PageTree.Folder).name).toBe('Components');
+      expect((result.children[2] as PageTree.Folder).name).toBe('Advanced');
+    });
+  });
+
+  describe('edge cases - unmatched groups', () => {
+    it('should skip directory group when matching folder not found in tree', () => {
+      const tree = makeRoot([makeFolder('Components', [makePage('/components/card', 'Card')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [{ slug: 'guide/intro' }, { slug: 'guide/api' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      // 该分组应被跳过（树中没有 guide 目录），原始 Components 文件夹保留
+      expect(result.children).toHaveLength(1);
+      expect((result.children[0] as PageTree.Folder).name).toBe('Components');
+    });
+
+    it('should not create folder when all root-level pages in group do not match', () => {
+      const tree = makeRoot([makePage('/', 'Home'), makePage('/about', 'About')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Missing Group',
+          pages: [{ slug: 'nonexistent1' }, { slug: 'nonexistent2' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      // 所有页面都不匹配，不应创建 folder，原始页面保留
+      expect(result.children).toHaveLength(2);
+      expect(result.children[0]?.type).toBe('page');
+      expect(result.children[1]?.type).toBe('page');
+    });
+  });
 });

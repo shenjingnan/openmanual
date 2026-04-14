@@ -7,6 +7,11 @@ export interface SidebarConfigEntry {
   pages: readonly { slug: string; icon?: string }[];
 }
 
+export interface RestructureOptions {
+  /** 是否保留树节点原始名称（不覆盖为 sidebar 配置值）。i18n 模式下应设为 true */
+  preserveNames?: boolean;
+}
+
 export function slugToUrl(slug: string): string {
   return slug === 'index' ? '/' : `/${slug}`;
 }
@@ -14,7 +19,8 @@ export function slugToUrl(slug: string): string {
 export function restructureTree(
   tree: PageTree.Root,
   sidebarConfig: readonly SidebarConfigEntry[],
-  iconMap?: Record<string, React.ReactNode>
+  iconMap?: Record<string, React.ReactNode>,
+  options?: RestructureOptions
 ): PageTree.Root {
   const consumed = new Set<number>();
   const newChildren: PageTree.Node[] = [];
@@ -78,7 +84,7 @@ export function restructureTree(
 
           newChildren.push({
             ...originalFolder,
-            name: group.group,
+            ...(options?.preserveNames ? {} : { name: group.group }),
             icon: group.icon && iconMap ? iconMap[group.icon] : undefined,
             defaultOpen: !group.collapsed,
             children: childrenWithIcons,
