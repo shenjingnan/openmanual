@@ -105,18 +105,6 @@ export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
   return slugs;
 }
 
-export function buildTitleMap(config: OpenManualConfig): Record<string, string> {
-  const map: Record<string, string> = {};
-  if (config.sidebar) {
-    for (const group of config.sidebar) {
-      for (const page of group.pages) {
-        map[page.slug] = page.title;
-      }
-    }
-  }
-  return map;
-}
-
 export function isI18nEnabled(config: OpenManualConfig): boolean {
   return config.i18n?.enabled === true && (config.i18n.languages?.length ?? 0) > 1;
 }
