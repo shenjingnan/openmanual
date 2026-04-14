@@ -378,51 +378,6 @@ describe('generateMetaFiles', () => {
     expect(data.defaultOpen).toBe(true); // collapsed=false → defaultOpen=true
     expect(data.pages).toEqual(['index', 'quickstart']);
   });
-
-  it.skip('should generate per-language meta.json in dir-parser i18n mode (TODO: fix vitest mock interaction)', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    // Use same pattern as the passing "complete meta.json" test but with i18n dir-parser
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        i18n: {
-          enabled: true,
-          defaultLanguage: 'zh',
-          languages: [
-            { code: 'zh', name: '中文' },
-            { code: 'en', name: 'English' },
-          ],
-          parser: 'dir' as const,
-        },
-        sidebar: [
-          {
-            group: '指南',
-            icon: 'BookOpen',
-            collapsed: true,
-            pages: [{ slug: 'guide/configuration', title: '配置' }],
-          },
-        ],
-      },
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const metaCalls = calls.filter(
-      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
-    );
-    // Dir parser i18n: should write to content/zh/guide/meta.json AND content/en/guide/meta.json
-    expect(metaCalls.length).toBeGreaterThanOrEqual(2);
-    const paths = metaCalls.map((c) => c[0] as string);
-    expect(paths.some((p) => p.includes('/zh/guide/'))).toBe(true);
-    expect(paths.some((p) => p.includes('/en/guide/'))).toBe(true);
-    // Verify content of one of them
-    const guideMeta = metaCalls.find((c) => (c[0] as string).includes('guide'));
-    expect(guideMeta).toBeDefined();
-    const data = JSON.parse((guideMeta as unknown[])[1] as string);
-    expect(data.title).toBe('指南');
-    expect(data.icon).toBe('BookOpen');
-    expect(data.defaultOpen).toBe(false);
-  });
 });
 
 describe('generateDocsLayout - no restructureTree', () => {
@@ -1134,5 +1089,467 @@ describe('generateAll - i18n mode', () => {
 
     // Should use native getPageTree(lang)
     expect(content).toContain('tree: source.getPageTree(lang)');
+  });
+});
+
+// ============================================================
+// injectPageFrontmatter / upsertFrontmatter 测试
+// ============================================================
+
+describe('injectPageFrontmatter - upsertFrontmatter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /** 辅助：过滤出对 .mdx 文件的 writeFile 调用 */
+  function getMdxWriteCalls(writeFileCalls: unknown[][]): unknown[][] {
+    return writeFileCalls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('.mdx')
+    );
+  }
+
+  // A1: 无 frontmatter 时创建新的 (行 583-588)
+  it('should create new frontmatter when MDX has no existing frontmatter', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '# Hello World\n\nSome content here.';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'Introduction', icon: 'Book' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(1);
+    const writtenContent = mdxWrites[0]![1] as string;
+    expect(writtenContent).toMatch(/^---\r?\ntitle: Introduction\r?\nicon: Book\r?\n---/);
+    expect(writtenContent).toContain('# Hello World');
+  });
+
+  // A2: 已有 frontmatter 缺少部分字段时追加 (行 591-613)
+  it('should append missing fields to existing frontmatter without overwriting', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '---\ntitle: Old Title\ndescription: Some desc\n---\n\n# Content';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'New Title', icon: 'Settings' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(1);
+    const writtenContent = mdxWrites[0]![1] as string;
+    // 原有 title 不应被覆盖（upsert 语义）
+    expect(writtenContent).toContain('title: Old Title');
+    // icon 应被追加
+    expect(writtenContent).toContain('icon: Settings');
+    // description 保持不变
+    expect(writtenContent).toContain('description: Some desc');
+    // 新字段在关闭 --- 之前
+    const lastDashIndex = writtenContent.lastIndexOf('---');
+    const iconIndex = writtenContent.indexOf('icon: Settings');
+    expect(iconIndex).toBeLessThan(lastDashIndex);
+  });
+
+  // A3: 所有字段已存在时返回原内容不变 (行 604-605)
+  it('should not modify content when all fields already exist in frontmatter', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '---\ntitle: My Title\nicon: My Icon\n---\n\n# Content';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'My Title', icon: 'My Icon' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    // 所有字段都存在 -> updated === content -> 不调用 writeFile
+    expect(mdxWrites).toHaveLength(0);
+  });
+
+  // A4: 只有 title 没有 icon 时只注入 title (行 531-532)
+  it('should only inject title when page has no icon configured', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '# Plain content without frontmatter';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'Only Title' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(1);
+    const writtenContent = mdxWrites[0]![1] as string;
+    expect(writtenContent).toContain('title: Only Title');
+    expect(writtenContent).not.toContain('icon:');
+  });
+
+  // A5: 页面既无 title 也无 icon 时跳过 (行 534 continue)
+  it('should skip injection when page has neither title nor icon', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '---\n---\n\n# Content';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: '' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(0);
+    // fieldsToInject 为空 -> continue 在 resolveMdxPaths 之前 -> readFile 不应被调用
+    expect(readFile).not.toHaveBeenCalled();
+  });
+
+  // D2: readFile 失败时静默跳过 (行 546-548 catch 分支)
+  it('should silently skip when readFile fails for a page MDX file', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    // 保持默认的 reject 行为（模拟文件不存在）
+    (readFile as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'Intro', icon: 'Book' }],
+          },
+        ],
+      },
+    };
+    // 不应抛错
+    await expect(generateAll(ctx)).resolves.toBeUndefined();
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(0);
+  });
+
+  // D3: frontmatter 中包含注释行的健壮性解析 (行 595-600)
+  it('should correctly parse frontmatter with comments and empty lines', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return `---
+# This is a comment
+title: Existing Title
+
+description: Existing description
+---
+# Content`;
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'NewTitle', icon: 'Gear' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(1);
+    const written = mdxWrites[0]![1] as string;
+    // 注释行不应被当作 key
+    expect(written).toContain('# This is a comment');
+    // 已有 title 不被覆盖
+    expect(written).toContain('title: Existing Title');
+    // 新增 icon
+    expect(written).toContain('icon: Gear');
+    // description 保持不变
+    expect(written).toContain('description: Existing description');
+  });
+});
+
+// ============================================================
+// resolveMdxPaths - dir-parser 模式测试
+// ============================================================
+
+describe('resolveMdxPaths - dir-parser mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  /** 辅助：过滤出对 .mdx 文件的 writeFile 调用 */
+  function getMdxWriteCalls(writeFileCalls: unknown[][]): unknown[][] {
+    return writeFileCalls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('.mdx')
+    );
+  }
+
+  // B1: dir-parser 模式返回多语言路径数组 (行 565)
+  it('should resolve multiple language paths in dir-parser mode for page injection', async () => {
+    const { readFile, writeFile } = await import('node:fs/promises');
+    (readFile as ReturnType<typeof vi.fn>).mockImplementation(async (path: string) => {
+      if (typeof path === 'string' && path.endsWith('.mdx')) {
+        return '# Content';
+      }
+      throw new Error('ENOENT');
+    });
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+            { code: 'ja', name: '日本語' },
+          ],
+          parser: 'dir' as const,
+        },
+        sidebar: [
+          {
+            group: 'Guide',
+            pages: [{ slug: 'guide/intro', title: 'Intro', icon: 'Book' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    // 验证 readFile 被调用了 3 次（每种语言一次）
+    expect(readFile).toHaveBeenCalledTimes(3);
+
+    // 验证三个不同语言路径都被读取过
+    const readPaths = (readFile as ReturnType<typeof vi.fn>).mock.calls.map((c) => c[0] as string);
+    expect(readPaths.some((p) => p.includes('/zh/guide/intro.mdx'))).toBe(true);
+    expect(readPaths.some((p) => p.includes('/en/guide/intro.mdx'))).toBe(true);
+    expect(readPaths.some((p) => p.includes('/ja/guide/intro.mdx'))).toBe(true);
+
+    // 验证 writeFile 也被调用了 3 次（每个语言一个）
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const mdxWrites = getMdxWriteCalls(calls);
+    expect(mdxWrites).toHaveLength(3);
+  });
+});
+
+// ============================================================
+// generateMetaFiles - dir-parser 模式 meta.json 测试
+// ============================================================
+
+describe('generateMetaFiles - dir-parser mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // C1: dir-parser i18n 根级 group 生成 per-language meta.json (行 489-492)
+  it('should generate root-level meta.json per language in dir-parser i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir' as const,
+        },
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'Rocket',
+            collapsed: false,
+            pages: [
+              { slug: 'index', title: '首页' },
+              { slug: 'quickstart', title: '快速上手' },
+            ],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+
+    // 根级 group + dir-parser + 2 语言 = 2 个 meta.json
+    expect(metaCalls).toHaveLength(2);
+
+    const paths = metaCalls.map((c) => c[0] as string);
+    expect(paths.some((p) => p.endsWith('/zh/meta.json'))).toBe(true);
+    expect(paths.some((p) => p.endsWith('/en/meta.json'))).toBe(true);
+
+    for (const call of metaCalls) {
+      const data = JSON.parse(call[1] as string);
+      expect(data.title).toBe('开始');
+      expect(data.icon).toBe('Rocket');
+      expect(data.defaultOpen).toBe(true);
+      expect(data.pages).toEqual(['index', 'quickstart']);
+    }
+  });
+
+  // C2: dir-parser i18n 目录级 group 生成 per-language meta.json (行 438-443)
+  it('should generate directory-level meta.json per language in dir-parser i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir' as const,
+        },
+        sidebar: [
+          {
+            group: '指南',
+            icon: 'BookOpen',
+            collapsed: true,
+            pages: [{ slug: 'guide/configuration', title: '配置' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+
+    // 目录级 group + dir-parser + 2 语言 = 2 个 meta.json
+    expect(metaCalls).toHaveLength(2);
+
+    const paths = metaCalls.map((c) => c[0] as string);
+    expect(paths.some((p) => p.includes('/zh/guide/meta.json'))).toBe(true);
+    expect(paths.some((p) => p.includes('/en/guide/meta.json'))).toBe(true);
+
+    for (const call of metaCalls) {
+      const data = JSON.parse(call[1] as string);
+      expect(data.title).toBe('指南');
+      expect(data.icon).toBe('BookOpen');
+      expect(data.defaultOpen).toBe(false); // collapsed=true → defaultOpen=false
+      expect(data.pages).toEqual(['configuration']);
+    }
+  });
+});
+
+// ============================================================
+// generateMetaFiles - 边界条件测试
+// ============================================================
+
+describe('generateMetaFiles - edge cases', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // D1: 空数组 sidebar 提前返回 (行 400)
+  it('should skip meta generation when sidebar is an empty array', async () => {
+    const { writeFile } = await import('node:fs/promises');
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        sidebar: [],
+      },
+    };
+    await generateAll(ctx);
+
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const metaCalls = calls.filter(
+      (c) => typeof c[0] === 'string' && (c[0] as string).endsWith('meta.json')
+    );
+    // 空 sidebar -> generateMetaFiles 直接 return
+    expect(metaCalls).toHaveLength(0);
   });
 });
