@@ -11,6 +11,7 @@
 
 [![CI](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml/badge.svg)](https://github.com/shenjingnan/openmanual/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/openmanual.svg)](https://www.npmjs.com/package/openmanual)
+[![npm downloads](https://img.shields.io/npm/dt/openmanual.svg)](https://www.npmjs.com/package/openmanual)
 [![Coverage](https://codecov.io/gh/shenjingnan/openmanual/branch/main/graph/badge.svg)](https://codecov.io/gh/shenjingnan/openmanual)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
