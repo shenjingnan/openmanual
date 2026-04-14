@@ -1,0 +1,109 @@
+---
+title: コントリビューションガイド
+description: OpenManual プロジェクトへの貢献方法について学びます。
+---
+
+# コントリビューションガイド
+
+OpenManual プロジェクトに関心をお寄せいただきありがとうございます！様々な形での貢献を歓迎します。
+
+## 行動規範
+
+本プロジェクトに参加することで、貢献者規約（Contributor Covenant）に同意し、友好的で尊重ある態度でコミュニケーションを行うことに同意したことになります。
+
+## 貢献の方法
+
+### バグの報告
+
+[GitHub Issues](https://github.com/shenjingnan/openmanual/issues) から問題を報告してください。以下を含めてください：
+
+1. **明確なタイトル** — 問題の簡単な説明
+2. **再現手順** — 再現方法の詳細な説明
+3. **期待される動作** — 期待される挙動
+4. **実際の動作** — 実際に発生した挙動
+5. **環境情報** — OS、Node.js バージョンなど
+
+### 新機能の提案
+
+Issue にて以下を記述してください：
+
+1. **機能の説明** — 追加したい機能
+2. **ユースケース** — その機能が必要な理由
+3. **代替案** — 検討した他の案
+
+### コードの提出
+
+#### 開発環境のセットアップ
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/shenjingnan/openmanual.git
+cd openmanual
+
+# 依存関係のインストール
+pnpm install
+
+# 開発モード
+pnpm run dev
+
+# プロジェクトのビルド
+pnpm run build
+
+# テストの実行
+pnpm run test
+
+# コードチェック
+pnpm run check
+```
+
+#### ブランチ戦略
+
+- `main` — メインブランチ、安定状態を維持
+- `feature/*` — 新機能ブランチ
+- `fix/*` — バグ修正ブランチ
+- `docs/*` — ドキュメント更新ブランチ
+
+#### コミット規約
+
+[Conventional Commits](https://www.conventionalcommits.org/) に従います：
+
+```
+<type>(<scope>): <description>
+```
+
+タイプ：`feat`、`fix`、`docs`、`style`、`refactor`、`perf`、`test`、`chore`
+
+#### Pull Request フロー
+
+1. リポジトリを Fork する
+2. 機能ブランチを作成する (`git checkout -b feature/my-feature`)
+3. 変更を行う
+4. テストが通ることを確認する (`pnpm run test`)
+5. コードチェックが通ることを確認する (`pnpm run check`)
+6. 変更をコミットする (`git commit -m "feat: add my feature"`)
+7. ブランチをプッシュする (`git push origin feature/my-feature`)
+8. Pull Request を作成する
+
+#### PR チェックリスト
+
+- すべてのテストに合格している
+- lint チェックに合格している
+- 型チェックに合格している
+- 新機能には対応するテストがある
+- ドキュメントが更新されている（必要な場合）
+- コミットメッセージが規約に従っている
+
+## 開発コマンド
+
+| コマンド | 説明 |
+|------|------|
+| `pnpm run dev` | 開発モード（watch） |
+| `pnpm run build` | プロジェクトのビルド |
+| `pnpm run test` | テストの実行 |
+| `pnpm run lint` | コードチェック |
+| `pnpm run typecheck` | TypeScript 型チェック |
+| `pnpm run check` | 完全チェック |
+
+## ライセンス
+
+コードを貢献することで、あなたのコードが MIT ライセンス下で公開されることに同意したことになります。

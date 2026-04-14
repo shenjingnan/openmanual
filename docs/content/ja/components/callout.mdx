@@ -1,0 +1,110 @@
+---
+title: Callout コールアウト
+description: Callout コンポーネントを使用して、ドキュメントに目立つヒント、警告、備考情報を追加します。
+---
+
+Callout コンポーネントは、ドキュメント内で目立つ注意書きを表示するために使用されます。読者が重要な備考、警告、またはヒントに気づくのに役立ちます。
+
+## 基本的な使い方
+
+`Callout` コンポーネントを使用してコールアウトを作成します：
+
+```mdx
+<Callout>
+  これは一般的な注意書きです。
+</Callout>
+```
+
+<Callout>
+  これは一般的な注意書きです。
+</Callout>
+
+## タイプのバリエーション
+
+`type` 属性で異なるタイプのコールアウトを設定できます：
+
+```mdx
+<Callout type="note">備考</Callout>
+<Callout type="info">補足情報</Callout>
+<Callout type="warning">警告</Callout>
+<Callout type="tip">ヒント</Callout>
+<Callout type="check">確認</Callout>
+<Callout type="danger">危険</Callout>
+<Callout type="key">重要</Callout>
+```
+
+<Callout type="note">
+  これは備考で、一般的なメモに使用されます。
+</Callout>
+
+<Callout type="info">
+  これは補足情報で、追加情報を提供するために使用されます。
+</Callout>
+
+<Callout type="warning">
+  これは警告で、関連事項にご注意ください。
+</Callout>
+
+<Callout type="tip">
+  これはヒントで、実用的なアドバイスを提供します。
+</Callout>
+
+<Callout type="check">
+  これは確認で、操作の成功や確認を示します。
+</Callout>
+
+<Callout type="danger">
+  これは危険で、注意が必要な危険な状況を示します。
+</Callout>
+
+<Callout type="key">
+  これは重要情報で、重要なポイントを示すために使用されます。
+</Callout>
+
+## タイトル付き
+
+`CalloutTitle` でタイトルを追加し、`CalloutDescription` で説明内容を追加します：
+
+```mdx
+<Callout type="warning">
+  <CalloutTitle>注意事項</CalloutTitle>
+  <CalloutDescription>
+    この操作を実行する前にデータのバックアップを確実に行ってください。
+  </CalloutDescription>
+</Callout>
+```
+
+<Callout type="warning">
+  <CalloutTitle>注意事項</CalloutTitle>
+  <CalloutDescription>
+    この操作を実行する前にデータのバックアップを確実に行ってください。
+  </CalloutDescription>
+</Callout>
+
+## プロパティ
+
+### Callout
+
+| プロパティ | 型 | デフォルト | 説明 |
+|------|------|--------|------|
+| `type` | `'note' \| 'info' \| 'warning' \| 'tip' \| 'check' \| 'danger' \| 'key'` | `'info'` | コールアウトタイプ |
+
+旧タイプ名 `warn`、`error`、`success`、`idea` はエイリアスとして後方互換のために残されています：
+- `warn` → `warning`
+- `error` → `danger`
+- `success` → `check`
+- `idea` → `tip`
+
+### CalloutTitle
+
+`CalloutTitle` に追加のプロパティはありません。`Callout` の子コンポーネントとして使用され、コールアウトのタイトルを表示します。
+
+### CalloutDescription
+
+`CalloutDescription` に追加のプロパティはありません。`Callout` の子コンポーネントとして使用され、コールアウトの本文内容を表示します。
+
+## 注意事項
+
+- `CalloutTitle` と `CalloutDescription` はオプションの子コンポーネントです
+- 子コンポーネントを使用しない場合、`Callout` の直接の子要素が本文として表示されます
+- `Callout` コンポーネントは `fumadocs-ui/mdx` のデフォルトコンポーネントの一つであり、追加の import は不要です

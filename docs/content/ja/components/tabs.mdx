@@ -1,0 +1,95 @@
+---
+title: Tabs タブ
+description: Tabs コンポーネントを使用してタブ切り替えを作成し、同一エリアで異なるコンテンツを表示します。
+---
+
+Tabs コンポーネントは、同一エリア内でタブ切り替えによって異なるコンテンツを表示するために使用されます。異なる言語や異なる方法のコード・説明の比較表示に適しています。
+
+## 基本的な使い方
+
+`Tabs` で複数の `Tab` をラップします：
+
+```mdx
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    npm install openmanual
+  </Tab>
+  <Tab value="pnpm">
+    pnpm add openmanual
+  </Tab>
+  <Tab value="yarn">
+    yarn add openmanual
+  </Tab>
+</Tabs>
+```
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install openmanual
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add openmanual
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add openmanual
+    ```
+  </Tab>
+</Tabs>
+
+## コード例の切り替え
+
+Tabs は特に異なるプログラミング言語やフレームワークのコードを表示するのに適しています：
+
+<Tabs items={['TypeScript', 'JavaScript']}>
+  <Tab value="TypeScript">
+    ```typescript
+    interface Config {
+      name: string;
+      theme?: {
+        primaryHue: number;
+      };
+    }
+
+    const config: Config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+## プロパティ
+
+### Tabs
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `items` | `string[]` | はい | タブのタイトル配列 |
+| `defaultIndex` | number | いいえ | デフォルトで選択されるタブのインデックス |
+| `children` | ReactNode | はい | `Tab` 子コンポーネント |
+
+### Tab
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `value` | string | はい | タブの値。`items` 内の項目に対応 |
+| `children` | ReactNode | はい | タブの内容 |
+
+## 注意事項
+
+- `items` 配列内の値は `Tab` の `value` 属性と一対一で対応している必要があります
+- タブ内のコンテンツでは完全な Markdown/MDX 構文がサポートされています
+- 多言語コード例、異なる方法の比較表示などに適しています

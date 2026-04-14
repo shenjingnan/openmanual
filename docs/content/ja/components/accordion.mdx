@@ -1,0 +1,64 @@
+---
+title: Accordion アコーディオン
+description: Accordion コンポーネントを使用して折りたたみ可能なコンテンツパネルを作成し、ページスペースを節約します。
+---
+
+Accordion コンポーネントは、折りたたみ／展開可能なコンテンツパネルを作成するために使用されます。限られたスペースで大量の情報（FAQ、詳細説明など）を表示するのに適しています。
+
+## FAQ 例
+
+`Accordions` で複数の `Accordion` をラップします：
+
+```mdx
+<Accordions>
+  <Accordion title="OpenManual とは？">
+    OpenManual は AI フレンドリーなオープンソースドキュメントシステムフレームワークです。
+  </Accordion>
+  <Accordion title="インストール方法は？">
+    pnpm add openmanual でインストールします。
+  </Accordion>
+</Accordions>
+```
+
+<Accordions>
+  <Accordion title="OpenManual とは？">
+    OpenManual は AI フレンドリーなオープンソースドキュメントシステムフレームワークで、開発者が美しく使いやすいドキュメントサイトを素早く構築できるように支援します。MDX をベースとしており、豊富なコンポーネントとカスタムテーマに対応しています。
+  </Accordion>
+  <Accordion title="インストール方法は？">
+    パッケージマネージャーを使用してインストールします：
+
+    ```bash
+    pnpm add openmanual
+    ```
+
+    その後、プロジェクトのルートディレクトリに `openmanual.json` 設定ファイルを作成するだけで完了です。
+  </Accordion>
+  <Accordion title="どのようなデプロイ方式に対応していますか？">
+    OpenManual は静的サイトを構築するため、任意の静的ホスティングプラットフォームへのデプロイに対応しています：
+
+    - Vercel
+    - Netlify
+    - GitHub Pages
+    - 独自サーバー
+  </Accordion>
+</Accordions>
+
+## プロパティ
+
+### Accordions
+
+`Accordions` はコンテナコンポーネントで、追加のプロパティはありません。複数の `Accordion` 子コンポーネントをラップするために使用されます。
+
+### Accordion
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `title` | string | はい | パネルのタイトル。常に表示されます |
+| `children` | ReactNode | はい | パネルの内容。タイトルをクリックすると展開／折りたたみ |
+
+## 注意事項
+
+- 各パネルはデフォルトで折りたたまれており、タイトルをクリックすると展開します
+- パネルの内容では完全な Markdown/MDX 構文がサポートされています
+- FAQ、詳細説明など、必要に応じて表示するコンテンツに適しています
+- 同じ `Accordions` 内の複数のパネルは同時に展開することができます

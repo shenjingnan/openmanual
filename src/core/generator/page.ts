@@ -140,16 +140,30 @@ function isAllowed(slug: string[] | undefined): boolean {
 export function generateStaticParams() {
   let params = source.generateParams();
   params = params.filter((p: { slug: string[]; lang: string }) => isAllowed(p.slug));
-  if (!params.some((p: { slug: string[] }) => p.slug.length === 0)) {
-    params.unshift({ ...params[0], slug: [] });
+  // Ensure every language has a homepage entry (slug: [])
+  const languages = [...new Set(params.map((p: { lang: string }) => p.lang))];
+  for (const lang of languages) {
+    if (!params.some((p: { slug: string[]; lang: string }) => p.slug.length === 0 && p.lang === lang)) {
+      const firstForLang = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
+      if (firstForLang) {
+        params.unshift({ ...firstForLang, slug: [] });
+      }
+    }
   }
   return params;
 }`
     : `
 export function generateStaticParams() {
   const params = source.generateParams();
-  if (!params.some((p: { slug: string[] }) => p.slug.length === 0)) {
-    params.unshift({ ...params[0], slug: [] });
+  // Ensure every language has a homepage entry (slug: [])
+  const languages = [...new Set(params.map((p: { lang: string }) => p.lang))];
+  for (const lang of languages) {
+    if (!params.some((p: { slug: string[]; lang: string }) => p.slug.length === 0 && p.lang === lang)) {
+      const firstForLang = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
+      if (firstForLang) {
+        params.unshift({ ...firstForLang, slug: [] });
+      }
+    }
   }
   return params;
 }`;

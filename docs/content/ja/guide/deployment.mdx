@@ -1,0 +1,252 @@
+---
+title: デプロイ
+description: OpenManual ドキュメントサイトをビルドし、各種プラットフォームにデプロイする方法を学びます。
+---
+
+# デプロイ
+
+OpenManual はドキュメントを静的サイトとしてビルドでき、任意の静的ホスティングプラットフォームにデプロイ可能です。
+
+## 前提条件
+
+OpenManual は **Node.js >= 24.0.0** を要求します。デプロイ前にビルド環境がこの要件を満たしていることを確認してください。
+
+## サイトのビルド
+
+```bash
+openmanual build
+```
+
+ビルド完了後、静的ファイルは `outputDir` 設定で指定されたディレクトリ（デフォルトは `dist`）に出力されます。
+
+## ビルド成果物のプレビュー
+
+```bash
+openmanual preview
+```
+
+デフォルトのプレビューアドレスは `http://localhost:8080` です。ポートとディレクトリを指定することもできます：
+
+```bash
+openmanual preview -p 3000 -d ./out
+```
+
+## siteUrl の設定（必須）
+
+デプロイ前に `openmanual.json` で **必ず** `siteUrl` を設定してください。`siteUrl` が設定されて初めて、OpenManual は Next.js の静的エクスポートモード（`output: 'export'`）を有効にし、デプロイ可能な静的ファイルを生成します。
+
+**`siteUrl` が設定されていない場合、`openmanual build` は `out/` ディレクトリを生成せず、デプロイ成果物は空になります。**
+
+```json
+{
+  "name": "My Docs",
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+`siteUrl` は正しい sitemap と canonical URL の生成にも使用されます。カスタムドメインを使用している場合は、最終的なドメイン名を設定してください。
+
+## Vercel へのデプロイ
+
+### 方法 1: Git 統合（推奨）
+
+GitHub リポジトリを連携して自動デプロイを実現します。コードをプッシュするたびに Vercel が自動的にビルド・デプロイを行います。
+
+1. プロジェクトを GitHub にプッシュ
+2. [Vercel Dashboard](https://vercel.com/dashboard) にログインし、**Add New** → **Project** をクリック
+3. GitHub リポジトリを選択してインポート
+4. **Configure Project** ページで以下を設定：
+   - **Framework Preset**: `Next.js` を選択（または `Other` のまま）
+   - **Build Command**: `npx openmanual build`
+   - **Output Directory**: `openmanual.json` の `outputDir` と一致させる（デフォルトは `dist`）
+   - **Install Command**: `npm install`
+5. **Environment Variables** に以下を追加：
+   - `NODE_VERSION` = `24`（正しい Node.js バージョンを使用するため）
+6. **Deploy** をクリックしてデプロイ開始
+
+プロジェクトルートディレクトリに `vercel.json` を作成して設定を固定化することもできます：
+
+```json
+{
+  "buildCommand": "npx openmanual build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install"
+}
+```
+
+> **注意**: `outputDir` がデフォルトの `dist` 以外の場合、`vercel.json` の `outputDirectory` も合わせて変更してください。
+
+### 方法 2: Vercel CLI
+
+一時的なデプロイやテストシーンに適しています：
+
+```bash
+# Vercel CLI のインストール
+npm i -g vercel
+
+# プロジェクトルートディレクトリでデプロイ実行
+vercel
+```
+
+初回デプロイ時にプロンプトに従ってプロジェクト設定を選択します。以降の更新は再度 `vercel` を実行するだけです。
+
+本番環境へのデプロイ：
+
+```bash
+vercel --prod
+```
+
+## Netlify へのデプロイ
+
+### 方法 1: Git 統合（推奨）
+
+1. プロジェクトを GitHub にプッシュ
+2. [Netlify](https://app.netlify.com/) にログインし、**Add new site** → **Import an existing project** をクリック
+3. GitHub リポジトリを選択
+4. ビルド設定を構成：
+   - **Build command**: `npx openmanual build`
+   - **Publish directory**: `openmanual.json` の `outputDir` と一致させる（デフォルトは `dist`）
+5. **Environment variables** で以下を設定：
+   - `NODE_VERSION` = `24`
+6. **Deploy site** をクリック
+
+### 方法 2: netlify.toml 設定
+
+プロジェクトルートディレクトリに `netlify.toml` を作成：
+
+```toml
+[build]
+  command = "npx openmanual build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+```
+
+このファイルをリポジトリにコミットすると、Netlify が自動的に設定を読み込みます。
+
+## GitHub Pages へのデプロイ
+
+### 方法 1: GitHub Actions（推奨）
+
+リポジトリ内に `.github/workflows/deploy.yml` を作成：
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install openmanual
+        run: npm install -g openmanual
+
+      - name: Build
+        run: openmanual build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+このワークフローを使用する場合、`siteUrl` は以下のように設定します：
+
+```json
+{
+  "siteUrl": "https://<username>.github.io/<repo-name>"
+}
+```
+
+カスタムドメインの場合は、あなたのドメインに置き換えてください。
+
+### 方法 2: 手動デプロイ
+
+```bash
+# サイトのビルド
+openmanual build
+
+# 出力ディレクトリへ移動
+cd dist
+
+# gh-pages ブランチを作成してプッシュ
+git init
+git checkout -b gh-pages
+git add .
+git commit -m "deploy"
+git remote add origin <your-repo-url>
+git push -f origin gh-pages
+```
+
+その後、リポジトリの **Settings** → **Pages** で `gh-pages` ブランチを公開ソースとして選択します。
+
+## よくある質問
+
+### ビルド成果物が空の場合
+
+`openmanual.json` で `siteUrl` が設定されているか確認してください。`siteUrl` がない場合、OpenManual は静的エクスポートモードを有効にせず、ビルドでは静的ファイルが生成されません。
+
+```json
+{
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+### Node.js バージョンの不一致
+
+OpenManual は Node.js >= 24.0.0 を要求します。ビルドが失敗し、構文エラーやモジュールが見つからないエラーが発生した場合は、Node.js のバージョンを確認してください：
+
+```bash
+node -v
+```
+
+各プラットフォームでのバージョン設定方法：
+
+| プラットフォーム | 設定方法 |
+|------|----------|
+| Vercel | 環境変数 `NODE_VERSION=24` または `package.json` の `engines.node` |
+| Netlify | `netlify.toml` の `[build.environment]` または環境変数 |
+| GitHub Actions | `actions/setup-node` の `node-version: 24` |
+
+### カスタムドメイン
+
+カスタムドメインを使用する場合は、以下が必要です：
+
+1. DNS プロバイダーで CNAME レコードを追加し、ホスティングプラットフォームを指すように設定
+2. `openmanual.json` の `siteUrl` をカスタムドメインに設定
+3. ホスティングプラットフォームでドメインを設定（Vercel/Netlify はプロジェクト設定で追加、GitHub Pages はリポジトリ設定で追加）
+
+### デプロイ後のスタイルやリソース読み込み失敗
+
+`siteUrl` 設定が正しいか確認してください。サイトのベースパスがルートパスではない場合（例: GitHub Pages の `/<repo-name>/`）、`siteUrl` に完全なパスを含める必要があります。

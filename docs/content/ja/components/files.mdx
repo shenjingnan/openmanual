@@ -1,0 +1,78 @@
+---
+title: Files ファイルツリー
+description: Files コンポーネントを使用してプロジェクトのディレクトリ構造とファイルツリーを表示します。
+---
+
+Files コンポーネントはツリー構造でプロジェクトのディレクトリを表示するために使用され、ファイルの編成方法を明確に表現します。
+
+## 基本的な使い方
+
+`Files` で `File` と `Folder` コンポーネントをラップします：
+
+```mdx
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+```
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+
+## ファイルタイプアイコン
+
+`File` コンポーネントはファイル拡張子に基づいて自動的にアイコンをマッチングします：
+
+<Files>
+  <Folder name="project" defaultOpen>
+    <File name="app.tsx" />
+    <File name="styles.css" />
+    <File name="utils.ts" />
+    <File name="data.json" />
+    <File name="README.md" />
+    <File name=".env" />
+  </Folder>
+</Files>
+
+## プロパティ
+
+### Files
+
+`Files` はコンテナコンポーネントで、追加のプロパティはありません。`File` と `Folder` 子コンポーネントをラップするために使用されます。
+
+### Folder
+
+| プロパティ | 型 | 必須 | デフォルト | 説明 |
+|------|------|------|--------|------|
+| `name` | string | はい | — | フォルダ名 |
+| `defaultOpen` | boolean | いいえ | `false` | デフォルトで展開するかどうか |
+| `children` | ReactNode | いいえ | — | 子ファイル／フォルダ |
+
+### File
+
+| プロパティ | 型 | 必須 | 説明 |
+|------|------|------|------|
+| `name` | string | はい | ファイル名（拡張子含む） |
+
+## 注意事項
+
+- `File` の `name` 属性には完全なファイル名と拡張子を含める必要があります
+- `Folder` に `defaultOpen` を設定すると、そのフォルダがデフォルトで展開されます
+- 入れ子の `Folder` で多階層のディレクトリ構造を表示できます
+- ファイルアイコンは拡張子に基づいて自動的にマッチングされ、一般的なファイルタイプに対応しています

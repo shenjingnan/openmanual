@@ -1,0 +1,129 @@
+---
+title: 設定リファレンス
+description: OpenManual 設定ファイルの完全リファレンス。利用可能なすべての設定フィールドと説明を含みます。
+---
+
+# 設定リファレンス
+
+プロジェクトルートディレクトリに `openmanual.json` を作成して、ドキュメントサイトを設定します。設定ファイルは Zod Schema で厳密に検証され、エラーメッセージは明確で分かりやすいものになります。
+
+## 完全な設定例
+
+```json
+{
+  "name": "My Docs",
+  "description": "プロジェクトドキュメント",
+  "contentDir": "content",
+  "outputDir": "dist",
+  "siteUrl": "https://docs.example.com",
+  "locale": "zh",
+  "navbar": {
+    "logo": "/logo.svg",
+    "github": "https://github.com/user/repo",
+    "links": [
+      { "label": "Blog", "href": "https://blog.example.com" }
+    ]
+  },
+  "footer": {
+    "text": "Built with OpenManual"
+  },
+  "sidebar": [
+    {
+      "group": "クイックスタート",
+      "icon": "Rocket",
+      "collapsed": false,
+      "pages": [
+        { "slug": "getting-started", "title": "インストールガイド", "icon": "Download" },
+        { "slug": "configuration", "title": "設定説明", "icon": "Settings" }
+      ]
+    }
+  ],
+  "theme": {
+    "primaryHue": 240,
+    "darkMode": true
+  },
+  "search": {
+    "enabled": true
+  },
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+## フィールド説明
+
+### 基本設定
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `name` | string | はい | — | サイト名。ナビゲーションバーとページタイトルに表示されます |
+| `description` | string | いいえ | — | サイトの説明。SEO meta タグに使用されます |
+| `contentDir` | string | いいえ | `content` | ドキュメントコンテンツのディレクトリパス |
+| `outputDir` | string | いいえ | `dist` | ビルド成果物の出力ディレクトリ |
+| `siteUrl` | string | いいえ | — | サイト URL。静的エクスポート有効時に必要です |
+| `locale` | string | いいえ | — | サイト言語（例: `zh`、`en`） |
+
+### ナビゲーションバー (navbar)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `navbar.logo` | `string \| { light, dark }` | いいえ | — | ロゴ設定。文字列形式は画像パスまたはテキスト；オブジェクト形式は light/dark モードそれぞれの画像パスを指定可能 |
+| `navbar.github` | string | いいえ | — | GitHub リポジトリへのリンク |
+| `navbar.links` | array | いいえ | — | ナビゲーションバーのリンク一覧 |
+
+`navbar.logo` は以下の 2 つの形式をサポートします：
+
+```jsonc
+// 文字列形式（後方互換）
+"logo": "/logo.svg"     // 画像パス
+"logo": "MyProject"     // プレーンテキスト
+
+// オブジェクト形式、light/dark モードのロゴを個別指定
+"logo": {
+  "light": "/logo-light.svg",
+  "dark": "/logo-dark.svg"
+}
+```
+
+### フッター (footer)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `footer.text` | string | いいえ | — | フッターテキスト |
+
+### サイドバー (sidebar)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `sidebar[].group` | string | はい | — | グループ名 |
+| `sidebar[].icon` | string | いいえ | — | グループアイコン名 |
+| `sidebar[].collapsed` | boolean | いいえ | `false` | デフォルトで折りたたむかどうか |
+| `sidebar[].pages[].slug` | string | はい | — | ページの slug。ファイルパスに対応します |
+| `sidebar[].pages[].title` | string | はい | — | ページタイトル |
+| `sidebar[].pages[].icon` | string | いいえ | — | ページアイコン名 |
+
+### テーマ (theme)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `theme.primaryHue` | number | いいえ | — | メインカラーの色相値（0-360） |
+| `theme.darkMode` | boolean | いいえ | `true` | ダークモードを有効にするかどうか |
+
+### 検索 (search)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `search.enabled` | boolean | いいえ | `true` | 検索機能を有効にするかどうか |
+
+### MDX (mdx)
+
+| フィールド | 型 | 必須 | デフォルト値 | 説明 |
+|------|------|------|--------|------|
+| `mdx.latex` | boolean | いいえ | `false` | LaTeX 数式サポートを有効にするかどうか |
+
+## ページツリー生成ルール
+
+- `sidebar` 設定で宣言されていない MDX ファイルはナビゲーションに表示されません
+- `slug` フィールドは `contentDir` 配下のファイルパス（拡張子を除く）に対応します
+- 例えば `slug: "advanced/theme"` は `content/advanced/theme.mdx` に対応します

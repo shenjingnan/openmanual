@@ -30,7 +30,15 @@
     "badlang",
     "anotherbad",
     "Blockquotes",
-    "Turbopack"
+    "Turbopack",
+    "Français",
+    "Deutsch",
+    "Español",
+    "Português",
+    "Русский",
+    "العربية",
+    "한국어",
+    "日本語"
   ],
   "ignorePaths": [
     "node_modules",

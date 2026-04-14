@@ -10,7 +10,11 @@
     "enabled": true,
     "defaultLanguage": "zh",
     "parser": "dir",
-    "languages": [{ "code": "zh", "name": "中文" }, { "code": "en", "name": "English" }]
+    "languages": [
+      { "code": "zh", "name": "中文" },
+      { "code": "en", "name": "English" },
+      { "code": "ja", "name": "日本語" }
+    ]
   },
   "navbar": {
     "logo": {
