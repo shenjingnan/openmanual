@@ -284,6 +284,14 @@ function generateDocsLayout(ctx: GenerateContext): string {
     ? `\n  footer: { children: '${footerText.replace(/'/g, "\\'")}' },`
     : '';
 
+  // description：i18n 模式下从当前语言首页 frontmatter 动态获取，单语言模式使用配置值
+  const configDesc = config.description ?? '';
+  const descLine = configDesc
+    ? isI18n
+      ? ''
+      : `description: '${configDesc.replace(/'/g, "\\'")}',`
+    : '';
+
   // Build sidebar config for tree restructuring (including icon names)
   const sidebar = config.sidebar;
   const hasSidebar = sidebar && sidebar.length > 0;
@@ -330,10 +338,10 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const treeLine = hasSidebar
     ? hasIcons
       ? isI18n
-        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, iconMap),'
+        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, iconMap, { preserveNames: true }),'
         : 'tree: restructureTree(source.getPageTree(), sidebarConfig, iconMap),'
       : isI18n
-        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig),'
+        ? 'tree: restructureTree(source.getPageTree(lang), sidebarConfig, undefined, { preserveNames: true }),'
         : 'tree: restructureTree(source.getPageTree(), sidebarConfig),'
     : isI18n
       ? 'tree: source.getPageTree(lang),'
@@ -345,12 +353,15 @@ function generateDocsLayout(ctx: GenerateContext): string {
 
   // i18n 模式下的组件签名和 baseOptions 调用
   if (isI18n) {
+    const configDescSnippet = configDesc
+      ? `\nconst configDescription = '${configDesc.replace(/'/g, "\\'")}' as const;\n`
+      : '';
+
     return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
 import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLine}
-${sidebarConfigSnippet}${iconMapSnippet}
-
+${sidebarConfigSnippet}${iconMapSnippet}${configDescSnippet}
 export default async function DocsLayoutWrapper({
   params,
   children,
@@ -358,11 +369,19 @@ export default async function DocsLayoutWrapper({
   params: Promise<{ lang: string }>;
   children: ReactNode;
 }) {
-  const { lang } = await params;
+  const { lang } = await params;${
+    configDesc
+      ? `
+  const indexPage = source.getPage([], lang);
+  const siteDescription = indexPage?.data.description ?? configDescription;`
+      : ''
+  }
 
   const docsOptions = {
     ...baseOptions(lang),
-    ${treeLine}${githubLine}${linksLine}${footerLine}
+    ${treeLine}${githubLine}${linksLine}${footerLine}${
+      configDesc ? '\n    description: siteDescription,' : ''
+    }
   };
 
   return (
@@ -381,7 +400,7 @@ import type { ReactNode } from 'react';${restructureTreeImport}${lucideImportLin
 ${sidebarConfigSnippet}${iconMapSnippet}
 const docsOptions = {
   ...baseOptions(),
-  ${treeLine}${githubLine}${linksLine}${footerLine}
+  ${treeLine}${githubLine}${linksLine}${footerLine}${descLine}
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {

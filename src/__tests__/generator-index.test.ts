@@ -952,7 +952,8 @@ describe('generateAll - i18n mode', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getI18nDocsLayoutContent(calls);
 
-    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig)');
+    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig');
+    expect(content).toContain('preserveNames: true');
   });
 
   it('should include lucide-react import and iconMap when i18n + sidebar with icons', async () => {
@@ -976,7 +977,8 @@ describe('generateAll - i18n mode', () => {
 
     expect(content).toContain("import { BookOpen, Home } from 'lucide-react'");
     expect(content).toContain('const iconMap = {');
-    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig, iconMap)');
+    expect(content).toContain('restructureTree(source.getPageTree(lang), sidebarConfig, iconMap');
+    expect(content).toContain('preserveNames: true');
   });
 
   // --- meta.en.json 生成 ---
