@@ -1,0 +1,107 @@
+---
+title: 문서 작성
+description: MDX를 사용하여 OpenManual 문서 콘텐츠를 작성하고 구성하는 방법을 알아보세요.
+---
+
+# 문서 작성
+
+OpenManual은 MDX를 문서 형식으로 사용하며, Markdown 기반에서 React 컴포넌트를 사용할 수 있습니다.
+
+## 기본 형식
+
+각 MDX 파일은 frontmatter 메타데이터를 포함할 수 있습니다:
+
+```mdx
+---
+title: 페이지 제목
+description: 페이지 설명 (선택사항, SEO용)
+---
+
+# 페이지 제목
+
+여기는 본문 콘텐츠입니다. 표준 Markdown 구문을 지원합니다.
+```
+
+### Frontmatter 필드
+
+| 필드 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `title` | string | 예 | 페이지 제목, 네비게이션과 브라우저 탭에 표시됨 |
+| `description` | string | 아니오 | 페이지 설명, SEO meta 태그에 사용됨 |
+
+## Markdown 구문
+
+OpenManual은 표준 Markdown 구문을 지원합니다:
+
+### 제목
+
+```markdown
+# 1단계 제목
+## 2단계 제목
+### 3단계 제목
+```
+
+### 목록
+
+```markdown
+- 순서 없는 목록 항목
+- 또 다른 목록 항목
+
+1. 순서 있는 목록 항목
+2. 또 다른 목록 항목
+```
+
+### 코드 블록
+
+구문 강조를 지원합니다:
+
+```typescript
+function hello(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+
+### 테이블
+
+```markdown
+| 필드 | 타입 | 설명 |
+|------|------|------|
+| name | string | 이름 |
+| age  | number | 나이 |
+```
+
+### 링크와 이미지
+
+```markdown
+[링크 텍스트](https://example.com)
+![이미지 설명](./image.png)
+```
+
+## 파일 구성
+
+### 디렉토리 구조
+
+MDX 파일은 `contentDir` 하위의 임의의 서브디렉토리에 배치할 수 있습니다:
+
+```
+content/
+├── index.mdx           # slug: index
+├── guide.mdx           # slug: guide
+└── advanced/
+    ├── theme.mdx       # slug: advanced/theme
+    └── search.mdx      # slug: advanced/search
+```
+
+### Slug 매핑 규칙
+
+`sidebar` 설정의 `slug`가 파일 경로에 대응합니다:
+
+- `slug: "index"` → `content/index.mdx`
+- `slug: "guide/setup"` → `content/guide/setup.mdx`
+- `slug: "advanced/search"` → `content/advanced/search.mdx`
+
+## 주의사항
+
+- `sidebar` 설정에서 선언되지 않은 파일은 네비게이션에 나타나지 않지만, URL을 통해 접근할 수 있습니다
+- 각 파일에 `title` frontmatter를 설정하는 것을 권장합니다
+- 파일명은 kebab-case 명명 규칙을 사용하세요 (예: `writing-docs.mdx`)

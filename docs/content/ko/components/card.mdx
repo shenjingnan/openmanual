@@ -1,0 +1,70 @@
+---
+title: Card 카드
+description: Card 컴포넌트를 사용하여 카드식 레이아웃을 만들고, 링크 이동과 카드 그리드를 지원합니다.
+---
+
+Card 컴포넌트는 카드식 콘텐츠 표시를 만드는 데 사용되며, 주로 네비게이션, 기능 소개 등 시나리오에서 사용됩니다. `Cards` 컴포넌트와 함께 사용하면 빠르게 카드 그리드 레이아웃을 만들 수 있습니다.
+
+## 기본 사용법
+
+`Card`를 사용하여 단일 카드를 만듭니다:
+
+```mdx
+<Card title="빠른 시작" href="/quickstart">
+  몇 분 안에 문서 사이트를 구축하세요.
+</Card>
+```
+
+<Card title="빠른 시작" href="/quickstart">
+  몇 분 안에 문서 사이트를 구축하세요.
+</Card>
+
+## 카드 그리드
+
+`Cards`로 여러 `Card`를 감싸면 자동으로 그리드 레이아웃이 형성됩니다:
+
+```mdx
+<Cards>
+  <Card title="구성 참조" href="/guide/configuration">
+    사용 가능한 모든 구성 옵션을 알아보세요.
+  </Card>
+  <Card title="문서 작성" href="/guide/writing-docs">
+    MDX를 사용하여 문서를 작성하는 방법을 배우세요.
+  </Card>
+  <Card title="테마 커스터마이징" href="/guide/theme">
+    문서 사이트的外观를 커스터마이징하세요.
+  </Card>
+</Cards>
+```
+
+<Cards>
+  <Card title="구성 참조" href="/guide/configuration">
+    사용 가능한 모든 구성 옵션을 알아보세요.
+  </Card>
+  <Card title="문서 작성" href="/guide/writing-docs">
+    MDX를 사용하여 문서를 작성하는 방법을 배우세요.
+  </Card>
+  <Card title="테마 커스터마이징" href="/guide/theme">
+    문서 사이트的外观를 커스터마이징하세요.
+  </Card>
+</Cards>
+
+## 속성
+
+### Cards
+
+`Cards`는 컨테이너 컴포넌트로, 추가 속성이 없습니다. 여러 `Card`를 감싸고 자동으로 그리드 레이아웃으로 정렬하는 데 사용됩니다.
+
+### Card
+
+| 속성 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `title` | string | 예 | 카드 제목 |
+| `href` | string | 아니오 | 클릭 시 이동 링크 |
+| `children` | ReactNode | 아니오 | 카드 설명 콘텐츠 |
+
+## 주의사항
+
+- `Card`와 `Cards`는 `fumadocs-ui/mdx`의 기본 컴포넌트이므로 별도의 import가 필요 없습니다
+- `Card`에 `href`가 설정된 경우 카드를 클릭하면 해당 페이지로 이동합니다
+- `href`가 설정되지 않은 카드는 클릭할 수 없으며, 순수 표시 시나리오에 적합합니다

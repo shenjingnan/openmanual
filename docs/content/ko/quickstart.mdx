@@ -1,0 +1,107 @@
+---
+title: 빠른 시작
+description: 5분 만에 첫 번째 OpenManual 문서 사이트를 만들어보세요.
+---
+
+# 빠른 시작
+
+이 가이드는 5분 안에 완전한 문서 사이트를 만들 수 있도록 도와줍니다.
+
+## 설치
+
+```bash
+npm install -g openmanual
+```
+
+또는 pnpm을 사용하세요:
+
+```bash
+pnpm add -g openmanual
+```
+
+## 프로젝트 생성
+
+### 1. 프로젝트 디렉토리 생성
+
+```bash
+mkdir my-docs && cd my-docs
+```
+
+### 2. 설정 파일 생성
+
+최소한의 `openmanual.json` 설정을 생성하세요:
+
+```json
+{
+  "name": "My Docs"
+}
+```
+
+### 3. 홈페이지 문서 생성
+
+```bash
+mkdir content
+```
+
+`content/index.mdx`를 생성하세요:
+
+```mdx
+---
+title: 환영합니다
+---
+
+# Hello OpenManual
+
+제 첫 번째 문서입니다.
+```
+
+### 4. 개발 서버 시작
+
+```bash
+openmanual dev
+```
+
+`http://localhost:3000`에 접속하면 문서 사이트를 확인할 수 있습니다.
+
+## CLI 명령어
+
+| 명령 | 설명 |
+|------|------|
+| `openmanual dev` | 개발 서버 시작 (기본 포트 3000) |
+| `openmanual dev -p 8080` | 지정 포트로 시작 |
+| `openmanual build` | 정적 사이트 빌드 |
+| `openmanual preview` | 빌드 산출물 미리보기 (기본 포트 8080) |
+| `openmanual preview -d ./out` | 지정 산출물 디렉토리 미리보기 |
+
+## 더 많은 페이지 추가
+
+새로운 MDX 파일을 생성하고 `sidebar` 설정에 등록하기만 하면 됩니다:
+
+```json
+{
+  "name": "My Docs",
+  "sidebar": [
+    {
+      "group": "문서",
+      "pages": [
+        { "slug": "index", "title": "홈" },
+        { "slug": "guide", "title": "사용 가이드" }
+      ]
+    }
+  ]
+}
+```
+
+해당하는 파일 구조:
+
+```
+content/
+├── index.mdx      # slug: index
+└── guide.mdx      # slug: guide
+```
+
+## 다음 단계
+
+- [설정 참조](/guide/configuration) — 사용 가능한 모든 설정 옵션 확인
+- [문서 작성](/guide/writing-docs) — MDX 파일 작성 방법 학습
+- [테마 커스터마이징](/guide/theme) — 사이트 외관 사용자 정의

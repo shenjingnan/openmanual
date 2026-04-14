@@ -1,0 +1,87 @@
+---
+title: MDX 확장
+description: OpenManual의 MDX 확장 기능(LaTeX 수식 지원 포함)에 대해 알아보세요.
+---
+
+# MDX 확장
+
+MDX는 Markdown의 상위 집합으로, 문서에서 JSX/React 컴포넌트를 사용할 수 있게 해줍니다. OpenManual은 이基础上 더 많은 확장 기능을 제공합니다.
+
+## LaTeX 수식
+
+설정에서 LaTeX 지원을 활성화합니다:
+
+```json
+{
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+활성화 후 문서에서 LaTeX 구문을 사용할 수 있습니다:
+
+### 인라인 수식
+
+`$...$` 구문을 사용합니다:
+
+```markdown
+질량-에너지 등가 공식 $E = mc^2$는 물리학의 유명한 공식입니다.
+```
+
+### 블록 수식
+
+`$$...$$` 구문을 사용합니다:
+
+```markdown
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+```
+
+## MDX 설정 필드
+
+| 필드 | 타입 | 기본값 | 설명 |
+|------|------|--------|------|
+| `mdx.latex` | boolean | `false` | LaTeX 수식 지원 활성화 여부 |
+
+## 표준 Markdown 지원
+
+OpenManual은 모든 표준 Markdown 구문을 지원합니다:
+
+- 제목 (h1-h6)
+- 목록 (순서형, 비순서형)
+- 코드 블록 (구문 강조 포함)
+- 테이블
+- 링크 및 이미지
+- 인용구
+- 가로선
+- 굵게, 기울임, 취소선
+
+## 코드 블록
+
+구문 강조와 행 번호 표시를 지원합니다:
+
+````markdown
+```typescript showLineNumbers
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+```
+````
+
+## MDX 컴포넌트
+
+OpenManual은 풍부한 MDX 컴포넌트를 내장하고 있으며, 문서에서 별도의 import 없이 바로 사용할 수 있습니다.
+
+| 컴포넌트 | 설명 | 상세 문서 |
+|------|------|----------|
+| Callout | 중요한 정보를 표시하는 알림 상자 | [Callout 알림 상자](/components/callout) |
+| Card / Cards | 카드 및 카드 그리드 레이아웃 | [Card 카드](/components/card) |
+| Steps / Step | 번호가 매겨진 단계별 가이드 | [Steps 단계](/components/steps) |
+| Tabs / Tab | 탭 콘텐츠 전환 | [Tabs 탭](/components/tabs) |
+| Files / File / Folder | 파일 트리 디렉토리 표시 | [Files 파일 트리](/components/files) |
+| Accordion / Accordions | 접이식 콘텐츠 패널 | [Accordion 접이식 패널](/components/accordion) |
+| TypeTable | TypeScript 유형 정의 테이블 | [TypeTable 유형 테이블](/components/type-table) |
+
+컴포넌트 이름을 클릭하면 자세한 사용 방법과 매개변수 문서를 확인할 수 있습니다.

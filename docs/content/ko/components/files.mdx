@@ -1,0 +1,78 @@
+---
+title: Files 파일 트리
+description: Files 컴포넌트를 사용하여 프로젝트 디렉토리 구조와 파일 트리를 표시합니다.
+---
+
+Files 컴포넌트는 트리 구조로 프로젝트 디렉토리를 표시하고, 파일 조직 방식을 명확하게 보여줍니다.
+
+## 기본 사용법
+
+`Files`로 `File`과 `Folder` 컴포넌트를 감쌉니다:
+
+```mdx
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+```
+
+<Files>
+  <Folder name="src" defaultOpen>
+    <File name="index.ts" />
+    <File name="config.ts" />
+    <Folder name="components">
+      <File name="Button.tsx" />
+    </Folder>
+  </Folder>
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+
+## 파일 유형 아이콘
+
+`File` 컴포넌트는 파일 확장자에 따라 자동으로 아이콘을 매칭합니다:
+
+<Files>
+  <Folder name="project" defaultOpen>
+    <File name="app.tsx" />
+    <File name="styles.css" />
+    <File name="utils.ts" />
+    <File name="data.json" />
+    <File name="README.md" />
+    <File name=".env" />
+  </Folder>
+</Files>
+
+## 속성
+
+### Files
+
+`Files`는 컨테이너 컴포넌트로, 추가 속성이 없습니다. `File`과 `Folder` 하위 컴포넌트를 감싸는 데 사용됩니다.
+
+### Folder
+
+| 속성 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `name` | string | 예 | — | 폴더 이름 |
+| `defaultOpen` | boolean | 아니오 | `false` | 기본 확장 여부 |
+| `children` | ReactNode | 아니오 | — | 하위 파일/폴더 |
+
+### File
+
+| 속성 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `name` | string | 예 | 파일명(확장자 포함) |
+
+## 주의사항
+
+- `File`의 `name` 속성은 완전한 파일명과 확장자를 포함해야 합니다
+- `Folder`에 `defaultOpen`을 설정하면 해당 폴더가 기본적으로 확장됩니다
+- 중첩 `Folder`로 다단계 디렉토리 구조를 표시할 수 있습니다
+- 파일 아이콘은 확장자에 따라 자동으로 매칭되며, 일반적인 파일 유형을 지원합니다
