@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.11.0](https://github.com/shenjingnan/openmanual/compare/v0.10.2...v0.11.0) (2026-04-14)
+
+### Features
+
+* **agents:** 新增 fix-audit 安全审计命令 ([#93](https://github.com/shenjingnan/openmanual/issues/93)) ([27cd034](https://github.com/shenjingnan/openmanual/commit/27cd03474a4e3b3376de6d875495e130fae40828))
+* **agents:** 新增 fix-vercel-deploy 自定义命令 ([#80](https://github.com/shenjingnan/openmanual/issues/80)) ([6b30604](https://github.com/shenjingnan/openmanual/commit/6b30604d25e62cc3d6dd65d65422555cb630d74e))
+* **i18n:** 新增 i18n-translate 翻译技能、日语支持及多语言首页生成修复 ([#91](https://github.com/shenjingnan/openmanual/issues/91)) ([8acc56a](https://github.com/shenjingnan/openmanual/commit/8acc56a118ce32737cb7eceecc82d22b68a282cc))
+* **i18n:** 新增多语言支持 (dir parser + 修复嵌套 HTML / logo) ([#78](https://github.com/shenjingnan/openmanual/issues/78)) ([36daf95](https://github.com/shenjingnan/openmanual/commit/36daf95a695c2095d1253e63ae7d95b51e6a8b77))
+* **i18n:** 新增韩语（ko）翻译支持 ([#92](https://github.com/shenjingnan/openmanual/issues/92)) ([62deb84](https://github.com/shenjingnan/openmanual/commit/62deb8440ac1b518da6cf81ac8c0df2a6616814e))
+
+### Bug Fixes
+
+* **deploy:** 修复 Vercel 部署后显示原始 Markdown 而非渲染页面 ([#82](https://github.com/shenjingnan/openmanual/issues/82)) ([9a31324](https://github.com/shenjingnan/openmanual/commit/9a31324650ff1f35536e0788719521a0a1b466c2))
+* **deps:** 添加 pnpm.overrides 修复 12 个依赖安全漏洞 ([#94](https://github.com/shenjingnan/openmanual/issues/94)) ([7e6d381](https://github.com/shenjingnan/openmanual/commit/7e6d3812c6ea4e904ee48643d56070a75d1eba9c))
+* **i18n:** 修复 i18n 模式下构建类型错误及根路径无法访问问题 ([#81](https://github.com/shenjingnan/openmanual/issues/81)) ([02e0ea5](https://github.com/shenjingnan/openmanual/commit/02e0ea55213321b5f58cc48c49bbb6577f1c9983))
+* **search:** 修复 i18n 模式下 Orama 不支持中文导致搜索功能完全失效 ([#83](https://github.com/shenjingnan/openmanual/issues/83)) ([db929f7](https://github.com/shenjingnan/openmanual/commit/db929f7e0068f4b77b1d19c9d5f27ac675484d09))
+
+### Code Refactoring
+
+* 将临时目录 .openmanual 重命名为 .cache，输出目录 docs-dist 重命名为 dist ([#90](https://github.com/shenjingnan/openmanual/issues/90)) ([7f777d7](https://github.com/shenjingnan/openmanual/commit/7f777d777d512cc15c340530e194227f2f4afe28))
+
 ## [0.10.2](https://github.com/shenjingnan/openmanual/compare/v0.10.0...v0.10.2) (2026-04-12)
 
 ### Bug Fixes
