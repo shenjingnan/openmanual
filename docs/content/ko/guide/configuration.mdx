@@ -1,0 +1,129 @@
+---
+title: 설정 참조
+description: OpenManual 설정 파일의 전체 참조로, 사용 가능한 모든 설정 필드와 설명을 포함합니다.
+---
+
+# 설정 참조
+
+프로젝트 루트 디렉토리에 `openmanual.json`을 생성하여 문서 사이트를 구성하세요. 설정 파일은 Zod Schema를 사용하여 엄격하게 검증되며, 오류 메시지는 명확하고 친절합니다.
+
+## 전체 설정 예시
+
+```json
+{
+  "name": "My Docs",
+  "description": "프로젝트 문서",
+  "contentDir": "content",
+  "outputDir": "dist",
+  "siteUrl": "https://docs.example.com",
+  "locale": "zh",
+  "navbar": {
+    "logo": "/logo.svg",
+    "github": "https://github.com/user/repo",
+    "links": [
+      { "label": "Blog", "href": "https://blog.example.com" }
+    ]
+  },
+  "footer": {
+    "text": "Built with OpenManual"
+  },
+  "sidebar": [
+    {
+      "group": "빠른 시작",
+      "icon": "Rocket",
+      "collapsed": false,
+      "pages": [
+        { "slug": "getting-started", "title": "설치 가이드", "icon": "Download" },
+        { "slug": "configuration", "title": "설정 설명", "icon": "Settings" }
+      ]
+    }
+  ],
+  "theme": {
+    "primaryHue": 240,
+    "darkMode": true
+  },
+  "search": {
+    "enabled": true
+  },
+  "mdx": {
+    "latex": true
+  }
+}
+```
+
+## 필드 설명
+
+### 기본 설정
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `name` | string | 예 | — | 사이트 이름, 네비게이션 바와 페이지 제목에 표시됨 |
+| `description` | string | 아니오 | — | 사이트 설명, SEO meta 태그에 사용됨 |
+| `contentDir` | string | 아니오 | `content` | 문서 콘텐츠 디렉토리 경로 |
+| `outputDir` | string | 아니오 | `dist` | 빌드 산출물 출력 디렉토리 |
+| `siteUrl` | string | 아니오 | — | 사이트 URL, 정적 내보내기 활성화 시 필요함 |
+| `locale` | string | 아니오 | — | 사이트 언어, 예: `zh`, `en` |
+
+### 네비게이션 바 (navbar)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `navbar.logo` | `string \| { light, dark }` | 아니오 | — | Logo 설정. 문자열 형식은 이미지 경로 또는 텍스트; 객체 형식은 light/dark 모드의 이미지 경로를 각각 지정 가능 |
+| `navbar.github` | string | 아니오 | — | GitHub 저장소 링크 |
+| `navbar.links` | array | 아니오 | — | 네비게이션 바 링크 목록 |
+
+`navbar.logo`는 두 가지 형식을 지원합니다:
+
+```jsonc
+// 문자열 형식 (하위 호환)
+"logo": "/logo.svg"     // 이미지 경로
+"logo": "MyProject"     // 순수 텍스트
+
+// 객체 형식, light/dark 모드 Logo를 각각 지정
+"logo": {
+  "light": "/logo-light.svg",
+  "dark": "/logo-dark.svg"
+}
+```
+
+### 푸터 (footer)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `footer.text` | string | 아니오 | — | 푸터 텍스트 |
+
+### 사이드바 (sidebar)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `sidebar[].group` | string | 예 | — | 그룹 이름 |
+| `sidebar[].icon` | string | 아니오 | — | 그룹 아이콘 이름 |
+| `sidebar[].collapsed` | boolean | 아니오 | `false` | 기본 접힘 여부 |
+| `sidebar[].pages[].slug` | string | 예 | — | 페이지 slug, 파일 경로에 대응 |
+| `sidebar[].pages[].title` | string | 예 | — | 페이지 제목 |
+| `sidebar[].pages[].icon` | string | 아니오 | — | 페이지 아이콘 이름 |
+
+### 테마 (theme)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `theme.primaryHue` | number | 아니오 | — | 주 색상 색조 값 (0-360) |
+| `theme.darkMode` | boolean | 아니오 | `true` | 다크 모드 활성화 여부 |
+
+### 검색 (search)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `search.enabled` | boolean | 아니오 | `true` | 검색 기능 활성화 여부 |
+
+### MDX (mdx)
+
+| 필드 | 타입 | 필수 | 기본값 | 설명 |
+|------|------|------|--------|------|
+| `mdx.latex` | boolean | 아니오 | `false` | LaTeX 수식 지원 활성화 여부 |
+
+## 페이지 트리 생성 규칙
+
+- `sidebar` 설정에서 선언되지 않은 MDX 파일은 네비게이션에 나타나지 않습니다
+- `slug` 필드는 `contentDir` 하위의 파일 경로에 대응합니다 (확장자 제외)
+- 예를 들어 `slug: "advanced/theme"`는 `content/advanced/theme.mdx`에 대응합니다

@@ -1,0 +1,252 @@
+---
+title: 배포
+description: OpenManual 문서 사이트를 빌드하고 다양한 플랫폼에 배포하는 방법을 알아보세요.
+---
+
+# 배포
+
+OpenManual은 문서를 정적 사이트로 빌드할 수 있으며, 모든 정적 호스팅 플랫폼에 배포할 수 있습니다.
+
+## 전제 조건
+
+OpenManual은 **Node.js >= 24.0.0**을 요구합니다. 배포 전에 빌드 환경이 이 요구사항을 충족하는지 확인하세요.
+
+## 사이트 빌드
+
+```bash
+openmanual build
+```
+
+빌드 완료 후, 정적 파일은 `outputDir` 설정에서 지정한 디렉토리(기본값 `dist`)에 출력됩니다.
+
+## 빌드 산출물 미리보기
+
+```bash
+openmanual preview
+```
+
+기본 미리보기 주소는 `http://localhost:8080`입니다. 포트와 디렉토리를 지정할 수 있습니다:
+
+```bash
+openmanual preview -p 3000 -d ./out
+```
+
+## siteUrl 설정 (필수)
+
+배포 전 **반드시** `openmanual.json`에서 `siteUrl`을 구성해야 합니다. `siteUrl`을 구성해야만 OpenManual이 Next.js의 정적 내보내기 모드(`output: 'export'`)를 활성화하여 배포 가능한 정적 파일을 생성합니다.
+
+**`siteUrl`을 구성하지 않으면 `openmanual build`는 `out/` 디렉토리를 생성하지 않으며, 배포 산출물이 비어있습니다.**
+
+```json
+{
+  "name": "My Docs",
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+`siteUrl`은 올바른 sitemap과 canonical URL 생성에도 사용됩니다. 커스텀 도메인을 사용하는 경우 최종 도메인으로 설정하세요.
+
+## Vercel에 배포
+
+### 방법 1: Git 통합 (권장)
+
+GitHub 저장소 연결을 통해 자동 배포를 구현하며, 코드를 푸시할 때마다 Vercel이 자동으로 빌드하고 배포합니다.
+
+1. 프로젝트를 GitHub에 푸시
+2. [Vercel Dashboard](https://vercel.com/dashboard)에 로그인 후 **Add New** → **Project** 클릭
+3. GitHub 저장소 선택 후 가져오기
+4. **Configure Project** 페이지에서 다음 설정:
+   - **Framework Preset**: `Next.js` 선택 (또는 `Other` 유지)
+   - **Build Command**: `npx openmanual build`
+   - **Output Directory**: `openmanual.json`의 `outputDir`와 일치 (기본값 `dist`)
+   - **Install Command**: `npm install`
+5. **Environment Variables**에 추가:
+   - `NODE_VERSION` = `24` (올바른 Node.js 버전 사용 보장)
+6. **Deploy** 클릭하여 배포 시작
+
+프로젝트 루트 디렉토리에 `vercel.json`을 생성하여 설정을 고정할 수도 있습니다:
+
+```json
+{
+  "buildCommand": "npx openmanual build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install"
+}
+```
+
+> **주의**: `outputDir`이 기본값 `dist`가 아닌 경우, `vercel.json`의 `outputDirectory`도 동기화하여 수정해야 합니다.
+
+### 방법 2: Vercel CLI
+
+임시 배포 또는 테스트 시나리오에 적합합니다:
+
+```bash
+# Vercel CLI 설치
+npm i -g vercel
+
+# 프로젝트 루트 디렉토리에서 배포 실행
+vercel
+```
+
+첫 배포 시 프롬프트에 따라 프로젝트 설정을 선택합니다. 이후 업데이트는 `vercel`을 다시 실행하기만 하면 됩니다.
+
+프로덕션 환경 배포:
+
+```bash
+vercel --prod
+```
+
+## Netlify에 배포
+
+### 방법 1: Git 통합 (권장)
+
+1. 프로젝트를 GitHub에 푸시
+2. [Netlify](https://app.netlify.com/)에 로그인 후 **Add new site** → **Import an existing project** 클릭
+3. GitHub 저장소 선택
+4. 빌드 설정 구성:
+   - **Build command**: `npx openmanual build`
+   - **Publish directory**: `openmanual.json`의 `outputDir`와 일치 (기본값 `dist`)
+5. **Environment variables**에서 설정:
+   - `NODE_VERSION` = `24`
+6. **Deploy site** 클릭
+
+### 방법 2: netlify.toml 설정
+
+프로젝트 루트 디렉토리에 `netlify.toml` 생성:
+
+```toml
+[build]
+  command = "npx openmanual build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "24"
+```
+
+이 파일을 저장소에 커밋하면 Netlify가 자동으로 설정을 읽습니다.
+
+## GitHub Pages에 배포
+
+### 방법 1: GitHub Actions (권장)
+
+저장소에 `.github/workflows/deploy.yml` 생성:
+
+```yaml
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install openmanual
+        run: npm install -g openmanual
+
+      - name: Build
+        run: openmanual build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+```
+
+이 workflow를 사용할 때 `siteUrl`은 다음과 같이 구성해야 합니다:
+
+```json
+{
+  "siteUrl": "https://<username>.github.io/<repo-name>"
+}
+```
+
+커스텀 도메인을 사용하는 경우 해당 도메인으로 대체하세요.
+
+### 방법 2: 수동 배포
+
+```bash
+# 사이트 빌드
+openmanual build
+
+# 출력 디렉토리로 이동
+cd dist
+
+# gh-pages 브랜치 생성 및 푸시
+git init
+git checkout -b gh-pages
+git add .
+git commit -m "deploy"
+git remote add origin <your-repo-url>
+git push -f origin gh-pages
+```
+
+그런 다음 저장소의 **Settings** → **Pages**에서 `gh-pages` 브랜치를 게시 소스로 선택합니다.
+
+## 자주 묻는 질문
+
+### 빌드 산출물이 비어있음
+
+`openmanual.json`에 `siteUrl`이 구성되었는지 확인하세요. `siteUrl`이 없으면 OpenManual은 정적 내보내기 모드를 활성화하지 않으며, 빌드 시 정적 파일이 생성되지 않습니다.
+
+```json
+{
+  "siteUrl": "https://docs.example.com"
+}
+```
+
+### Node.js 버전 불일치
+
+OpenManual은 Node.js >= 24.0.0을 요구합니다. 빌드 실패 시 구문 오류 또는 모듈을 찾을 수 없다는 메시지가 나타나면 Node.js 버전을 확인하세요:
+
+```bash
+node -v
+```
+
+각 플랫폼별 버전 설정 방법:
+
+| 플랫폼 | 설정 방법 |
+|------|----------|
+| Vercel | 환경 변수 `NODE_VERSION=24` 또는 `package.json`의 `engines.node` |
+| Netlify | `netlify.toml`의 `[build.environment]` 또는 환경 변수 |
+| GitHub Actions | `actions/setup-node`의 `node-version: 24` |
+
+### 커스텀 도메인
+
+커스텀 도메인을 사용할 경우 다음이 필요합니다:
+
+1. DNS 공급자에서 CNAME 레코드를 추가하여 호스팅 플랫폼을 가리킴
+2. `openmanual.json`의 `siteUrl`을 커스텀 도메인으로 설정
+3. 호스팅 플랫폼에서 도메인 구성 (Vercel/Netlify는 프로젝트 설정에서 추가, GitHub Pages는 저장소 설정에서 추가)
+
+### 배포 후 스타일 또는 리소스 로드 실패
+
+`siteUrl` 설정이 올바른지 확인하세요. 사이트의 base path가 루트 경로가 아닌 경우(예: GitHub Pages의 `/<repo-name>/`), `siteUrl`에 전체 경로를 포함해야 합니다.

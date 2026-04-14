@@ -1,0 +1,95 @@
+---
+title: Tabs 탭
+description: Tabs 컴포넌트를 사용하여 탭 전환을 만들고, 동일한 영역에 다양한 콘텐츠를 표시합니다.
+---
+
+Tabs 컴포넌트는 동일한 영역에서 탭 전환을 통해 다양한 콘텐츠를 표시하는 데 사용되며, 다양한 언어, 다양한 방안의 코드나 설명을 비교하여 표시하는 데 적합합니다.
+
+## 기본 사용법
+
+`Tabs`로 여러 `Tab`을 감쌉니다:
+
+```mdx
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    npm install openmanual
+  </Tab>
+  <Tab value="pnpm">
+    pnpm add openmanual
+  </Tab>
+  <Tab value="yarn">
+    yarn add openmanual
+  </Tab>
+</Tabs>
+```
+
+<Tabs items={['npm', 'pnpm', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install openmanual
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add openmanual
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add openmanual
+    ```
+  </Tab>
+</Tabs>
+
+## 코드 예제 전환
+
+Tabs는 특히 다양한 프로그래밍 언어나 프레임워크의 코드를 표시하는 데 적합합니다:
+
+<Tabs items={['TypeScript', 'JavaScript']}>
+  <Tab value="TypeScript">
+    ```typescript
+    interface Config {
+      name: string;
+      theme?: {
+        primaryHue: number;
+      };
+    }
+
+    const config: Config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const config = {
+      name: 'My Docs',
+      theme: { primaryHue: 240 },
+    };
+    ```
+  </Tab>
+</Tabs>
+
+## 속성
+
+### Tabs
+
+| 속성 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `items` | `string[]` | 예 | 탭 제목 배열 |
+| `defaultIndex` | number | 아니오 | 기본 선택된 탭 인덱스 |
+| `children` | ReactNode | 예 | `Tab` 하위 컴포넌트 |
+
+### Tab
+
+| 속성 | 타입 | 필수 | 설명 |
+|------|------|------|------|
+| `value` | string | 예 | 탭 값, `items`의 항목에 대응 |
+| `children` | ReactNode | 예 | 탭 콘텐츠 |
+
+## 주의사항
+
+- `items` 배열의 값은 반드시 `Tab`의 `value` 속성과 일대일로 대응해야 합니다
+- 탭 내 콘텐츠는 완전한 Markdown/MDX 구문을 지원합니다
+- 다국어 코드 예제, 다양한 방안의 비교 표시에 적합합니다

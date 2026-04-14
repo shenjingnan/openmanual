@@ -1,6 +1,6 @@
 {
   "name": "OpenManual",
-  "description": "AI 友好的开源文档系统框架",
+  "description": "AI 친화적인 오픈소스 문서 시스템 프레임워크",
   "favicon": "/favicon.svg",
   "siteUrl": "https://openmanual.dev",
   "contentDir": "content",
@@ -13,7 +13,8 @@
     "languages": [
       { "code": "zh", "name": "中文" },
       { "code": "en", "name": "English" },
-      { "code": "ja", "name": "日本語" }
+      { "code": "ja", "name": "日本語" },
+      { "code": "ko", "name": "한국어" }
     ]
   },
   "navbar": {
@@ -25,56 +26,60 @@
   },
   "sidebar": [
     {
-      "group": "开始",
+      "group": "시작",
       "icon": "Rocket",
       "collapsed": false,
       "pages": [
-        { "slug": "index", "title": "项目介绍", "icon": "Home" },
-        { "slug": "quickstart", "title": "快速上手", "icon": "Zap" }
+        { "slug": "index", "title": "프로젝트 소개", "icon": "Home" },
+        { "slug": "quickstart", "title": "빠른 시작", "icon": "Zap" }
       ]
     },
     {
-      "group": "指南",
+      "group": "가이드",
       "icon": "BookOpen",
       "collapsed": true,
       "pages": [
-        { "slug": "guide/configuration", "title": "配置参考", "icon": "Settings" },
-        { "slug": "guide/writing-docs", "title": "编写文档", "icon": "FileText" },
-        { "slug": "guide/sidebar", "title": "侧边栏定制", "icon": "PanelLeft" },
-        { "slug": "guide/theme", "title": "主题定制", "icon": "Palette" },
-        { "slug": "guide/deployment", "title": "部署", "icon": "Cloud" }
+        { "slug": "guide/configuration", "title": "설정 참조", "icon": "Settings" },
+        { "slug": "guide/writing-docs", "title": "문서 작성", "icon": "FileText" },
+        { "slug": "guide/sidebar", "title": "사이드바 커스터마이징", "icon": "PanelLeft" },
+        { "slug": "guide/theme", "title": "테마 커스터마이징", "icon": "Palette" },
+        { "slug": "guide/deployment", "title": "배포", "icon": "Cloud" }
       ]
     },
     {
-      "group": "组件",
+      "group": "컴포넌트",
       "icon": "Layout",
       "collapsed": true,
       "pages": [
-        { "slug": "components/callout", "title": "Callout 提示框", "icon": "MessageSquare" },
-        { "slug": "components/card", "title": "Card 卡片", "icon": "Square" },
-        { "slug": "components/steps", "title": "Steps 步骤", "icon": "ListOrdered" },
-        { "slug": "components/tabs", "title": "Tabs 标签页", "icon": "Columns" },
-        { "slug": "components/files", "title": "Files 文件树", "icon": "FolderTree" },
-        { "slug": "components/accordion", "title": "Accordion 折叠面板", "icon": "ChevronDown" },
-        { "slug": "components/type-table", "title": "TypeTable 类型表格", "icon": "Table" }
+        { "slug": "components/callout", "title": "Callout 알림창", "icon": "MessageSquare" },
+        { "slug": "components/card", "title": "Card 카드", "icon": "Square" },
+        { "slug": "components/steps", "title": "Steps 단계", "icon": "ListOrdered" },
+        { "slug": "components/tabs", "title": "Tabs 탭", "icon": "Columns" },
+        { "slug": "components/files", "title": "Files 파일 트리", "icon": "FolderTree" },
+        {
+          "slug": "components/accordion",
+          "title": "Accordion 아코디언 패널",
+          "icon": "ChevronDown"
+        },
+        { "slug": "components/type-table", "title": "TypeTable 유형 테이블", "icon": "Table" }
       ]
     },
     {
-      "group": "进阶",
+      "group": "고급",
       "icon": "Wrench",
       "collapsed": true,
       "pages": [
-        { "slug": "advanced/search", "title": "搜索配置", "icon": "Search" },
-        { "slug": "advanced/mdx", "title": "MDX 增强", "icon": "Sparkles" }
+        { "slug": "advanced/search", "title": "검색 설정", "icon": "Search" },
+        { "slug": "advanced/mdx", "title": "MDX 확장", "icon": "Sparkles" }
       ]
     },
     {
-      "group": "社区",
+      "group": "커뮤니티",
       "icon": "Users",
       "collapsed": true,
       "pages": [
-        { "slug": "community/contributing", "title": "贡献指南", "icon": "Heart" },
-        { "slug": "community/changelog", "title": "更新日志", "icon": "Calendar" }
+        { "slug": "community/contributing", "title": "기여 가이드", "icon": "Heart" },
+        { "slug": "community/changelog", "title": "변경 로그", "icon": "Calendar" }
       ]
     }
   ],
