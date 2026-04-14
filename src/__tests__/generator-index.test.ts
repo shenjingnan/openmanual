@@ -592,6 +592,63 @@ describe('generateDocsLayout - restructureTree', () => {
   });
 });
 
+describe('generateDocsLayout - description', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should embed description directly in non-i18n mode docs layout', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        description: 'My Site Description',
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain("description: 'My Site Description',");
+  });
+
+  it('should escape single quotes in non-i18n description', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        description: "Test's Site",
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain("Test\\'s Site");
+  });
+
+  it('should not include description when not configured in non-i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).not.toContain('description:');
+  });
+});
+
 describe('generateAll - logo handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1059,5 +1116,93 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain("import type { Metadata } from 'next'");
     expect(content).toContain('export const metadata: Metadata = {');
     expect(content).toContain("icon: '/favicon.ico'");
+  });
+
+  // --- description 动态获取 ---
+
+  it('should generate dynamic description from index page frontmatter in i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        description: 'AI 友好的开源文档系统框架',
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    // 应包含 configDescription 常量声明
+    expect(content).toContain('const configDescription');
+    expect(content).toContain('AI 友好的开源文档系统框架');
+    // 应包含从首页动态获取 description 的逻辑
+    expect(content).toContain('source.getPage([], lang)');
+    expect(content).toContain('siteDescription');
+    expect(content).toContain('indexPage?.data.description ?? configDescription');
+    // docsOptions 中应包含动态 description
+    expect(content).toContain('description: siteDescription,');
+  });
+
+  it('should not generate description logic when no description configured in i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    // i18nCtx 默认没有 description 字段
+    await generateAll(i18nCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).not.toContain('configDescription');
+    expect(content).not.toContain('siteDescription');
+    expect(content).not.toContain('source.getPage([], lang)');
+    expect(content).not.toContain('description: siteDescription,');
+  });
+
+  it('should escape single quotes in i18n description config', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        description: "It's awesome",
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    // 单引号应被转义为 \'
+    expect(content).toContain("It\\'s awesome");
+  });
+
+  it('should handle i18n + description + sidebar + icons combination', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        description: '文档站点生成器',
+        sidebar: [
+          {
+            group: '开始',
+            icon: 'BookOpen',
+            pages: [{ slug: 'index', title: '首页', icon: 'Home' }],
+          },
+        ],
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    // 图标相关：lucide import + iconMap + sidebarConfig
+    expect(content).toContain("import { BookOpen, Home } from 'lucide-react'");
+    expect(content).toContain('const iconMap = {');
+    expect(content).toContain('sidebarConfig');
+    // description 相关：动态获取逻辑
+    expect(content).toContain('configDescription');
+    expect(content).toContain('siteDescription');
+    expect(content).toContain('description: siteDescription,');
+    // restructureTree 调用含 preserveNames
+    expect(content).toContain('preserveNames: true');
   });
 });

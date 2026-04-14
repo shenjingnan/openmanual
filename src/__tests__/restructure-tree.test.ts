@@ -528,4 +528,39 @@ describe('restructureTree', () => {
       expect((result.children[2] as PageTree.Folder).name).toBe('Advanced');
     });
   });
+
+  describe('edge cases - unmatched groups', () => {
+    it('should skip directory group when matching folder not found in tree', () => {
+      const tree = makeRoot([makeFolder('Components', [makePage('/components/card', 'Card')])]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: '指南',
+          pages: [{ slug: 'guide/intro' }, { slug: 'guide/api' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      // 该分组应被跳过（树中没有 guide 目录），原始 Components 文件夹保留
+      expect(result.children).toHaveLength(1);
+      expect((result.children[0] as PageTree.Folder).name).toBe('Components');
+    });
+
+    it('should not create folder when all root-level pages in group do not match', () => {
+      const tree = makeRoot([makePage('/', 'Home'), makePage('/about', 'About')]);
+
+      const sidebarConfig: readonly SidebarConfigEntry[] = [
+        {
+          group: 'Missing Group',
+          pages: [{ slug: 'nonexistent1' }, { slug: 'nonexistent2' }],
+        },
+      ];
+
+      const result = restructureTree(tree, sidebarConfig);
+      // 所有页面都不匹配，不应创建 folder，原始页面保留
+      expect(result.children).toHaveLength(2);
+      expect(result.children[0]?.type).toBe('page');
+      expect(result.children[1]?.type).toBe('page');
+    });
+  });
 });
