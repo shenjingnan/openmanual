@@ -38,7 +38,10 @@
     "Русский",
     "العربية",
     "한국어",
-    "日本語"
+    "日本語",
+    "Qwen",
+    "DeepSeek",
+    "GLM"
   ],
   "ignorePaths": [
     "node_modules",

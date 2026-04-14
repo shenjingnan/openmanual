@@ -44,9 +44,5 @@
     ],
     "deny": [],
     "ask": []
-  },
-  "attribution": {
-    "commit": "🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: GLM-5V-Turbo <noreply@bigmodel.cn>",
-    "pr": ""
   }
 }
