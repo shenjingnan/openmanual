@@ -1,7 +1,7 @@
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
-import { isI18nEnabled } from '../config/schema.js';
+import { isDirParser, isI18nEnabled } from '../config/schema.js';
 import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
@@ -450,6 +450,10 @@ async function ensureLogoFile(
 async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
   const sidebar = ctx.config.sidebar;
   if (!sidebar || sidebar.length === 0) return;
+
+  // dir parser 模式下，meta.json 应位于各语言子目录内（如 content/en/guide/meta.json），
+  // 根级别 content/{group}/meta.json 不会被 fumadocs 读取，无需生成
+  if (isDirParser(ctx.config)) return;
 
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
   const isI18n = isI18nEnabled(ctx.config);
