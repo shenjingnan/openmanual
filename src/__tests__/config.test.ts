@@ -239,7 +239,7 @@ describe('content scanner', () => {
 });
 
 describe('page tree builder', () => {
-  it('should build from sidebar config', () => {
+  it('should build from file system structure', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -259,18 +259,14 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Getting Started',
-        pages: [{ slug: 'index', title: 'Home' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree).toHaveLength(1);
-    expect(tree[0]?.type).toBe('folder');
-    expect(tree[0]?.name).toBe('Getting Started');
-    expect(tree[0]?.children).toHaveLength(1);
+    const tree = buildPageTree(files);
+    // FS mode: index becomes a page, guide/ becomes a folder
+    expect(tree).toHaveLength(2);
+    const pageIndex = tree.find((item) => item.type === 'page');
+    const folderGuide = tree.find((item) => item.type === 'folder');
+    expect(pageIndex?.name).toBe('Home');
+    expect(folderGuide?.name).toBe('Guide');
+    expect(folderGuide?.children).toHaveLength(1);
   });
 
   it('should auto-build from file system when no sidebar', () => {
@@ -405,7 +401,7 @@ describe('page tree builder', () => {
     expect(indexFolder?.slug).toBe('index');
   });
 
-  it('should use page icon from sidebar config', () => {
+  it('should build page without icon from frontmatter', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -417,20 +413,14 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Getting Started',
-        icon: 'home',
-        pages: [{ slug: 'index', title: 'Home', icon: 'file' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.icon).toBe('home');
-    expect(tree[0]?.children?.[0]?.icon).toBe('file');
+    const tree = buildPageTree(files);
+    // Icons come from meta.json/frontmatter, not from tree builder
+    expect(tree[0]?.type).toBe('page');
+    expect(tree[0]?.name).toBe('Home');
+    expect(tree[0]?.icon).toBeUndefined();
   });
 
-  it('should fallback to slug when both page title and frontmatter title are empty', () => {
+  it('should use formatTitle when frontmatter title is empty', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -442,18 +432,13 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Docs',
-        pages: [{ slug: 'guide', title: '' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.children?.[0]?.name).toBe('guide');
+    const tree = buildPageTree(files);
+    // Root-level file becomes a page with formatted name
+    expect(tree[0]?.type).toBe('page');
+    expect(tree[0]?.name).toBe('Guide');
   });
 
-  it('should fallback to file frontmatter title when page title not in config', () => {
+  it('should use frontmatter title when available', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -465,15 +450,8 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Docs',
-        pages: [{ slug: 'guide', title: '' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.children?.[0]?.name).toBe('Frontmatter Title');
+    const tree = buildPageTree(files);
+    expect(tree[0]?.name).toBe('Frontmatter Title');
   });
 });
 
