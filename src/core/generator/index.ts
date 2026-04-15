@@ -449,33 +449,14 @@ async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
 }
 
 /**
- * Enrich an existing meta.json file with missing fields.
- * Only adds fields that are not already present (upsert semantics).
+ * Validate an existing meta.json file is readable.
+ * MetaGroupInfo and file content share the same source, so no enrichment is needed.
  */
-async function enrichMetaFile(group: MetaGroupInfo): Promise<void> {
+async function enrichMetaFile(_group: MetaGroupInfo): Promise<void> {
   try {
-    const raw = await readFile(group.filePath, 'utf-8');
-    const existing = JSON.parse(raw) as Record<string, unknown>;
-    let changed = false;
-
-    if (group.icon !== undefined && !existing.icon) {
-      existing.icon = group.icon;
-      changed = true;
-    }
-    if (group.defaultOpen !== undefined && existing.defaultOpen === undefined) {
-      existing.defaultOpen = group.defaultOpen;
-      changed = true;
-    }
-    if (group.pages !== undefined && group.pages.length > 0 && !Array.isArray(existing.pages)) {
-      existing.pages = group.pages;
-      changed = true;
-    }
-
-    if (changed) {
-      await writeFile(group.filePath, `${JSON.stringify(existing, null, 2)}\n`, 'utf-8');
-    }
+    await readFile(_group.filePath, 'utf-8');
   } catch {
-    // File unreadable - skip enrichment
+    // File unreadable - skip
   }
 }
 
