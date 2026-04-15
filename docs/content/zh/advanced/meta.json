@@ -1,3 +1,9 @@
 {
-  "title": "进阶"
+  "title": "进阶",
+  "icon": "Wrench",
+  "defaultOpen": false,
+  "pages": [
+    "search",
+    "mdx"
+  ]
 }

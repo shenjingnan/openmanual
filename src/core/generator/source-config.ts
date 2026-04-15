@@ -1,7 +1,18 @@
 import type { OpenManualConfig } from '../config/schema.js';
 
 export function generateSourceConfig(_ctx: { config: OpenManualConfig }): string {
-  return `import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
+  const hasOpenapi = !!_ctx.config.openapi;
+
+  const openapiPluginImport = hasOpenapi
+    ? "\nimport { openapiPlugin } from 'fumadocs-openapi/server';"
+    : '';
+
+  const pluginsLine = hasOpenapi
+    ? "\n  plugins: [openapiPlugin() as never],"
+    : '';
+
+  return `${openapiPluginImport}
+import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
 import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins';
 
 export const docs = defineDocs({
@@ -19,7 +30,7 @@ export default defineConfig({
       defaultColor: false,
       fallbackLanguage: 'text',
     },
-  },
+  },${pluginsLine}
 });
 `;
 }

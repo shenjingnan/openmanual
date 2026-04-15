@@ -63,6 +63,23 @@ export const I18nConfigSchema = z.object({
   parser: z.enum(['dot', 'dir']).optional(),
 });
 
+export const OpenAPISchema = z.object({
+  /** OpenAPI spec 文件路径（相对于项目根目录），支持 .yaml 和 .json */
+  spec: z.string(),
+  /** 生成的 API 文档在 content 目录下的子目录名，默认 'api' */
+  outputDir: z.string().default('api'),
+  /** 每个页面的粒度: 'operation'(每端点一页) | 'tag'(按标签分组) | 'file'(整个文件一页) */
+  per: z.enum(['operation', 'tag', 'file']).default('operation'),
+  /** 分组方式: 'tag'(按标签分子目录) | 'route'(按路由) | 'none' */
+  groupBy: z.enum(['tag', 'route', 'none']).optional(),
+  /** Sidebar 中 API 分组的标题（各语言可配） */
+  title: z.record(z.string(), z.string()).optional(),
+  /** Sidebar 图标 */
+  icon: z.string().optional().default('Code2'),
+  /** 是否折叠 */
+  collapsed: z.boolean().default(true),
+});
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -80,6 +97,7 @@ export const OpenManualConfigSchema = z.object({
   mdx: MdxSchema.optional(),
   pageActions: PageActionsSchema.optional(),
   i18n: I18nConfigSchema.optional(),
+  openapi: OpenAPISchema.optional(),
 });
 
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;
@@ -92,6 +110,7 @@ export type LogoConfig = z.infer<typeof LogoSchema>;
 export type FaviconConfig = z.infer<typeof FaviconSchema>;
 export type I18nLocale = z.infer<typeof I18nLocaleSchema>;
 export type I18nConfig = z.infer<typeof I18nConfigSchema>;
+export type OpenAPIConfig = z.infer<typeof OpenAPISchema>;
 
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
   const slugs = new Set<string>();

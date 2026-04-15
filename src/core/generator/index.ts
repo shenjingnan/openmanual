@@ -20,6 +20,7 @@ import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSearchRoute } from './search-route.js';
 import { generateSourceConfig } from './source-config.js';
 import { generateTsconfig } from './tsconfig.js';
+import { generateOpenAPIFiles, preInjectOpenAPISidebar } from './openapi-generate.js';
 
 export interface GenerateContext {
   config: OpenManualConfig;
@@ -37,6 +38,11 @@ export interface GenerateContext {
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
   const isI18n = isI18nEnabled(ctx.config);
+
+  // [OpenAPI] 预注入 sidebar 配置（在生成 page.tsx 之前，确保 allowedSlugs 包含 API 页面）
+  if (ctx.config.openapi) {
+    await preInjectOpenAPISidebar(ctx);
+  }
 
   // 基础配置文件（两种模式共用）
   const baseFiles: Array<{ path: string; content: string }> = [
@@ -183,6 +189,13 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
 
   // Generate meta.json for each sidebar group directory
   await generateMetaFiles(ctx);
+
+  // Generate OpenAPI files if configured（sidebar 已在流程开头预注入）
+  if (ctx.config.openapi) {
+    await generateOpenAPIFiles(ctx);
+    // 重新生成 meta.json 以包含 API 页面的 meta.json
+    await generateMetaFiles(ctx);
+  }
 }
 
 function generateRootLayout(ctx: GenerateContext): string {
@@ -482,9 +495,12 @@ async function generateRootMetaJson(
   if (group.icon) metaObj.icon = group.icon;
   if (group.collapsed !== undefined) metaObj.defaultOpen = !group.collapsed;
 
-  // Root-level pages are just filenames (no directory prefix)
-  const pageFiles = group.pages.map((p) => p.slug);
-  if (pageFiles.length > 0) metaObj.pages = pageFiles;
+  // Root-level meta.json must NOT include "pages" field.
+  // In fumadocs, if a meta.json has "pages", ONLY those items become children
+  // and sub-directory auto-discovery is SKIPPED entirely.
+  // Without "pages", fumadocs auto-discovers both root pages AND sub-folders,
+  // each sub-folder then uses its own meta.json for ordering.
+  // See: PageTreeBuilder.folder() in fumadocs-core source/index.js
 
   if (useDirParser) {
     for (const lang of languages) {
@@ -496,19 +512,31 @@ async function generateRootMetaJson(
 }
 
 /**
- * Write meta.json only if it does not already exist (preserve user edits).
+ * Upsert meta.json: merge new data into existing file.
+ *
+ * New fields from `data` overwrite existing ones, but any extra fields
+ * already in the file (e.g. user customizations) are preserved.
+ * This ensures that incomplete meta.json from earlier builds get
+ * updated with full `pages` arrays etc.
  */
 async function writeMetaIfNotExists(
   filePath: string,
   data: Record<string, unknown>
 ): Promise<void> {
+  let existing: Record<string, unknown> = {};
   try {
-    await access(filePath);
-    // File already exists — skip to preserve user customizations
+    const raw = await readFile(filePath, 'utf-8');
+    existing = JSON.parse(raw);
+    if (typeof existing !== 'object' || existing === null) {
+      existing = {};
+    }
   } catch {
-    await mkdir(join(filePath, '..'), { recursive: true });
-    await writeFile(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf-8');
+    // File doesn't exist or is invalid JSON — start fresh
   }
+
+  const merged = { ...existing, ...data };
+  await mkdir(join(filePath, '..'), { recursive: true });
+  await writeFile(filePath, `${JSON.stringify(merged, null, 2)}\n`, 'utf-8');
 }
 
 /**
@@ -608,7 +636,5 @@ function upsertFrontmatter(content: string, fields: Record<string, string>): str
 
   // Insert new fields before the closing ---
   const insertionPoint = (match.index ?? 0) + match[0].length - 3;
-  return (
-    content.slice(0, insertionPoint) + '\n' + newFieldLines + '\n' + content.slice(insertionPoint)
-  );
+  return `${content.slice(0, insertionPoint)}\n${newFieldLines}\n${content.slice(insertionPoint)}`;
 }

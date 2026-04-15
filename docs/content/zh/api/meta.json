@@ -1,0 +1,10 @@
+{
+  "title": "API 参考",
+  "icon": "Code2",
+  "defaultOpen": true,
+  "pages": [
+    "geocode",
+    "searchPoi",
+    "planWalkingRoute"
+  ]
+}

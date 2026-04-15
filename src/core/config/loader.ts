@@ -88,5 +88,16 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
           parser: config.i18n.parser ?? 'dot',
         }
       : undefined,
+    openapi: config.openapi
+      ? {
+          spec: config.openapi.spec,
+          outputDir: config.openapi.outputDir ?? 'api',
+          per: config.openapi.per ?? 'operation',
+          groupBy: config.openapi.groupBy,
+          title: config.openapi.title,
+          icon: config.openapi.icon ?? 'Code2',
+          collapsed: config.openapi.collapsed ?? true,
+        }
+      : undefined,
   };
 }

@@ -1,1 +1,9 @@
-{ "title": "コミュニティ" }
+{
+  "title": "社区",
+  "icon": "Users",
+  "defaultOpen": false,
+  "pages": [
+    "contributing",
+    "changelog"
+  ]
+}

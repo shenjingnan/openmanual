@@ -59,9 +59,13 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 `
     : '';
 
+  const openapiCSS = config.openapi
+    ? "\n@import 'fumadocs-openapi/css/preset.css';"
+    : '';
+
   return `@import 'tailwindcss';
 @source './node_modules/openmanual/dist/components/**/*.js';
-@import 'fumadocs-ui/style.css';
+@import 'fumadocs-ui/style.css';${openapiCSS}
 @custom-variant dark (&:is(.dark, .dark *));
 
 :root {

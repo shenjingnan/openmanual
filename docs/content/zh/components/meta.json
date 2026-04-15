@@ -1,3 +1,14 @@
 {
-  "title": "组件"
+  "title": "组件",
+  "icon": "Layout",
+  "defaultOpen": false,
+  "pages": [
+    "callout",
+    "card",
+    "steps",
+    "tabs",
+    "files",
+    "accordion",
+    "type-table"
+  ]
 }

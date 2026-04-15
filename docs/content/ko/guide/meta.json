@@ -1,1 +1,12 @@
-{ "title": "가이드" }
+{
+  "title": "指南",
+  "icon": "BookOpen",
+  "defaultOpen": false,
+  "pages": [
+    "configuration",
+    "writing-docs",
+    "sidebar",
+    "theme",
+    "deployment"
+  ]
+}

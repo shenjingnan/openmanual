@@ -60,6 +60,10 @@ export function generateStaticParams() {
     ? "\nimport { PageActions } from '@/components/page-actions';"
     : '';
 
+  const openapiImport = _ctx.config.openapi
+    ? "\nimport { APIPage } from '@/components/api-page';"
+    : '';
+
   const pageTitleArea = pageActionsEnabled
     ? `      <div className="flex items-start justify-between gap-4">
         <div>
@@ -85,7 +89,7 @@ import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { Mermaid } from '@/components/mermaid';
-import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}
+import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}${openapiImport}
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
@@ -101,7 +105,7 @@ ${filterInPage}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription${_ctx.config.openapi ? ', APIPage' : ''} }} />
       </DocsBody>
     </DocsPage>
   );
@@ -172,6 +176,10 @@ export function generateStaticParams() {
     ? "\nimport { PageActions } from '@/components/page-actions';"
     : '';
 
+  const openapiImport = _ctx.config.openapi
+    ? "\nimport { APIPage } from '@/components/api-page';"
+    : '';
+
   const pageTitleArea = pageActionsEnabled
     ? `      <div className="flex items-start justify-between gap-4">
         <div>
@@ -197,7 +205,7 @@ import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { Mermaid } from '@/components/mermaid';
-import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}
+import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}${openapiImport}
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[]; lang: string }> }) {
   const { slug, lang } = await params;
@@ -213,7 +221,7 @@ ${filterInPage}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription${_ctx.config.openapi ? ', APIPage' : ''} }} />
       </DocsBody>
     </DocsPage>
   );

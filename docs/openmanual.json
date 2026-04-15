@@ -1,6 +1,6 @@
 {
   "name": "OpenManual",
-  "description": "AI 친화적인 오픈소스 문서 시스템 프레임워크",
+  "description": "AI 友好的开源文档系统框架",
   "favicon": "/favicon.svg",
   "siteUrl": "https://openmanual.shenjingnan.com",
   "contentDir": "content",
@@ -26,60 +26,60 @@
   },
   "sidebar": [
     {
-      "group": "시작",
+      "group": "开始",
       "icon": "Rocket",
       "collapsed": false,
       "pages": [
-        { "slug": "index", "title": "프로젝트 소개", "icon": "Home" },
-        { "slug": "quickstart", "title": "빠른 시작", "icon": "Zap" }
+        { "slug": "index", "title": "项目介绍", "icon": "Home" },
+        { "slug": "quickstart", "title": "快速开始", "icon": "Zap" }
       ]
     },
     {
-      "group": "가이드",
+      "group": "指南",
       "icon": "BookOpen",
       "collapsed": true,
       "pages": [
-        { "slug": "guide/configuration", "title": "설정 참조", "icon": "Settings" },
-        { "slug": "guide/writing-docs", "title": "문서 작성", "icon": "FileText" },
-        { "slug": "guide/sidebar", "title": "사이드바 커스터마이징", "icon": "PanelLeft" },
-        { "slug": "guide/theme", "title": "테마 커스터마이징", "icon": "Palette" },
-        { "slug": "guide/deployment", "title": "배포", "icon": "Cloud" }
+        { "slug": "guide/configuration", "title": "配置参考", "icon": "Settings" },
+        { "slug": "guide/writing-docs", "title": "文档编写", "icon": "FileText" },
+        { "slug": "guide/sidebar", "title": "侧边栏定制", "icon": "PanelLeft" },
+        { "slug": "guide/theme", "title": "主题定制", "icon": "Palette" },
+        { "slug": "guide/deployment", "title": "部署", "icon": "Cloud" }
       ]
     },
     {
-      "group": "컴포넌트",
+      "group": "组件",
       "icon": "Layout",
       "collapsed": true,
       "pages": [
-        { "slug": "components/callout", "title": "Callout 알림창", "icon": "MessageSquare" },
-        { "slug": "components/card", "title": "Card 카드", "icon": "Square" },
-        { "slug": "components/steps", "title": "Steps 단계", "icon": "ListOrdered" },
-        { "slug": "components/tabs", "title": "Tabs 탭", "icon": "Columns" },
-        { "slug": "components/files", "title": "Files 파일 트리", "icon": "FolderTree" },
+        { "slug": "components/callout", "title": "Callout 通知框", "icon": "MessageSquare" },
+        { "slug": "components/card", "title": "Card 卡片", "icon": "Square" },
+        { "slug": "components/steps", "title": "Steps 步骤", "icon": "ListOrdered" },
+        { "slug": "components/tabs", "title": "Tabs 标签页", "icon": "Columns" },
+        { "slug": "components/files", "title": "Files 文件树", "icon": "FolderTree" },
         {
           "slug": "components/accordion",
-          "title": "Accordion 아코디언 패널",
+          "title": "Accordion 手风琴面板",
           "icon": "ChevronDown"
         },
-        { "slug": "components/type-table", "title": "TypeTable 유형 테이블", "icon": "Table" }
+        { "slug": "components/type-table", "title": "TypeTable 类型表", "icon": "Table" }
       ]
     },
     {
-      "group": "고급",
+      "group": "进阶",
       "icon": "Wrench",
       "collapsed": true,
       "pages": [
-        { "slug": "advanced/search", "title": "검색 설정", "icon": "Search" },
-        { "slug": "advanced/mdx", "title": "MDX 확장", "icon": "Sparkles" }
+        { "slug": "advanced/search", "title": "搜索配置", "icon": "Search" },
+        { "slug": "advanced/mdx", "title": "MDX 扩展", "icon": "Sparkles" }
       ]
     },
     {
-      "group": "커뮤니티",
+      "group": "社区",
       "icon": "Users",
       "collapsed": true,
       "pages": [
-        { "slug": "community/contributing", "title": "기여 가이드", "icon": "Heart" },
-        { "slug": "community/changelog", "title": "변경 로그", "icon": "Calendar" }
+        { "slug": "community/contributing", "title": "贡献指南", "icon": "Heart" },
+        { "slug": "community/changelog", "title": "变更日志", "icon": "Calendar" }
       ]
     }
   ],
@@ -92,5 +92,19 @@
   },
   "mdx": {
     "latex": true
+  },
+  "openapi": {
+    "spec": "./openapi.yaml",
+    "outputDir": "api",
+    "per": "operation",
+    "groupBy": "tag",
+    "title": {
+      "zh": "API 参考",
+      "en": "API Reference",
+      "ja": "APIリファレンス",
+      "ko": "API 레퍼런스"
+    },
+    "icon": "Code2",
+    "collapsed": false
   }
 }
