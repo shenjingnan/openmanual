@@ -1,15 +1,10 @@
-import type { SidebarGroup } from '../config/schema.js';
 import type { ContentFile } from './scanner.js';
 
 /**
- * Build Fumadocs-compatible page tree from sidebar config.
- * When sidebar is configured, use it to define structure.
- * When sidebar is not configured, auto-generate from file system.
+ * Build Fumadocs-compatible page tree from file system.
+ * Always auto-generates from file system structure (sidebar config removed).
  */
-export function buildPageTree(files: ContentFile[], sidebar?: SidebarGroup[]): PageTreeItem[] {
-  if (sidebar && sidebar.length > 0) {
-    return buildFromConfig(sidebar, files);
-  }
+export function buildPageTree(files: ContentFile[]): PageTreeItem[] {
   return buildFromFileSystem(files);
 }
 
@@ -20,35 +15,6 @@ interface PageTreeItem {
   icon?: string | undefined;
   children?: PageTreeItem[];
   index?: boolean;
-}
-
-function buildFromConfig(sidebar: SidebarGroup[], files: ContentFile[]): PageTreeItem[] {
-  const fileMap = new Map(files.map((f) => [f.slug, f]));
-  const items: PageTreeItem[] = [];
-
-  for (const group of sidebar) {
-    const folderItem: PageTreeItem = {
-      type: 'folder',
-      name: group.group,
-      ...(group.icon ? { icon: group.icon } : {}),
-      children: [],
-    };
-
-    for (const page of group.pages) {
-      const file = fileMap.get(page.slug);
-      const title = page.title || (file?.frontmatter.title as string) || page.slug;
-      folderItem.children?.push({
-        type: 'page',
-        name: title,
-        slug: page.slug,
-        ...(page.icon ? { icon: page.icon } : {}),
-      });
-    }
-
-    items.push(folderItem);
-  }
-
-  return items;
 }
 
 function buildFromFileSystem(files: ContentFile[]): PageTreeItem[] {
@@ -114,7 +80,8 @@ function convertDirectoryToTree(dir: DirNode): PageTreeItem[] {
   return items;
 }
 
-function formatTitle(name: string): string {
+/** Format a directory name into a display title (e.g. "my-page" → "My Page") */
+export function formatTitle(name: string): string {
   return name.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 

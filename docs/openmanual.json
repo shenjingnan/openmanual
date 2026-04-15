@@ -24,65 +24,6 @@
     },
     "github": "https://github.com/shenjingnan/openmanual"
   },
-  "sidebar": [
-    {
-      "group": "시작",
-      "icon": "Rocket",
-      "collapsed": false,
-      "pages": [
-        { "slug": "index", "title": "프로젝트 소개", "icon": "Home" },
-        { "slug": "quickstart", "title": "빠른 시작", "icon": "Zap" }
-      ]
-    },
-    {
-      "group": "가이드",
-      "icon": "BookOpen",
-      "collapsed": true,
-      "pages": [
-        { "slug": "guide/configuration", "title": "설정 참조", "icon": "Settings" },
-        { "slug": "guide/writing-docs", "title": "문서 작성", "icon": "FileText" },
-        { "slug": "guide/sidebar", "title": "사이드바 커스터마이징", "icon": "PanelLeft" },
-        { "slug": "guide/theme", "title": "테마 커스터마이징", "icon": "Palette" },
-        { "slug": "guide/deployment", "title": "배포", "icon": "Cloud" }
-      ]
-    },
-    {
-      "group": "컴포넌트",
-      "icon": "Layout",
-      "collapsed": true,
-      "pages": [
-        { "slug": "components/callout", "title": "Callout 알림창", "icon": "MessageSquare" },
-        { "slug": "components/card", "title": "Card 카드", "icon": "Square" },
-        { "slug": "components/steps", "title": "Steps 단계", "icon": "ListOrdered" },
-        { "slug": "components/tabs", "title": "Tabs 탭", "icon": "Columns" },
-        { "slug": "components/files", "title": "Files 파일 트리", "icon": "FolderTree" },
-        {
-          "slug": "components/accordion",
-          "title": "Accordion 아코디언 패널",
-          "icon": "ChevronDown"
-        },
-        { "slug": "components/type-table", "title": "TypeTable 유형 테이블", "icon": "Table" }
-      ]
-    },
-    {
-      "group": "고급",
-      "icon": "Wrench",
-      "collapsed": true,
-      "pages": [
-        { "slug": "advanced/search", "title": "검색 설정", "icon": "Search" },
-        { "slug": "advanced/mdx", "title": "MDX 확장", "icon": "Sparkles" }
-      ]
-    },
-    {
-      "group": "커뮤니티",
-      "icon": "Users",
-      "collapsed": true,
-      "pages": [
-        { "slug": "community/contributing", "title": "기여 가이드", "icon": "Heart" },
-        { "slug": "community/changelog", "title": "변경 로그", "icon": "Calendar" }
-      ]
-    }
-  ],
   "theme": {
     "primaryHue": 213,
     "darkMode": true

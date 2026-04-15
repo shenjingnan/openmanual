@@ -21,12 +21,14 @@ export const FooterSchema = z.object({
   text: z.string().optional(),
 });
 
+// @deprecated Use meta.json files in content directories instead
 export const SidebarPageSchema = z.object({
   slug: z.string(),
   title: z.string(),
   icon: z.string().optional(),
 });
 
+// @deprecated Use meta.json files in content directories instead
 export const SidebarGroupSchema = z.object({
   group: z.string(),
   icon: z.string().optional(),
@@ -74,6 +76,7 @@ export const OpenManualConfigSchema = z.object({
   favicon: FaviconSchema.optional(),
   navbar: NavbarSchema.optional(),
   footer: FooterSchema.optional(),
+  // @deprecated Use meta.json files in content directories instead
   sidebar: z.array(SidebarGroupSchema).optional(),
   theme: ThemeSchema.optional(),
   search: SearchSchema.optional(),
@@ -93,9 +96,14 @@ export type FaviconConfig = z.infer<typeof FaviconSchema>;
 export type I18nLocale = z.infer<typeof I18nLocaleSchema>;
 export type I18nConfig = z.infer<typeof I18nConfigSchema>;
 
+// @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
   const slugs = new Set<string>();
   if (config.sidebar) {
+    console.warn(
+      '[openmanual] The "sidebar" field in openmanual.json is deprecated. ' +
+        'Please use meta.json files in your content directories instead.'
+    );
     for (const group of config.sidebar) {
       for (const page of group.pages) {
         slugs.add(page.slug);

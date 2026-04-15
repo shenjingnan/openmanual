@@ -1,25 +1,27 @@
-import { collectConfiguredSlugs, type OpenManualConfig } from '../config/schema.js';
+import type { OpenManualConfig } from '../config/schema.js';
 
-export function generatePage(_ctx: { config: OpenManualConfig }): string {
+export function generatePage(_ctx: { config: OpenManualConfig; allSlugs?: Set<string> }): string {
   const isStrict = _ctx.config.contentPolicy !== 'all';
   const pageActionsEnabled = _ctx.config.pageActions?.enabled !== false;
   const isI18n = _ctx.config.i18n?.enabled === true;
+  const allSlugs = _ctx.allSlugs ?? new Set<string>();
 
   if (isI18n) {
-    return generatePageI18n(_ctx, isStrict, pageActionsEnabled);
+    return generatePageI18n(_ctx, isStrict, pageActionsEnabled, allSlugs);
   }
 
-  return generatePageSingle(_ctx, isStrict, pageActionsEnabled);
+  return generatePageSingle(_ctx, isStrict, pageActionsEnabled, allSlugs);
 }
 
 function generatePageSingle(
   _ctx: { config: OpenManualConfig },
   isStrict: boolean,
-  pageActionsEnabled: boolean
+  pageActionsEnabled: boolean,
+  allSlugs: Set<string>
 ): string {
   const allowedSlugsSnippet = isStrict
     ? `
-const allowedSlugs = new Set(${JSON.stringify([...collectConfiguredSlugs(_ctx.config)])});
+const allowedSlugs = new Set<string>(${JSON.stringify([...allSlugs])});
 
 function isAllowed(slug: string[] | undefined): boolean {
   if (allowedSlugs.size === 0) return true;
@@ -113,11 +115,12 @@ ${filterInStaticParams}
 function generatePageI18n(
   _ctx: { config: OpenManualConfig },
   isStrict: boolean,
-  pageActionsEnabled: boolean
+  pageActionsEnabled: boolean,
+  allSlugs: Set<string>
 ): string {
   const allowedSlugsSnippet = isStrict
     ? `
-const allowedSlugs = new Set(${JSON.stringify([...collectConfiguredSlugs(_ctx.config)])});
+const allowedSlugs = new Set<string>(${JSON.stringify([...allSlugs])});
 
 function isAllowed(slug: string[] | undefined): boolean {
   if (allowedSlugs.size === 0) return true;

@@ -239,7 +239,7 @@ describe('content scanner', () => {
 });
 
 describe('page tree builder', () => {
-  it('should build from sidebar config', () => {
+  it('should build from file system structure', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -259,18 +259,14 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Getting Started',
-        pages: [{ slug: 'index', title: 'Home' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree).toHaveLength(1);
-    expect(tree[0]?.type).toBe('folder');
-    expect(tree[0]?.name).toBe('Getting Started');
-    expect(tree[0]?.children).toHaveLength(1);
+    const tree = buildPageTree(files);
+    // FS mode: index becomes a page, guide/ becomes a folder
+    expect(tree).toHaveLength(2);
+    const pageIndex = tree.find((item) => item.type === 'page');
+    const folderGuide = tree.find((item) => item.type === 'folder');
+    expect(pageIndex?.name).toBe('Home');
+    expect(folderGuide?.name).toBe('Guide');
+    expect(folderGuide?.children).toHaveLength(1);
   });
 
   it('should auto-build from file system when no sidebar', () => {
@@ -405,7 +401,7 @@ describe('page tree builder', () => {
     expect(indexFolder?.slug).toBe('index');
   });
 
-  it('should use page icon from sidebar config', () => {
+  it('should build page without icon from frontmatter', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -417,20 +413,14 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Getting Started',
-        icon: 'home',
-        pages: [{ slug: 'index', title: 'Home', icon: 'file' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.icon).toBe('home');
-    expect(tree[0]?.children?.[0]?.icon).toBe('file');
+    const tree = buildPageTree(files);
+    // Icons come from meta.json/frontmatter, not from tree builder
+    expect(tree[0]?.type).toBe('page');
+    expect(tree[0]?.name).toBe('Home');
+    expect(tree[0]?.icon).toBeUndefined();
   });
 
-  it('should fallback to slug when both page title and frontmatter title are empty', () => {
+  it('should use formatTitle when frontmatter title is empty', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -442,18 +432,13 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
-      {
-        group: 'Docs',
-        pages: [{ slug: 'guide', title: '' }],
-      },
-    ];
-
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.children?.[0]?.name).toBe('guide');
+    const tree = buildPageTree(files);
+    // Root-level file becomes a page with formatted name
+    expect(tree[0]?.type).toBe('page');
+    expect(tree[0]?.name).toBe('Guide');
   });
 
-  it('should fallback to file frontmatter title when page title not in config', () => {
+  it('should use frontmatter title when available', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -465,15 +450,40 @@ describe('page tree builder', () => {
       },
     ];
 
-    const sidebar = [
+    const tree = buildPageTree(files);
+    expect(tree[0]?.name).toBe('Frontmatter Title');
+  });
+
+  // 覆盖 tree.ts 行73: slug.replace(/\/index$/, '') 结果为空时 || 回退到 'index'
+  it('should fallback to "index" when slug replace results in empty string', () => {
+    // 构造一个特殊场景：目录下的 index 文件，其 slug 恰好为 "index"
+    // 正常情况下这不会发生（slug 至少为 'dir/index'），但覆盖防御性代码
+    const files = [
       {
-        group: 'Docs',
-        pages: [{ slug: 'guide', title: '' }],
+        filePath: '/test/somedir/index.mdx',
+        slug: 'index', // 故意设为 'index'（正常应为 'somedir/index'）
+        name: 'index',
+        frontmatter: { title: 'Index Page' },
+        content: '',
+        segments: ['somedir', 'index'], // 正常的 segments 结构
+      },
+      {
+        filePath: '/test/somedir/other.mdx',
+        slug: 'somedir/other',
+        name: 'other',
+        frontmatter: { title: 'Other Page' },
+        content: '',
+        segments: ['somedir', 'other'],
       },
     ];
 
-    const tree = buildPageTree(files, sidebar);
-    expect(tree[0]?.children?.[0]?.name).toBe('Frontmatter Title');
+    const tree = buildPageTree(files);
+    // somedir 成为一个 folder（因为它有子文件）
+    const folder = tree.find((item) => item.type === 'folder');
+    expect(folder).toBeDefined();
+    expect(folder?.index).toBe(true);
+    // slug 'index'.replace(/\/index$/, '') = '' (空字符串, falsy) → || 'index'
+    expect(folder?.slug).toBe('index');
   });
 });
 
@@ -595,6 +605,25 @@ describe('content scanner - error handling', () => {
     // Create a file then make it unreadable by writing invalid content scenario
     // We test via the parseContentFile catch branch indirectly
     const files = await scanContentDir(contentTmpDir);
+    expect(files).toHaveLength(1);
+    expect(files[0]?.name).toBe('good');
+  });
+
+  // 覆盖 scanner.ts 行59: parseContentFile 的 catch 块返回 null
+  it('should return null for unreadable files (catch block in parseContentFile)', async () => {
+    await mkdir(contentTmpDir, { recursive: true });
+    await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
+    // 创建一个不可读的文件（chmod 000 在 macOS 上需要权限，用符号链接到不存在目标替代）
+    const brokenPath = join(contentTmpDir, 'broken-symlink.md');
+    const { symlink } = await import('node:fs/promises');
+    try {
+      await symlink('/nonexistent/target/file.md', brokenPath);
+    } catch {
+      // 某些环境可能不支持符号链接，跳过此测试
+      return;
+    }
+    const files = await scanContentDir(contentTmpDir);
+    // good.md 正常返回，broken-symlink.md 因 readFile 失败被跳过
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe('good');
   });
@@ -836,5 +865,66 @@ describe('loadConfig - mergeDefaults i18n', () => {
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
     const config = await loadConfig(tmpDir);
     expect(config.i18n).toBeUndefined();
+  });
+
+  // 覆盖 loader.ts 行85: i18n.enabled 为 undefined 时 fallback 到 false
+  it('should fallback i18n.enabled to false when not provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        i18n: {
+          // 不含 enabled 字段
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.enabled).toBe(false);
+  });
+
+  // 覆盖 loader.ts 行87 第一级 ??: defaultLanguage undefined → fallback 到 locale
+  it('should fallback i18n.defaultLanguage to locale when not provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        locale: 'ja',
+        i18n: {
+          enabled: true,
+          languages: [{ code: 'ja', name: '日本語' }],
+          // 不含 defaultLanguage
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.defaultLanguage).toBe('ja');
+  });
+
+  // 覆盖 loader.ts 行87 第二级 ??: locale 也 undefined → fallback 到 'zh'
+  it('should fallback i18n.defaultLanguage to zh when neither provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        // 不含 locale
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          // 不含 defaultLanguage
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.defaultLanguage).toBe('zh');
   });
 });
