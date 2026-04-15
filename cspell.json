@@ -41,7 +41,8 @@
     "日本語",
     "Qwen",
     "DeepSeek",
-    "GLM"
+    "GLM",
+    "somedir"
   ],
   "ignorePaths": [
     "node_modules",

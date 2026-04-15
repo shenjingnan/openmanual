@@ -1153,3 +1153,36 @@ describe('generateMetaFiles - edge cases', () => {
     expect(metaCalls).toHaveLength(0);
   });
 });
+
+// ============================================================
+// generateSearchRoute — 不支持语言全走 {} 分支（覆盖行61）
+// ============================================================
+
+describe('generateSearchRoute - all unsupported languages', () => {
+  it('should emit {} for languages not in SUPPORTED_LOCALE_MAP', async () => {
+    // 直接测试 generateSearchRoute 函数（绕过 generateAll）
+    const { generateSearchRoute } = await import('../core/generator/search-route.js');
+
+    const result = generateSearchRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'ko', name: '한국어' },
+          ],
+        },
+      },
+    });
+
+    console.log('[DEBUG] direct result:', result.substring(0, 400));
+
+    // 两种语言都不在支持列表中 → 全部映射为 {}
+    expect(result).toContain('zh: {}');
+    expect(result).toContain('ko: {}');
+    expect(result).not.toContain("'english'");
+    expect(result).not.toContain("'korean'");
+  });
+});
