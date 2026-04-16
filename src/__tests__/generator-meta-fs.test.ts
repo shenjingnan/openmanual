@@ -371,4 +371,132 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     expect(guideMeta.title).toBe('Guide');
     expect(guideMeta.pages).toEqual(['config']);
   });
+
+  // ============================================================
+  // 用例：rootGroups Tab URL 从文件系统扫描获取（无 pages 字段时）
+  // ============================================================
+
+  it('should use first scanned file as tab URL when meta.json has root:true but no pages', async () => {
+    // 模拟当前项目的实际结构：meta.json 只有 title 和 root，没有 pages
+    // 注意：i18n 模式需要至少 2 个语言才能启用
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'zh/guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'zh/guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'zh/advanced/meta.json': JSON.stringify({ title: '进阶', root: true }),
+      'zh/advanced/mdx.mdx': '---\ntitle: MDX\n---\n# MDX',
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 验证生成的 layout.tsx 中 sidebar.tabs 的 URL 指向实际文件而非 index
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // "指南" tab 应指向 /zh/guide/configuration（字母序第一个文件），而非 /zh/guide/index
+    expect(layoutContent).toContain('"url":"/zh/guide/configuration"');
+    expect(layoutContent).not.toContain('"url":"/zh/guide/index"');
+
+    // "进阶" tab 应指向 /zh/advanced/mdx（唯一文件），而非 /zh/advanced/index
+    expect(layoutContent).toContain('"url":"/zh/advanced/mdx"');
+    expect(layoutContent).not.toContain('"url":"/zh/advanced/index"');
+  });
+
+  // ============================================================
+  // 用例：rootGroups Tab URL 尊重显式 pages 配置
+  // ============================================================
+
+  it('should use explicit pages[0] as tab URL when pages field is set in meta.json', async () => {
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({
+        title: '指南',
+        root: true,
+        pages: ['deployment'],
+      }),
+      'zh/guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'zh/guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // 应使用 pages[0] = 'deployment'，而非扫描到的第一个文件 configuration
+    expect(layoutContent).toContain('"url":"/zh/guide/deployment"');
+    expect(layoutContent).not.toContain('"url":"/zh/guide/configuration"');
+  });
+
+  // ============================================================
+  // 用例：rootGroups Tab URL 空目录 fallback 到 index
+  // ============================================================
+
+  it('should fallback to index as tab URL when directory is empty', async () => {
+    // meta.json 有 root:true 且无 pages，目录下无任何 mdx 文件
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // 空目录应 fallback 到 index
+    expect(layoutContent).toContain('"url":"/zh/guide/index"');
+  });
 });

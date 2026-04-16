@@ -7,7 +7,7 @@ import {
   type MetaGroupInfo,
   scanMetaFiles,
 } from '../content/meta-scanner.js';
-import { scanContentDir } from '../content/scanner.js';
+import { type ContentFile, scanContentDir } from '../content/scanner.js';
 import { formatTitle } from '../content/tree.js';
 import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
@@ -42,6 +42,8 @@ export interface GenerateContext {
   openmanualRoot?: string;
   /** Pre-computed slugs from meta.json or file system (replaces collectConfiguredSlugs) */
   allSlugs?: Set<string>;
+  /** Meta groups with root: true — used to generate explicit Layout Tabs in DocsLayout */
+  rootGroups?: Array<{ title: string; dirPath: string; url: string }>;
 }
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
@@ -281,6 +283,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const navLinks = config.navbar?.links ?? [];
   const footerText = config.footer?.text ?? '';
   const isI18n = isI18nEnabled(config);
+  const rootGroups = ctx.rootGroups;
 
   const linksArray = navLinks.map((l) => ({
     text: l.label,
@@ -307,6 +310,19 @@ function generateDocsLayout(ctx: GenerateContext): string {
   // Fumadocs reads title/icon/defaultOpen/pages from meta.json and icon from frontmatter natively.
   // No need for restructureTree() — use getPageTree() directly.
   const treeLine = isI18n ? 'tree: source.getPageTree(lang),' : 'tree: source.getPageTree(),';
+
+  // Generate explicit sidebar.tabs from root groups so Layout Tabs are visible on all pages (including homepage).
+  // In i18n mode, tabs are filtered dynamically by current lang; a "home" tab covers the language root.
+  // Tab URLs point to the first page inside each root folder (from meta.json pages array).
+  const sidebarTabsLine =
+    rootGroups && rootGroups.length > 0
+      ? isI18n
+        ? `\n    sidebar: {\n      tabs: [\n        { title: '${config.name.replace(/'/g, "\\'")}', url: \`/\${lang}\` },\n        ...${JSON.stringify(rootGroups.map((g) => ({ title: g.title, dirPath: g.dirPath, url: g.url })))}.filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url })),\n      ],\n    },`
+        : `\n    sidebar: {\n      tabs: ${JSON.stringify([
+            { title: config.name, url: '/' },
+            ...rootGroups.map((g) => ({ title: g.title, url: g.url })),
+          ])},\n    },`
+      : '';
 
   // i18n 模式下的组件签名和 baseOptions 调用
   if (isI18n) {
@@ -335,7 +351,7 @@ export default async function DocsLayoutWrapper({
 
   const docsOptions = {
     ...baseOptions(lang),
-    ${treeLine}${githubLine}${linksLine}${footerLine}${
+    ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
     }
   };
@@ -355,7 +371,7 @@ import { source } from '@/lib/source';
 import type { ReactNode } from 'react';
 const docsOptions = {
   ...baseOptions(),
-  ${treeLine}${githubLine}${linksLine}${footerLine}${descLine}
+  ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {
@@ -409,6 +425,7 @@ async function ensureLogoFile(
 /**
  * Compute all slugs from meta.json files, falling back to file system scan.
  * Stores result in ctx.allSlugs for use by generatePage().
+ * Also extracts root groups (meta.json with root: true) into ctx.rootGroups.
  */
 async function computeAllSlugs(ctx: GenerateContext): Promise<void> {
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
@@ -420,6 +437,56 @@ async function computeAllSlugs(ctx: GenerateContext): Promise<void> {
   const metaGroups = await scanMetaFiles(contentAbsDir, languages, useDirParser);
   if (metaGroups.length > 0) {
     ctx.allSlugs = collectSlugsFromMeta(metaGroups);
+    // Also collect root-level file slugs (e.g. index.mdx, quickstart.mdx under {lang}/)
+    // which are not covered by any meta.json pages field
+    const allFiles = await scanContentDir(contentAbsDir);
+    for (const file of allFiles) {
+      // Root-level files: directly under {lang}/ (dir-parser: segments length == 2)
+      // or directly under content/ (dot-parser: segments length == 1)
+      const isRootLevel = useDirParser
+        ? file.segments.length === 2 && languages.includes(file.segments[0]!)
+        : file.segments.length === 1;
+      if (isRootLevel) {
+        ctx.allSlugs.add(file.slug);
+      }
+    }
+    // Scan directories for groups that lack a pages field, so we can:
+    //   (a) collect their actual file slugs into ctx.allSlugs
+    //   (b) use the first real file as the tab URL for root groups
+    const scannedDirCache = new Map<string, ContentFile[]>();
+    for (const group of metaGroups) {
+      if (!group.pages || group.pages.length === 0) {
+        const dirAbsPath = join(contentAbsDir, group.dirPath);
+        try {
+          const dirFiles = await scanContentDir(dirAbsPath);
+          scannedDirCache.set(group.dirPath, dirFiles);
+          for (const df of dirFiles) {
+            ctx.allSlugs.add(`${group.dirPath}/${df.slug}`);
+          }
+        } catch {
+          // Directory may not exist or be empty — skip
+        }
+      }
+    }
+    // Extract groups with root: true for explicit Layout Tabs generation.
+    // For each root group, resolve its tab URL in priority order:
+    //   1. meta.json pages[0] (explicit user config)
+    //   2. first .mdx/.md found by scanning the directory (auto-detected)
+    //   3. 'index' (legacy fallback)
+    ctx.rootGroups = metaGroups
+      .filter((g) => g.root === true)
+      .map((g) => {
+        let firstPage = g.pages?.[0];
+        if (!firstPage) {
+          const cached = scannedDirCache.get(g.dirPath);
+          firstPage = cached?.[0]?.name ?? 'index';
+        }
+        return {
+          title: g.title,
+          dirPath: g.dirPath,
+          url: `/${g.dirPath}/${firstPage}`,
+        };
+      });
     return;
   }
 
@@ -450,7 +517,8 @@ async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
 
 /**
  * Validate an existing meta.json file is readable.
- * MetaGroupInfo and file content share the same source, so no enrichment is needed.
+ * Does NOT modify the file — all user-set fields (including "root") are preserved as-is.
+ * Fumadocs reads meta.json directly via its own content source pipeline.
  */
 async function enrichMetaFile(_group: MetaGroupInfo): Promise<void> {
   try {

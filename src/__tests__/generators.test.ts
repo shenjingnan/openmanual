@@ -1160,7 +1160,7 @@ describe('generatePage - i18n mode', () => {
     const result = generatePage(ctx);
     expect(result).toContain('allowedSlugs');
     expect(result).toContain('isAllowed');
-    expect(result).toContain('!isAllowed(slug)');
+    expect(result).toContain('!isAllowed(slug, lang)');
     expect(result).toContain('params.filter');
   });
 

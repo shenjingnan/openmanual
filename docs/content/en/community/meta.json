@@ -1,1 +1,4 @@
-{ "title": "Community" }
+{
+  "title": "Community",
+  "root": true
+}

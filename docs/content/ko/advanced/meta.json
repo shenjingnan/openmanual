@@ -1,1 +1,4 @@
-{ "title": "고급" }
+{
+  "title": "고급",
+  "root": true
+}
