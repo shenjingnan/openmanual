@@ -532,14 +532,13 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     // 非 i18n 模式：layout 输出到 app/[[...slug]]/layout.tsx
     const layoutContent = await readFile(join(appDir, 'app/[[...slug]]/layout.tsx'), 'utf-8');
 
-    // 非i18n模式：tabs 为纯 JSON 数组（不含 ${lang} 模板字面量）
-    expect(layoutContent).toContain('"url":"/"');
-    expect(layoutContent).toContain('"title":"指南"');
+    // 非i18n模式：tabs 为模板字面量生成的数组（不含 ${lang} 模板字面量）
+    expect(layoutContent).toContain("url: '/'");
+    expect(layoutContent).toContain("'指南'");
     // URL 使用文件路径导航（取自扫描到的第一个文件）
-    expect(layoutContent).toContain('"url":"/guide/configuration"');
-    // 非 i18n 分支：JSON.stringify 将 Set 序列化为 {}（非 i18n 特有的 new Set<string>(...) 模板）
-    // urls 在运行时是正确的 Set 对象，只是 JSON.stringify 无法序列化 Set 内容
-    expect(layoutContent).toContain('"urls":{}');
+    expect(layoutContent).toContain("url: '/guide/configuration'");
+    // 非 i18n 分支使用 new Set(...) 保持正确的 Set 类型
+    expect(layoutContent).toContain('new Set(');
     // 不应包含 i18n 特有的模板语法
     expect(layoutContent).not.toContain('`${lang}`');
     // 应包含 sidebar.tabs 结构（非 i18n 分支的关键特征）

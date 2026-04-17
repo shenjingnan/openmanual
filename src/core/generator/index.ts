@@ -1,7 +1,7 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
-import { isDirParser, isI18nEnabled } from '../config/schema.js';
+import { isDirParser, isI18nEnabled, isOpenApiEnabled } from '../config/schema.js';
 import {
   collectSlugsFromMeta,
   type MetaGroupInfo,
@@ -18,6 +18,11 @@ import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
 import { generateMiddleware } from './middleware.js';
 import { generateNextConfig } from './next-config.js';
+import {
+  generateApiClientComponent,
+  generateApiPageComponent,
+  generateOpenApiLib,
+} from './openapi.js';
 import { generatePackageJson } from './package-json.js';
 import { generatePage } from './page.js';
 import { generatePageActionsComponent } from './page-actions-component.js';
@@ -49,10 +54,53 @@ export interface GenerateContext {
 export async function generateAll(ctx: GenerateContext): Promise<void> {
   const isI18n = isI18nEnabled(ctx.config);
 
+  // === OpenAPI 规范文件校验 ===
+  if (isOpenApiEnabled(ctx.config)) {
+    const { access } = await import('node:fs/promises');
+    const { extname, join } = await import('node:path');
+    const specPath = join(ctx.projectDir, ctx.config.openapi?.specPath ?? '');
+    const supportedExts = ['.json', '.yaml', '.yml'];
+    const ext = extname(specPath).toLowerCase();
+
+    if (!supportedExts.includes(ext)) {
+      throw new Error(
+        `[openapi] 不支持的 OpenAPI 规范文件格式: "${ext}"。支持的格式: ${supportedExts.join(', ')}`
+      );
+    }
+
+    try {
+      await access(specPath);
+    } catch {
+      throw new Error(
+        `[openapi] OpenAPI 规范文件不存在: "${ctx.config.openapi?.specPath}"。` +
+          `请确认 "openapi.specPath" 在 openmanual.json 中配置的路径正确。`
+      );
+    }
+  }
+
   // Pre-compute slugs for page generation (replaces collectConfiguredSlugs from sidebar)
   await computeAllSlugs(ctx);
 
   // 基础配置文件（两种模式共用）
+  const isOApi = isOpenApiEnabled(ctx.config);
+
+  // === OpenAPI 文件（条件性生成）===
+  const openapiFiles: Array<{ path: string; content: string }> = [];
+  if (isOApi) {
+    const openapiLib = generateOpenApiLib(ctx);
+    if (openapiLib) {
+      openapiFiles.push({ path: 'lib/openapi.ts', content: openapiLib });
+    }
+    openapiFiles.push({
+      path: 'components/api-page.client.tsx',
+      content: generateApiClientComponent(),
+    });
+    openapiFiles.push({
+      path: 'components/api-page.tsx',
+      content: generateApiPageComponent(),
+    });
+  }
+
   const baseFiles: Array<{ path: string; content: string }> = [
     {
       path: 'source.config.ts',
@@ -106,6 +154,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     // === 多语言模式：[lang]/ 动态路由结构 ===
     files = [
       ...baseFiles,
+      ...openapiFiles,
       // i18n 核心文件
       { path: 'lib/i18n.ts', content: generateI18nConfig(ctx) },
       { path: 'lib/i18n-ui.ts', content: generateI18nUI(ctx) },
@@ -144,6 +193,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     // === 单语言模式（原有结构，不变）===
     files = [
       ...baseFiles,
+      ...openapiFiles,
       // API 路由：raw content 仅 dev 模式；搜索路由两种模式都生成
       ...(ctx.dev
         ? [
@@ -283,6 +333,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const navLinks = config.navbar?.links ?? [];
   const footerText = config.footer?.text ?? '';
   const isI18n = isI18nEnabled(config);
+  const isOApi = isOpenApiEnabled(config);
   const rootGroups = ctx.rootGroups;
 
   const linksArray = navLinks.map((l) => ({
@@ -313,24 +364,20 @@ function generateDocsLayout(ctx: GenerateContext): string {
 
   // Generate explicit sidebar.tabs from root groups so Layout Tabs are visible on all pages (including homepage).
   // Tab URLs use directory paths so isActive() prefix matching covers all pages in the group.
+  // OpenAPI Tab 注入（与 LayoutTab 类型保持一致的结构）
+  const openapiTab = isOpenApiEnabled(config)
+    ? {
+        title: config.openapi?.label ?? '接口文档',
+        url: isI18n ? '/${lang}/openapi' : '/openapi',
+        urls: new Set<string>(),
+      }
+    : null;
+
   const sidebarTabsLine =
-    rootGroups && rootGroups.length > 0
+    (rootGroups && rootGroups.length > 0) || openapiTab
       ? isI18n
-        ? (() => {
-            // Inline root group data as JSON; filter by lang at runtime
-            const entries = rootGroups.map((g) => ({
-              title: g.title,
-              dirPath: g.dirPath,
-              url: g.url,
-              urls: g.urls,
-            }));
-            const entriesJson = JSON.stringify(entries);
-            return `\n    sidebar: {\n      tabs: [\n        { title: '${config.name.replace(/'/g, "\\'")}', url: \`/\${lang}\` },\n        ...(${entriesJson} as Array<{title:string;dirPath:string;url:string;urls:string[]}>).filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url, urls: new Set<string>(g.urls) })),\n      ],\n    },`;
-          })()
-        : `\n    sidebar: {\n      tabs: ${JSON.stringify([
-            { title: config.name, url: '/' },
-            ...rootGroups.map((g) => ({ title: g.title, url: g.url, urls: new Set(g.urls) })),
-          ])},\n    },`
+        ? generateI18nSidebarTabs(config, rootGroups, openapiTab)
+        : generateSingleSidebarTabs(config, rootGroups, openapiTab)
       : '';
 
   // i18n 模式下的组件签名和 baseOptions 调用
@@ -350,13 +397,20 @@ export default async function DocsLayoutWrapper({
   params: Promise<{ lang: string }>;
   children: ReactNode;
 }) {
-  const { lang } = await params;${
-    configDesc
-      ? `
+  const { lang } = await params;
+${
+  isOApi
+    ? `  const _omFirstApi = source.getPages(lang)?.find((p: any) => p.data?.type === 'openapi');
+  const _omApiUrl = _omFirstApi?.url ?? \`/\${lang}/openapi\`;
+`
+    : ''
+}${
+  configDesc
+    ? `
   const indexPage = source.getPage([], lang);
   const siteDescription = indexPage?.data.description ?? configDescription;`
-      : ''
-  }
+    : ''
+}
 
   const docsOptions = {
     ...baseOptions(lang),
@@ -377,7 +431,14 @@ export default async function DocsLayoutWrapper({
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';${
+    isOApi
+      ? `
+const _omFirstApi = source.getPages()?.find((p: any) => p.data?.type === 'openapi');
+const _omApiUrl = _omFirstApi?.url ?? '/openapi';
+`
+      : ''
+  }
 const docsOptions = {
   ...baseOptions(),
   ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}
@@ -391,6 +452,61 @@ export default function DocsLayoutWrapper({ children }: { children: ReactNode })
   );
 }
 `;
+}
+
+/**
+ * Generate i18n sidebar.tabs string.
+ * Extracted from generateDocsLayout to avoid deeply nested template literals
+ * that confuse the oxc parser when escaped backticks are involved.
+ */
+function generateI18nSidebarTabs(
+  config: OpenManualConfig,
+  rootGroups: GenerateContext['rootGroups'],
+  openapiTab: { title: string; url: string; urls: Set<string> } | null
+): string {
+  const entries = (rootGroups ?? []).map((g) => ({
+    title: g.title,
+    dirPath: g.dirPath,
+    url: g.url,
+    urls: g.urls,
+  }));
+  const entriesJson = JSON.stringify(entries);
+  const nameEscaped = config.name.replace(/'/g, "\\'");
+
+  const openapiTabLine = openapiTab
+    ? `,\n        { title: '${(openapiTab.title as string).replace(/'/g, "\\'")}', url: _omApiUrl, urls: new Set<string>() }`
+    : '';
+
+  // Build the generated code string piece by piece to keep each template literal shallow
+  const homeTab = `{ title: '${nameEscaped}', url: \`/\${lang}\` }`;
+  const mapExpr = `(${entriesJson} as Array<{title:string;dirPath:string;url:string;urls:string[]}>).filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url, urls: new Set<string>(g.urls) }))`;
+
+  return `\n    sidebar: {\n      tabs: [\n        ${homeTab},\n        ...${mapExpr}${openapiTabLine}\n      ],\n    },`;
+}
+
+/**
+ * Generate single-language (non-i18n) sidebar.tabs string.
+ * Uses template literal to preserve Set<string> for urls property.
+ */
+function generateSingleSidebarTabs(
+  config: OpenManualConfig,
+  rootGroups: GenerateContext['rootGroups'],
+  openapiTab: { title: string; url: string; urls: Set<string> } | null
+): string {
+  const nameEscaped = config.name.replace(/'/g, "\\'");
+  const groupEntries = (rootGroups ?? [])
+    .map((g) => {
+      const title = g.title.replace(/'/g, "\\'");
+      const urlsArr = JSON.stringify(g.urls);
+      return `{ title: '${title}', url: '${g.url}', urls: new Set(${urlsArr}) }`;
+    })
+    .join(',\n        ');
+
+  const openapiTabLine = openapiTab
+    ? `,\n        { title: '${(openapiTab.title as string).replace(/'/g, "\\'")}', url: _omApiUrl, urls: new Set<string>() }`
+    : '';
+
+  return `\n    sidebar: {\n      tabs: [\n        { title: '${nameEscaped}', url: '/' },${groupEntries ? '\n        ' + groupEntries : ''}${openapiTabLine}\n      ],\n    },`;
 }
 
 export function generateOpenManualLogoSvg(
