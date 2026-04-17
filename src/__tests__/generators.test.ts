@@ -874,6 +874,35 @@ describe('generateSearchRoute', () => {
     expect(result).not.toContain('_localeMap');
     expect(result).toMatch(/createFromSource\(source\)/);
   });
+
+  // 覆盖 search-route.ts 行68: 所有语言都不在 SUPPORTED_LOCALE_MAP 中时全走 {} 分支
+  it('should map all unsupported languages to empty object in localeMap', () => {
+    const result = generateSearchRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'ja', name: '日本語' },
+            { code: 'th', name: 'ไทย' },
+          ],
+        },
+      } as OpenManualConfig,
+    });
+
+    // 三种语言都不在支持列表 → 全部为 {}
+    expect(result).toContain('zh: {}');
+    expect(result).toContain('ja: {}');
+    expect(result).toContain('th: {}');
+    // 不应包含任何支持的语言名称
+    expect(result).not.toContain("'english'");
+    expect(result).not.toContain("'japanese'");
+    // 确认走的是 i18n 分支
+    expect(result).toContain('localeMap');
+    expect(result).toContain('_localeMap');
+  });
 });
 
 // ============================================================
@@ -1128,6 +1157,64 @@ describe('generateRawContentRoute - i18n modes', () => {
   it('dot parser route should embed _defaultLang constant with resolved value', () => {
     const result = generateRawContentRoute(i18nCtx);
     expect(result).toContain("_defaultLang = 'zh'");
+  });
+
+  // 覆盖 raw-content-route.ts 行10/45: defaultLanguage 和 locale 都未定义时回退到 'zh'
+  it('dir parser should fallback defaultLang to zh when neither defaultLanguage nor locale is set', () => {
+    const result = generateRawContentRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      } as OpenManualConfig,
+    });
+
+    // defaultLanguage undefined, locale undefined → ?? 'zh'
+    expect(result).toContain("_defaultLang = 'zh'");
+  });
+
+  it('dot parser should fallback defaultLang to zh when neither defaultLanguage nor locale is set', () => {
+    const result = generateRawContentRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as OpenManualConfig,
+    });
+
+    expect(result).toContain("_defaultLang = 'zh'");
+  });
+
+  // 覆盖 raw-content-route.ts 行10/45: 使用 locale 作为 defaultLang 回退
+  it('dir parser should use locale as defaultLang fallback when defaultLanguage is missing', () => {
+    const result = generateRawContentRoute({
+      config: {
+        name: 'Test',
+        locale: 'ja',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'ja', name: '日本語' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      } as OpenManualConfig,
+    });
+
+    // defaultLanguage undefined → 回退到 locale 'ja'
+    expect(result).toContain("_defaultLang = 'ja'");
   });
 });
 

@@ -508,4 +508,42 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     // 空目录时 URL 回退到 index
     expect(layoutContent).toContain('"url":"/zh/guide/index"');
   });
+
+  // ============================================================
+  // 用例：非 i18n 模式下 rootGroups 生成 sidebar.tabs（覆盖 index.ts:332）
+  // ============================================================
+
+  it('should generate non-i18n sidebar.tabs from rootGroups in single-language mode', async () => {
+    // 单语言模式（无 i18n 配置），使用 dot-parser 扫描 meta.json
+    await setupContent({
+      'guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig(), // 单语言模式，无 i18n 配置
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 非 i18n 模式：layout 输出到 app/[[...slug]]/layout.tsx
+    const layoutContent = await readFile(join(appDir, 'app/[[...slug]]/layout.tsx'), 'utf-8');
+
+    // 非i18n模式：tabs 为纯 JSON 数组（不含 ${lang} 模板字面量）
+    expect(layoutContent).toContain('"url":"/"');
+    expect(layoutContent).toContain('"title":"指南"');
+    // URL 使用文件路径导航（取自扫描到的第一个文件）
+    expect(layoutContent).toContain('"url":"/guide/configuration"');
+    // 非 i18n 分支：JSON.stringify 将 Set 序列化为 {}（非 i18n 特有的 new Set<string>(...) 模板）
+    // urls 在运行时是正确的 Set 对象，只是 JSON.stringify 无法序列化 Set 内容
+    expect(layoutContent).toContain('"urls":{}');
+    // 不应包含 i18n 特有的模板语法
+    expect(layoutContent).not.toContain('`${lang}`');
+    // 应包含 sidebar.tabs 结构（非 i18n 分支的关键特征）
+    expect(layoutContent).toContain('sidebar:');
+    expect(layoutContent).toContain('tabs:');
+  });
 });
