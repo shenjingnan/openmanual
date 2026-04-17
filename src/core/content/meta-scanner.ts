@@ -6,8 +6,10 @@ export interface MetaGroupInfo {
   filePath: string;
   /** Directory path relative to contentDir (e.g. "zh/guide" or "zh" for root) */
   dirPath: string;
-  /** Whether this is a root-level group (meta.json directly under {lang}/) */
+  /** Computed: whether this is a root-level group (meta.json directly under {lang}/), used for slug generation */
   isRoot: boolean;
+  /** From meta.json: whether Fumadocs should treat this as a root folder (Layout Tabs) */
+  root?: boolean;
   /** Parsed title from meta.json */
   title: string;
   /** Optional icon from meta.json */
@@ -99,6 +101,7 @@ async function parseMetaFile(
     };
 
     if (typeof data.icon === 'string') group.icon = data.icon;
+    if (typeof data.root === 'boolean') group.root = data.root;
     if (typeof data.defaultOpen === 'boolean') group.defaultOpen = data.defaultOpen;
     if (Array.isArray(data.pages)) {
       group.pages = (data.pages as string[]).filter((p) => typeof p === 'string');

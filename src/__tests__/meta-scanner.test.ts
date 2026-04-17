@@ -128,6 +128,54 @@ describe('meta-scanner', () => {
       const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
       expect(groups[0]?.pages).toEqual(['valid', 'also-valid']);
     });
+
+    it('should parse root: true from meta.json', async () => {
+      await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
+      await writeFile(
+        join(TMP_DIR, 'zh', 'guide', 'meta.json'),
+        JSON.stringify({ title: 'Guide', root: true })
+      );
+
+      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      expect(groups).toHaveLength(1);
+      expect(groups[0]?.root).toBe(true);
+    });
+
+    it('should parse root: false from meta.json', async () => {
+      await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
+      await writeFile(
+        join(TMP_DIR, 'zh', 'guide', 'meta.json'),
+        JSON.stringify({ title: 'Guide', root: false })
+      );
+
+      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      expect(groups).toHaveLength(1);
+      expect(groups[0]?.root).toBe(false);
+    });
+
+    it('should default root to undefined when not set', async () => {
+      await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
+      await writeFile(
+        join(TMP_DIR, 'zh', 'guide', 'meta.json'),
+        JSON.stringify({ title: 'Guide' })
+      );
+
+      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      expect(groups).toHaveLength(1);
+      expect(groups[0]?.root).toBeUndefined();
+    });
+
+    it('should ignore non-boolean root value', async () => {
+      await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
+      await writeFile(
+        join(TMP_DIR, 'zh', 'guide', 'meta.json'),
+        JSON.stringify({ title: 'Guide', root: 'yes' })
+      );
+
+      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      expect(groups).toHaveLength(1);
+      expect(groups[0]?.root).toBeUndefined();
+    });
   });
 
   describe('scanMetaFiles - dot-parser mode (single language)', () => {
@@ -270,6 +318,7 @@ interface MetaGroupInfo {
   filePath: string;
   dirPath: string;
   isRoot: boolean;
+  root?: boolean;
   title: string;
   icon?: string;
   defaultOpen?: boolean;

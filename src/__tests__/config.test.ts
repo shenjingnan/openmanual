@@ -485,6 +485,36 @@ describe('page tree builder', () => {
     // slug 'index'.replace(/\/index$/, '') = '' (空字符串, falsy) → || 'index'
     expect(folder?.slug).toBe('index');
   });
+
+  // 覆盖 tree.ts 行73: slug.replace(/\/index$/, '') 结果为空字符串时 || 回退到 'index'
+  // 构造 slug 为 '/index' 的人工数据，使 replace 返回 ''（而非 'index'）
+  it('should fallback to "index" when slug replace results in empty string', () => {
+    const files = [
+      {
+        filePath: '/test/somedir/index.mdx',
+        slug: '/index', // replace(/\/index$/, '') → '' (空字符串) → || 'index'
+        name: 'index',
+        frontmatter: { title: 'Index Page' },
+        content: '',
+        segments: ['somedir', 'index'],
+      },
+      {
+        filePath: '/test/somedir/other.mdx',
+        slug: 'somedir/other',
+        name: 'other',
+        frontmatter: { title: 'Other Page' },
+        content: '',
+        segments: ['somedir', 'other'],
+      },
+    ];
+
+    const tree = buildPageTree(files);
+    const folder = tree.find((item) => item.type === 'folder');
+    expect(folder).toBeDefined();
+    expect(folder?.index).toBe(true);
+    // '/index'.replace(/\/index$/, '') = '' → '' || 'index' = 'index'
+    expect(folder?.slug).toBe('index');
+  });
 });
 
 describe('generateSourceConfigContent', () => {
@@ -613,19 +643,54 @@ describe('content scanner - error handling', () => {
   it('should return null for unreadable files (catch block in parseContentFile)', async () => {
     await mkdir(contentTmpDir, { recursive: true });
     await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
-    // 创建一个不可读的文件（chmod 000 在 macOS 上需要权限，用符号链接到不存在目标替代）
+    // 创建一个不可读的文件（用符号链接到不存在目标触发 readFile 异常）
     const brokenPath = join(contentTmpDir, 'broken-symlink.md');
     const { symlink } = await import('node:fs/promises');
     try {
       await symlink('/nonexistent/target/file.md', brokenPath);
     } catch {
-      // 某些环境可能不支持符号链接，跳过此测试
+      // 符号链接不可用时跳过符号链接触发方式，但仍验证正常文件可扫描
+      const files = await scanContentDir(contentTmpDir);
+      expect(files).toHaveLength(1);
+      expect(files[0]?.name).toBe('good');
       return;
     }
     const files = await scanContentDir(contentTmpDir);
     // good.md 正常返回，broken-symlink.md 因 readFile 失败被跳过
     expect(files).toHaveLength(1);
     expect(files[0]?.name).toBe('good');
+  });
+
+  // 覆盖 scanner.ts 行59：使用 chmod 000 触发 parseContentFile 的 catch 块
+  it('should skip unreadable files via catch block in parseContentFile', async () => {
+    await mkdir(contentTmpDir, { recursive: true });
+    await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
+    const unreadablePath = join(contentTmpDir, 'unreadable.md');
+    await writeFile(unreadablePath, 'data');
+    // 移除所有权限使 readFile 抛出 EACCES 异常
+    const { chmod } = await import('node:fs/promises');
+    try {
+      await chmod(unreadablePath, 0o000);
+    } catch {
+      // 某些环境（如 Docker root 用户）可能无法限制权限，跳过此触发方式
+      const files = await scanContentDir(contentTmpDir);
+      expect(files.length).toBeGreaterThanOrEqual(1);
+      return;
+    }
+
+    try {
+      const files = await scanContentDir(contentTmpDir);
+      // good.md 正常返回，unreadable.md 因权限不足被跳过
+      expect(files).toHaveLength(1);
+      expect(files[0]?.name).toBe('good');
+    } finally {
+      // 恢复权限以便 afterEach 清理
+      try {
+        await chmod(unreadablePath, 0o644);
+      } catch {
+        /* ignore */
+      }
+    }
   });
 });
 

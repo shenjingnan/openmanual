@@ -25,7 +25,7 @@ const allowedSlugs = new Set<string>(${JSON.stringify([...allSlugs])});
 
 function isAllowed(slug: string[] | undefined): boolean {
   if (allowedSlugs.size === 0) return true;
-  const key = slug ? slug.join('/') : 'index';
+  const key = slug && slug.length > 0 ? slug.join('/') : 'index';
   return allowedSlugs.has(key);
 }
 `
@@ -122,9 +122,10 @@ function generatePageI18n(
     ? `
 const allowedSlugs = new Set<string>(${JSON.stringify([...allSlugs])});
 
-function isAllowed(slug: string[] | undefined): boolean {
+function isAllowed(slug: string[] | undefined, lang?: string): boolean {
   if (allowedSlugs.size === 0) return true;
-  const key = slug ? slug.join('/') : 'index';
+  const rawKey = slug && slug.length > 0 ? slug.join('/') : 'index';
+  const key = lang ? \`\${lang}/\${rawKey}\` : rawKey;
   return allowedSlugs.has(key);
 }
 `
@@ -132,7 +133,7 @@ function isAllowed(slug: string[] | undefined): boolean {
 
   const filterInPage = isStrict
     ? `
-  if (!isAllowed(slug)) {
+  if (!isAllowed(slug, lang)) {
     notFound();
   }
 `
@@ -142,7 +143,7 @@ function isAllowed(slug: string[] | undefined): boolean {
     ? `
 export function generateStaticParams() {
   let params = source.generateParams();
-  params = params.filter((p: { slug: string[]; lang: string }) => isAllowed(p.slug));
+  params = params.filter((p: { slug: string[]; lang: string }) => isAllowed(p.slug, p.lang));
   // Ensure every language has a homepage entry (slug: [])
   const languages = [...new Set(params.map((p: { lang: string }) => p.lang))];
   for (const lang of languages) {

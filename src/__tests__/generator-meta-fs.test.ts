@@ -371,4 +371,179 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     expect(guideMeta.title).toBe('Guide');
     expect(guideMeta.pages).toEqual(['config']);
   });
+
+  // ============================================================
+  // 用例：rootGroups Tab URL 使用文件路径导航 + urls Set 匹配全组页面
+  // ============================================================
+
+  it('should use file-path URL for navigation and urls Set for group-wide matching', async () => {
+    // 模拟当前项目的实际结构：meta.json 只有 title 和 root，没有 pages
+    // 注意：i18n 模式需要至少 2 个语言才能启用
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'zh/guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'zh/guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'zh/advanced/meta.json': JSON.stringify({ title: '进阶', root: true }),
+      'zh/advanced/mdx.mdx': '---\ntitle: MDX\n---\n# MDX',
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 验证生成的 layout.tsx 中 sidebar.tabs 配置
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // "指南" tab URL 应为文件路径（用于导航到实际页面）
+    expect(layoutContent).toContain('"url":"/zh/guide/configuration"');
+
+    // urls Set 应包含该分组下所有页面（用于 isLayoutTabActive 匹配）
+    expect(layoutContent).toContain('"/zh/guide/configuration"');
+    expect(layoutContent).toContain('"/zh/guide/deployment"');
+
+    // "进阶" tab URL 应为文件路径
+    expect(layoutContent).toContain('"url":"/zh/advanced/mdx"');
+    expect(layoutContent).toContain('"/zh/advanced/mdx"');
+
+    // 应包含 urls Set 构造
+    expect(layoutContent).toContain('new Set<string>');
+  });
+
+  // ============================================================
+  // 用例：rootGroups Tab URL 使用 pages[0] 作为导航目标
+  // ============================================================
+
+  it('should use pages[0] as tab URL when explicitly configured in meta.json', async () => {
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({
+        title: '指南',
+        root: true,
+        pages: ['deployment'],
+      }),
+      'zh/guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'zh/guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // URL 应使用 meta.json 中配置的 pages[0]
+    expect(layoutContent).toContain('"url":"/zh/guide/deployment"');
+
+    // urls Set 仍应包含该分组所有扫描到的页面
+    expect(layoutContent).toContain('"/zh/guide/configuration"');
+    expect(layoutContent).toContain('"/zh/guide/deployment"');
+  });
+
+  // ============================================================
+  // 用例：rootGroups 空目录回退到 index
+  // ============================================================
+
+  it('should fallback to index as tab URL when directory has no scanned files', async () => {
+    // meta.json 有 root:true 且无 pages，目录下无任何 mdx 文件
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // 空目录时 URL 回退到 index
+    expect(layoutContent).toContain('"url":"/zh/guide/index"');
+  });
+
+  // ============================================================
+  // 用例：非 i18n 模式下 rootGroups 生成 sidebar.tabs（覆盖 index.ts:332）
+  // ============================================================
+
+  it('should generate non-i18n sidebar.tabs from rootGroups in single-language mode', async () => {
+    // 单语言模式（无 i18n 配置），使用 dot-parser 扫描 meta.json
+    await setupContent({
+      'guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      'guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
+      'guide/deployment.mdx': '---\ntitle: Deployment\n---\n# Deploy',
+      'index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig(), // 单语言模式，无 i18n 配置
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 非 i18n 模式：layout 输出到 app/[[...slug]]/layout.tsx
+    const layoutContent = await readFile(join(appDir, 'app/[[...slug]]/layout.tsx'), 'utf-8');
+
+    // 非i18n模式：tabs 为纯 JSON 数组（不含 ${lang} 模板字面量）
+    expect(layoutContent).toContain('"url":"/"');
+    expect(layoutContent).toContain('"title":"指南"');
+    // URL 使用文件路径导航（取自扫描到的第一个文件）
+    expect(layoutContent).toContain('"url":"/guide/configuration"');
+    // 非 i18n 分支：JSON.stringify 将 Set 序列化为 {}（非 i18n 特有的 new Set<string>(...) 模板）
+    // urls 在运行时是正确的 Set 对象，只是 JSON.stringify 无法序列化 Set 内容
+    expect(layoutContent).toContain('"urls":{}');
+    // 不应包含 i18n 特有的模板语法
+    expect(layoutContent).not.toContain('`${lang}`');
+    // 应包含 sidebar.tabs 结构（非 i18n 分支的关键特征）
+    expect(layoutContent).toContain('sidebar:');
+    expect(layoutContent).toContain('tabs:');
+  });
 });
