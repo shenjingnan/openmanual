@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { OpenManualConfig } from '../config/schema.js';
+import { isOpenApiEnabled } from '../config/schema.js';
 
 declare const __VERSION__: string | undefined;
 
@@ -58,6 +59,12 @@ export function generatePackageJson(ctx: {
       'react-dom': '^19.1.0',
       tailwindcss: '^4.1.15',
       zod: '^4.0.0',
+      ...(isOpenApiEnabled(ctx.config)
+        ? {
+            'fumadocs-openapi': '^10.7.1',
+            shiki: '^3.0.0',
+          }
+        : {}),
     },
     devDependencies: {
       '@types/react': '^19.1.0',

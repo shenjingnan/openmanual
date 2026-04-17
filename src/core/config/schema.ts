@@ -65,6 +65,13 @@ export const I18nConfigSchema = z.object({
   parser: z.enum(['dot', 'dir']).optional(),
 });
 
+export const OpenApiSchema = z.object({
+  /** OpenAPI 规范文件路径，相对于项目根目录。支持 .json / .yaml / .yml */
+  specPath: z.string(),
+  /** 侧边栏 Tab 显示名称，默认 "接口文档" */
+  label: z.string().optional(),
+});
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -83,6 +90,7 @@ export const OpenManualConfigSchema = z.object({
   mdx: MdxSchema.optional(),
   pageActions: PageActionsSchema.optional(),
   i18n: I18nConfigSchema.optional(),
+  openapi: OpenApiSchema.optional(),
 });
 
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;
@@ -95,6 +103,7 @@ export type LogoConfig = z.infer<typeof LogoSchema>;
 export type FaviconConfig = z.infer<typeof FaviconSchema>;
 export type I18nLocale = z.infer<typeof I18nLocaleSchema>;
 export type I18nConfig = z.infer<typeof I18nConfigSchema>;
+export type OpenApiConfig = z.infer<typeof OpenApiSchema>;
 
 // @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
@@ -119,4 +128,8 @@ export function isI18nEnabled(config: OpenManualConfig): boolean {
 
 export function isDirParser(config: OpenManualConfig): boolean {
   return config.i18n?.parser === 'dir';
+}
+
+export function isOpenApiEnabled(config: OpenManualConfig): boolean {
+  return config.openapi !== undefined && typeof config.openapi?.specPath === 'string';
 }

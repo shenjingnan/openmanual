@@ -993,3 +993,118 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.defaultLanguage).toBe('zh');
   });
 });
+
+// ============================================================
+// mergeDefaults — OpenAPI 合并逻辑（覆盖 loader.ts:91-94）
+// ============================================================
+
+describe('loadConfig - mergeDefaults openapi', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-openapi');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should default openapi.label to 接口文档 when label not provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        openapi: { specPath: 'openapi.yaml' }, // 无 label 字段
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi).toBeDefined();
+    expect(config.openapi?.specPath).toBe('openapi.yaml');
+    expect(config.openapi?.label).toBe('接口文档'); // 默认 label
+  });
+
+  it('should preserve custom openapi.label when provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'TestProject',
+        openapi: { specPath: 'openapi.yaml', label: 'Custom API Docs' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.label).toBe('Custom API Docs');
+  });
+
+  it('should set openapi to undefined when not configured', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi).toBeUndefined();
+  });
+});
+
+// ============================================================
+// mergeDefaults — contentDir / outputDir / locale 三级 fallback 验证
+// 覆盖 loader.ts:54-56
+// ============================================================
+
+describe('loadConfig - field fallback defaults', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-fallback');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should fallback contentDir to content when omitted', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.contentDir).toBe('content');
+  });
+
+  it('should use provided contentDir over default', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', contentDir: 'custom-docs' })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.contentDir).toBe('custom-docs');
+  });
+
+  it('should fallback outputDir to dist when omitted', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.outputDir).toBe('dist');
+  });
+
+  it('should use provided outputDir over default', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', outputDir: 'out' })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.outputDir).toBe('out');
+  });
+
+  it('should fallback locale to zh when omitted', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.locale).toBe('zh');
+  });
+
+  it('should use provided locale over default', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T', locale: 'en' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.locale).toBe('en');
+  });
+
+  it('should fallback contentPolicy to strict when omitted', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.contentPolicy).toBe('strict');
+  });
+});

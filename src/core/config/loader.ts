@@ -88,5 +88,11 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
           parser: config.i18n.parser ?? 'dot',
         }
       : undefined,
+    openapi: config.openapi
+      ? {
+          specPath: config.openapi.specPath,
+          label: config.openapi.label ?? '接口文档',
+        }
+      : undefined,
   };
 }

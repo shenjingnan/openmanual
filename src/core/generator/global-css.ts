@@ -1,9 +1,11 @@
 import type { OpenManualConfig } from '../config/schema.js';
+import { isOpenApiEnabled } from '../config/schema.js';
 
 export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
   const primaryHue = config.theme?.primaryHue ?? 213;
   const darkMode = config.theme?.darkMode ?? true;
+  const isOApi = isOpenApiEnabled(config);
 
   const darkBlock = darkMode
     ? `
@@ -59,9 +61,11 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 `
     : '';
 
+  const openapiCssImport = isOApi ? "\n@import 'fumadocs-openapi/css/preset.css';" : '';
+
   return `@import 'tailwindcss';
 @source './node_modules/openmanual/dist/components/**/*.js';
-@import 'fumadocs-ui/style.css';
+@import 'fumadocs-ui/style.css';${openapiCssImport}
 @custom-variant dark (&:is(.dark, .dark *));
 
 :root {
