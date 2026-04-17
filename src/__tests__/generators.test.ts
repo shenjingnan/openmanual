@@ -1618,3 +1618,132 @@ describe('generatePage - with openapi (i18n mode)', () => {
     expect(result).toContain("slug?.[0] === 'openapi'");
   });
 });
+
+// ============================================================
+// generateLibSource — i18n + OpenAPI 组合模式（覆盖 lib-source.ts:10-38）
+// ============================================================
+
+describe('generateLibSource - i18n + openapi combined mode', () => {
+  const openapiI18nCtx: { config: OpenManualConfig; projectDir: string } = {
+    config: {
+      name: 'TestI18nAPI',
+      i18n: {
+        enabled: true,
+        defaultLanguage: 'zh',
+        languages: [
+          { code: 'zh', name: '中文' },
+          { code: 'en', name: 'English' },
+        ],
+        parser: 'dot',
+      },
+      openapi: { specPath: 'openapi.yaml' },
+    },
+    projectDir: '/tmp/test',
+  };
+
+  it('should import openapiPlugin, openapiSource, and i18n in combined mode', () => {
+    const result = generateLibSource(openapiI18nCtx);
+    expect(result).toContain(
+      "import { openapiPlugin, openapiSource } from 'fumadocs-openapi/server'"
+    );
+    expect(result).toContain("import { i18n } from '@/lib/i18n'");
+    expect(result).toContain("import { loader, multiple } from 'fumadocs-core/source'");
+  });
+
+  it('should generate for..of loop over i18n.languages with baseDir template', () => {
+    const result = generateLibSource(openapiI18nCtx);
+    expect(result).toContain('for (const lang of i18n.languages)');
+    expect(result).toContain('`${lang}/openapi`');
+    expect(result).toContain('_omOpenApiFiles.push(...result.files)');
+  });
+
+  it('should include both docs and openapi in multiple() source', () => {
+    const result = generateLibSource(openapiI18nCtx);
+    expect(result).toContain('docs: docs.toFumadocsSource()');
+    expect(result).toContain('openapi: { files: _omOpenApiFiles }');
+  });
+
+  it('should include i18n and openapiPlugin in loader options', () => {
+    const result = generateLibSource(openapiI18nCtx);
+    expect(result).toContain('i18n,');
+    expect(result).toContain('plugins: [openapiPlugin()]');
+  });
+
+  it('should differ from single-language openapi output (no i18n imports)', () => {
+    const combinedResult = generateLibSource(openapiI18nCtx);
+    const singleResult = generateLibSource(openapiCtx);
+    // Combined has i18n import; single does not
+    expect(combinedResult).toContain("import { i18n } from '@/lib/i18n'");
+    expect(singleResult).not.toContain("import { i18n } from '@/lib/i18n'");
+    // Combined has for..of loop; single does not
+    expect(combinedResult).toContain('for (const lang of i18n.languages)');
+    expect(singleResult).not.toContain('for (const lang of i18n.languages)');
+    // Single uses direct openapiSource call; combined uses loop
+    expect(singleResult).toContain("baseDir: 'openapi'");
+    expect(combinedResult).not.toContain("baseDir: 'openapi'");
+  });
+});
+
+// ============================================================
+// generateOpenApiLib — 边界场景（覆盖 openapi.ts:16 的 ?? '' 回退）
+// ============================================================
+
+describe('generateOpenApiLib - edge cases', () => {
+  it('should use empty string fallback when specPath is empty string', () => {
+    // specPath 为空字符串时，typeof 检查通过，?? '' 不触发但 join 结果为 projectDir 本身
+    const ctx = {
+      config: { name: 'Test', openapi: { specPath: '' } } as OpenManualConfig,
+      projectDir: '/tmp/project',
+    };
+    expect(isOpenApiEnabled(ctx.config)).toBe(true);
+    const result = generateOpenApiLib(ctx);
+    expect(result).not.toBeNull();
+    if (result) {
+      // join('/tmp/project', '') = '/tmp/project'
+      expect(result).toContain("input: ['/tmp/project']");
+    }
+  });
+
+  it('should return null when openapi exists but specPath is not a string (isOpenApiEnabled guard)', () => {
+    // 当 specPath 为 undefined 时，isOpenApiEnabled 返回 false
+    // generateOpenApiLib 在第一行就返回 null，不会到达 ?? '' 分支
+    // 这验证了防御性守卫的正确性
+    const ctx = {
+      config: {
+        name: 'T',
+        openapi: { specPath: undefined as unknown as string },
+      } as OpenManualConfig,
+      projectDir: '/tmp/p',
+    };
+    expect(isOpenApiEnabled(ctx.config)).toBe(false);
+    const result = generateOpenApiLib(ctx);
+    expect(result).toBeNull();
+  });
+});
+
+// ============================================================
+// generateGlobalCss — openapi + darkMode false 组合
+// ============================================================
+
+describe('generateGlobalCss - openapi + darkMode false combined', () => {
+  it('should include openapi CSS but exclude dark block when darkMode false with openapi', () => {
+    const ctx = {
+      config: { ...openapiConfig, theme: { darkMode: false } },
+    };
+    const result = generateGlobalCss(ctx);
+    expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
+    expect(result).not.toContain('.dark {');
+    expect(result).toContain("@import 'tailwindcss'");
+    expect(result).toContain("@import 'fumadocs-ui/style.css'");
+  });
+
+  it('should include openapi CSS with custom primaryHue when darkMode false', () => {
+    const ctx = {
+      config: { ...openapiConfig, theme: { primaryHue: 200, darkMode: false } },
+    };
+    const result = generateGlobalCss(ctx);
+    expect(result).toContain('--primary-hue: 200');
+    expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
+    expect(result).not.toContain('.dark {');
+  });
+});

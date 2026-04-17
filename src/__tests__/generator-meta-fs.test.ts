@@ -546,3 +546,183 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     expect(layoutContent).toContain('tabs:');
   });
 });
+
+// ============================================================
+// OpenAPI 集成测试 — 覆盖 index.ts 中的 OpenAPI 校验和文件生成逻辑
+// ============================================================
+
+describe('generateAll - openapi integration', () => {
+  let projectDir: string;
+  let appDir: string;
+
+  beforeEach(async () => {
+    await rm(TMP_DIR, { recursive: true, force: true });
+    await mkdir(TMP_DIR, { recursive: true });
+    projectDir = TMP_DIR;
+    appDir = join(TMP_DIR, '.cache', 'app');
+  });
+
+  afterEach(async () => {
+    await rm(TMP_DIR, { recursive: true, force: true });
+  });
+
+  // ============================================================
+  // 用例：OpenAPI 启用且 spec 文件有效 → 生成 openapi 相关文件
+  // 覆盖 index.ts:90-98（openapiFiles 推入和写入）
+  // ============================================================
+
+  it('should generate openapi lib and component files when openapi enabled', async () => {
+    // 创建有效的 OpenAPI 规范文件
+    await mkdir(join(projectDir, 'content'), { recursive: true });
+    await writeFile(
+      join(projectDir, 'openapi.yaml'),
+      `openapi: "3.0.0"
+info:
+  title: Test API
+  version: "1.0"
+paths:
+  /users:
+    get:
+      summary: List users
+      responses:
+        "200":
+          description: Success`
+    );
+    await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
+
+    await generateAll({
+      config: baseConfig({
+        openapi: { specPath: 'openapi.yaml' },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 验证 lib/openapi.ts 生成
+    const openapiLib = await readFile(join(appDir, 'lib', 'openapi.ts'), 'utf-8');
+    expect(openapiLib).toContain("import { createOpenAPI } from 'fumadocs-openapi/server'");
+    expect(openapiLib).toContain('export const openapi = createOpenAPI({');
+    // 应包含绝对路径到 spec 文件
+    expect(openapiLib).toContain(join(projectDir, 'openapi.yaml'));
+
+    // 验证 components/api-page.client.tsx 生成
+    const clientComp = await readFile(join(appDir, 'components', 'api-page.client.tsx'), 'utf-8');
+    expect(clientComp).toContain("'use client'");
+    expect(clientComp).toContain('defineClientConfig');
+
+    // 验证 components/api-page.tsx 生成
+    const pageComp = await readFile(join(appDir, 'components', 'api-page.tsx'), 'utf-8');
+    expect(pageComp).toContain('createAPIPage');
+    expect(pageComp).toContain("from '@/lib/openapi'");
+  });
+
+  // ============================================================
+  // 用例：OpenAPI spec 格式不支持时抛出错误
+  // 覆盖 index.ts:65-68（不支持的扩展名检查）
+  // ============================================================
+
+  it('should throw error for unsupported openapi spec format', async () => {
+    await mkdir(join(projectDir, 'content'), { recursive: true });
+    // 创建 .txt 文件作为 spec（不被支持的扩展名）
+    await writeFile(join(projectDir, 'spec.txt'), 'not a valid spec');
+    await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
+
+    await expect(
+      generateAll({
+        config: baseConfig({
+          openapi: { specPath: 'spec.txt' },
+        }),
+        projectDir,
+        appDir,
+        contentDir: 'content',
+      })
+    ).rejects.toThrow('[openapi] 不支持的 OpenAPI 规范文件格式: ".txt"');
+  });
+
+  // ============================================================
+  // 用例：OpenAPI spec 文件不存在时抛出错误
+  // 覆盖 index.ts:71-78（文件存在性检查）
+  // ============================================================
+
+  it('should throw error when openapi spec file does not exist', async () => {
+    await mkdir(join(projectDir, 'content'), { recursive: true });
+    await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
+
+    await expect(
+      generateAll({
+        config: baseConfig({
+          openapi: { specPath: 'nonexistent.yaml' },
+        }),
+        projectDir,
+        appDir,
+        contentDir: 'content',
+      })
+    ).rejects.toThrow('[openapi] OpenAPI 规范文件不存在: "nonexistent.yaml"');
+  });
+
+  // ============================================================
+  // 用例：i18n + OpenAPI 组合模式集成测试
+  // 覆盖 index.ts 中 i18n 分支内的 openapi 文件生成 + lib-source.ts 组合输出
+  // ============================================================
+
+  it('should generate correct files for i18n + openapi combined mode', async () => {
+    // 创建有效的 OpenAPI 规范文件
+    await writeFile(
+      join(projectDir, 'openapi.yaml'),
+      `openapi: "3.0.0"
+info:
+  title: Test API
+  version: "1.0"
+paths:
+  /test:
+    get:
+      summary: Test
+      responses:
+        "200":
+          description: OK`
+    );
+
+    // 创建内容文件
+    await mkdir(join(projectDir, 'content'), { recursive: true });
+    await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+          parser: 'dir',
+        },
+        openapi: { specPath: 'openapi.yaml' },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 验证 openapi 文件在 i18n 模式下也正确生成
+    const openapiLib = await readFile(join(appDir, 'lib', 'openapi.ts'), 'utf-8');
+    expect(openapiLib).toContain('createOpenAPI');
+
+    // 验证 source.ts 包含 i18n+openapi 组合输出（for 循环 + openapiPlugin）
+    const sourceContent = await readFile(join(appDir, 'lib', 'source.ts'), 'utf-8');
+    expect(sourceContent).toContain('for (const lang of i18n.languages');
+    expect(sourceContent).toContain('openapiPlugin');
+
+    // 验证 i18n 核心文件仍然正常生成
+    const i18nContent = await readFile(join(appDir, 'lib', 'i18n.ts'), 'utf-8');
+    expect(i18nContent).toContain('defineI18n');
+
+    // 验证 layout 包含 openapi tab 注入（_omApiUrl 变量）
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+    expect(layoutContent).toContain('_omApiUrl');
+  });
+});
