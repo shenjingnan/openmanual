@@ -6,8 +6,11 @@ import {
   collectConfiguredSlugs,
   isDirParser,
   isI18nEnabled,
+  isOpenApiEnabled,
+  isSeparateTabMode,
   type OpenManualConfig,
   OpenManualConfigSchema,
+  resolveOpenApiSpecPaths,
 } from '../core/config/schema.js';
 import { getContentTree, scanContentDir } from '../core/content/scanner.js';
 import { buildPageTree, generateSourceConfigContent } from '../core/content/tree.js';
@@ -1106,5 +1109,202 @@ describe('loadConfig - field fallback defaults', () => {
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
     const config = await loadConfig(tmpDir);
     expect(config.contentPolicy).toBe('strict');
+  });
+});
+
+// ============================================================
+// resolveOpenApiSpecPaths — 覆盖 schema.ts:174-192
+// ============================================================
+
+describe('resolveOpenApiSpecPaths', () => {
+  it('should return empty array when openapi is undefined', () => {
+    expect(resolveOpenApiSpecPaths({ name: 'Test' })).toEqual([]);
+  });
+
+  it('should return empty array when openapi has no specs or specPath', () => {
+    expect(resolveOpenApiSpecPaths({ name: 'Test', openapi: {} as any })).toEqual([]);
+  });
+
+  it('should return single path from specPath (legacy format)', () => {
+    const config = { name: 'T', openapi: { specPath: 'openapi.yaml' } as any };
+    expect(resolveOpenApiSpecPaths(config)).toEqual(['openapi.yaml']);
+  });
+
+  it('should return array with single string from specs (new format)', () => {
+    const config = { name: 'T', openapi: { specs: 'api-spec.yaml' } as any };
+    expect(resolveOpenApiSpecPaths(config)).toEqual(['api-spec.yaml']);
+  });
+
+  it('should return paths from specs array (multi-file new format)', () => {
+    const config = {
+      name: 'T',
+      openapi: {
+        specs: [
+          { path: 'core-api.yaml', group: 'Core' },
+          { path: 'admin-api.yaml', group: 'Admin' },
+        ],
+      } as any,
+    };
+    expect(resolveOpenApiSpecPaths(config)).toEqual(['core-api.yaml', 'admin-api.yaml']);
+  });
+
+  it('should prefer specs over specPath when both present', () => {
+    const config = {
+      name: 'T',
+      openapi: { specPath: 'old.yaml', specs: 'new.yaml' } as any,
+    };
+    expect(resolveOpenApiSpecPaths(config)).toEqual(['new.yaml']);
+  });
+
+  it('should return empty array for empty specs array', () => {
+    const config = { name: 'T', openapi: { specs: [] } as any };
+    // Zod schema allows empty array; map returns []
+    expect(resolveOpenApiSpecPaths(config)).toEqual([]);
+  });
+});
+
+// ============================================================
+// isOpenApiEnabled — 新增 specs 格式覆盖
+// ============================================================
+
+describe('isOpenApiEnabled - new specs format', () => {
+  it('should return true when specs is a non-empty string', () => {
+    expect(isOpenApiEnabled({ name: 'T', openapi: { specs: 'spec.yaml' } as any })).toBe(true);
+  });
+
+  it('should return true when specs is a non-empty array', () => {
+    expect(
+      isOpenApiEnabled({
+        name: 'T',
+        openapi: { specs: [{ path: 'a.yaml' }, { path: 'b.yaml' }] } as any,
+      })
+    ).toBe(true);
+  });
+
+  it('should return false when specPath is null', () => {
+    expect(isOpenApiEnabled({ name: 'T', openapi: { specPath: null as any } as any })).toBe(false);
+  });
+
+  it('should return false when openapi object has no valid spec fields', () => {
+    expect(isOpenApiEnabled({ name: 'T', openapi: { label: 'API' } as any })).toBe(false);
+  });
+});
+
+// ============================================================
+// isSeparateTabMode — 覆盖 schema.ts:197-199
+// ============================================================
+
+describe('isSeparateTabMode', () => {
+  it('should return true when separateTab is true', () => {
+    expect(
+      isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml', separateTab: true } as any })
+    ).toBe(true);
+  });
+
+  it('should return false when separateTab is false', () => {
+    expect(
+      isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml', separateTab: false } as any })
+    ).toBe(false);
+  });
+
+  it('should return false when separateTab is undefined (default)', () => {
+    expect(isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml' } as any })).toBe(false);
+  });
+
+  it('should return false when openapi is undefined', () => {
+    expect(isSeparateTabMode({ name: 'T' })).toBe(false);
+  });
+});
+
+// ============================================================
+// mergeDefaults — OpenAPI 新字段默认值（groupBy, separateTab, specs）
+// 覆盖 loader.ts:96-97
+// ============================================================
+
+describe('loadConfig - mergeDefaults openapi new fields', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-openapi-new');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should default groupBy to tag when not provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specPath: 'a.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.groupBy).toBe('tag');
+  });
+
+  it('should default separateTab to false when not provided', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specPath: 'a.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.separateTab).toBe(false);
+  });
+
+  it('should preserve provided groupBy value', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specPath: 'a.yaml', groupBy: 'route' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.groupBy).toBe('route');
+  });
+
+  it('should preserve provided separateTab value', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specPath: 'a.yaml', separateTab: true } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.separateTab).toBe(true);
+  });
+
+  it('should pass through specs field when provided as string', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specs: 'my-spec.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.specs).toBe('my-spec.yaml');
+  });
+
+  it('should pass through specs field when provided as array', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'T',
+        openapi: { specs: [{ path: 'a.yaml', group: 'A' }, { path: 'b.yaml' }] },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(Array.isArray(config.openapi?.specs)).toBe(true);
+    expect((config.openapi?.specs as Array<any>).length).toBe(2);
+  });
+
+  it('should merge all openapi defaults together correctly', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'T', openapi: { specPath: 'spec.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi).toEqual({
+      specPath: 'spec.yaml',
+      specs: undefined,
+      label: '接口文档',
+      groupBy: 'tag',
+      separateTab: false,
+    });
   });
 });
