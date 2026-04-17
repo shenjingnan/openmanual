@@ -91,7 +91,10 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
     openapi: config.openapi
       ? {
           specPath: config.openapi.specPath,
+          specs: config.openapi.specs,
           label: config.openapi.label ?? '接口文档',
+          groupBy: config.openapi.groupBy ?? 'tag',
+          separateTab: config.openapi.separateTab ?? false,
         }
       : undefined,
   };

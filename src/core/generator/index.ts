@@ -1,7 +1,13 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
-import { isDirParser, isI18nEnabled, isOpenApiEnabled } from '../config/schema.js';
+import {
+  isDirParser,
+  isI18nEnabled,
+  isOpenApiEnabled,
+  isSeparateTabMode,
+  resolveOpenApiSpecPaths,
+} from '../config/schema.js';
 import {
   collectSlugsFromMeta,
   type MetaGroupInfo,
@@ -58,23 +64,27 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   if (isOpenApiEnabled(ctx.config)) {
     const { access } = await import('node:fs/promises');
     const { extname, join } = await import('node:path');
-    const specPath = join(ctx.projectDir, ctx.config.openapi?.specPath ?? '');
     const supportedExts = ['.json', '.yaml', '.yml'];
-    const ext = extname(specPath).toLowerCase();
+    const specPaths = resolveOpenApiSpecPaths(ctx.config);
 
-    if (!supportedExts.includes(ext)) {
-      throw new Error(
-        `[openapi] 不支持的 OpenAPI 规范文件格式: "${ext}"。支持的格式: ${supportedExts.join(', ')}`
-      );
-    }
+    for (const specPath of specPaths) {
+      const absolutePath = join(ctx.projectDir, specPath);
+      const ext = extname(absolutePath).toLowerCase();
 
-    try {
-      await access(specPath);
-    } catch {
-      throw new Error(
-        `[openapi] OpenAPI 规范文件不存在: "${ctx.config.openapi?.specPath}"。` +
-          `请确认 "openapi.specPath" 在 openmanual.json 中配置的路径正确。`
-      );
+      if (!supportedExts.includes(ext)) {
+        throw new Error(
+          `[openapi] 不支持的 OpenAPI 规范文件格式: "${ext}"（文件: ${specPath}）。支持的格式: ${supportedExts.join(', ')}`
+        );
+      }
+
+      try {
+        await access(absolutePath);
+      } catch {
+        throw new Error(
+          `[openapi] OpenAPI 规范文件不存在: "${specPath}"。` +
+            `请确认 "openapi.specs" 或 "openapi.specPath" 在 openmanual.json 中配置的路径正确。`
+        );
+      }
     }
   }
 
@@ -364,8 +374,9 @@ function generateDocsLayout(ctx: GenerateContext): string {
 
   // Generate explicit sidebar.tabs from root groups so Layout Tabs are visible on all pages (including homepage).
   // Tab URLs use directory paths so isActive() prefix matching covers all pages in the group.
-  // OpenAPI Tab 注入（与 LayoutTab 类型保持一致的结构）
-  const openapiTab = isOpenApiEnabled(config)
+  // OpenAPI Tab 注入（仅在 separateTab 模式下注入独立 Tab；否则 API 页面混合到文档树中）
+  const separateTab = isOpenApiEnabled(config) && isSeparateTabMode(config);
+  const openapiTab = separateTab
     ? {
         title: config.openapi?.label ?? '接口文档',
         url: isI18n ? '/${lang}/openapi' : '/openapi',
@@ -399,7 +410,7 @@ export default async function DocsLayoutWrapper({
 }) {
   const { lang } = await params;
 ${
-  isOApi
+  isOApi && separateTab
     ? `  const _omFirstApi = source.getPages(lang)?.find((p: any) => p.data?.type === 'openapi');
   const _omApiUrl = _omFirstApi?.url ?? \`/\${lang}/openapi\`;
 `
@@ -432,7 +443,7 @@ ${
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
 import type { ReactNode } from 'react';${
-    isOApi
+    isOApi && separateTab
       ? `
 const _omFirstApi = source.getPages()?.find((p: any) => p.data?.type === 'openapi');
 const _omApiUrl = _omFirstApi?.url ?? '/openapi';

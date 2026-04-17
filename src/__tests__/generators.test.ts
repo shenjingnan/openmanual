@@ -1370,12 +1370,17 @@ describe('generateProvider - i18n mode', () => {
 
 const openapiConfig: OpenManualConfig = {
   name: 'TestAPI',
-  openapi: { specPath: 'openapi.yaml' },
+  openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
 };
 
 const openapiConfigCustomLabel: OpenManualConfig = {
   name: 'TestAPI',
-  openapi: { specPath: 'docs/openapi.json', label: 'API Reference' },
+  openapi: {
+    specPath: 'docs/openapi.json',
+    label: 'API Reference',
+    groupBy: 'tag',
+    separateTab: false,
+  },
 };
 
 const openapiCtx = { config: openapiConfig, projectDir: '/tmp/test' };
@@ -1491,7 +1496,9 @@ describe('generateLibSource - with openapi', () => {
     );
     expect(result).toContain('multiple({');
     expect(result).toContain('openapiSource(openapi,');
-    expect(result).toContain("baseDir: 'openapi'");
+    expect(result).toContain("baseDir: 'api'");
+    expect(result).toContain('meta: true');
+    expect(result).toContain("groupBy: 'tag'");
     expect(result).toContain('plugins: [openapiPlugin()]');
   });
 
@@ -1589,7 +1596,7 @@ describe('generatePage - with openapi (i18n mode)', () => {
         ],
         parser: 'dot',
       },
-      openapi: { specPath: 'openapi.yaml' },
+      openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
     projectDir: '/tmp/test',
   };
@@ -1636,7 +1643,7 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
         ],
         parser: 'dot',
       },
-      openapi: { specPath: 'openapi.yaml' },
+      openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
     projectDir: '/tmp/test',
   };
@@ -1653,7 +1660,8 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
   it('should generate for..of loop over i18n.languages with baseDir template', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain('for (const lang of i18n.languages)');
-    expect(result).toContain('`${lang}/openapi`');
+    expect(result).toContain('`${lang}/api`');
+    expect(result).toContain('meta: true');
     expect(result).toContain('_omOpenApiFiles.push(...result.files)');
   });
 
@@ -1679,7 +1687,8 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
     expect(combinedResult).toContain('for (const lang of i18n.languages)');
     expect(singleResult).not.toContain('for (const lang of i18n.languages)');
     // Single uses direct openapiSource call; combined uses loop
-    expect(singleResult).toContain("baseDir: 'openapi'");
+    expect(singleResult).toContain("baseDir: 'api'");
+    expect(singleResult).toContain('meta: true');
     expect(combinedResult).not.toContain("baseDir: 'openapi'");
   });
 });
