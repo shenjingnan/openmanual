@@ -9,6 +9,10 @@ info:
 servers:
   - url: https://api.caiyunapp.com
 
+tags:
+  - name: weather
+    description: 天气相关接口
+
 paths:
   /v2.6/{appKey}/{location}/weather:
     get:
@@ -16,7 +20,7 @@ paths:
       summary: 实时天气查询
       description: 查询指定位置的实时天气、小时级预报、每日预报等完整天气信息
       tags:
-        - 天气
+        - weather
       parameters:
         - name: appKey
           in: path
@@ -107,7 +111,7 @@ paths:
       summary: 每日天气预报
       description: 查询指定位置的每日天气预报
       tags:
-        - 天气
+        - weather
       parameters:
         - name: appKey
           in: path

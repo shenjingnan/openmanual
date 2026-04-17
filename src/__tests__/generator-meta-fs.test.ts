@@ -592,7 +592,7 @@ paths:
 
     await generateAll({
       config: baseConfig({
-        openapi: { specPath: 'openapi.yaml' },
+        openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
       }),
       projectDir,
       appDir,
@@ -631,7 +631,7 @@ paths:
     await expect(
       generateAll({
         config: baseConfig({
-          openapi: { specPath: 'spec.txt' },
+          openapi: { specPath: 'spec.txt', groupBy: 'tag', separateTab: false },
         }),
         projectDir,
         appDir,
@@ -652,7 +652,7 @@ paths:
     await expect(
       generateAll({
         config: baseConfig({
-          openapi: { specPath: 'nonexistent.yaml' },
+          openapi: { specPath: 'nonexistent.yaml', groupBy: 'tag', separateTab: false },
         }),
         projectDir,
         appDir,
@@ -698,7 +698,7 @@ paths:
           ],
           parser: 'dir',
         },
-        openapi: { specPath: 'openapi.yaml' },
+        openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
       }),
       projectDir,
       appDir,
@@ -718,11 +718,16 @@ paths:
     const i18nContent = await readFile(join(appDir, 'lib', 'i18n.ts'), 'utf-8');
     expect(i18nContent).toContain('defineI18n');
 
-    // 验证 layout 包含 openapi tab 注入（_omApiUrl 变量）
+    // 验证 layout：separateTab=false 模式下不注入独立 openapiTab（无 _omApiUrl）
+    // API 页面混合到文档树中，通过 meta: true + groupBy 自动分组
     const layoutContent = await readFile(
       join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
       'utf-8'
     );
-    expect(layoutContent).toContain('_omApiUrl');
+    expect(layoutContent).not.toContain('_omApiUrl');
+
+    // 验证 source.ts 使用新的 baseDir 模板（${lang}/api 而非 ${lang}/openapi）
+    expect(sourceContent).toContain('${lang}/api');
+    expect(sourceContent).toContain('meta: true');
   });
 });

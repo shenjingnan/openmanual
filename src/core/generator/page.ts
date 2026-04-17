@@ -29,7 +29,7 @@ const allowedSlugs = new Set<string>(${JSON.stringify([...allSlugs])});
 function isAllowed(slug: string[] | undefined): boolean {
   if (allowedSlugs.size === 0) return true;
   const key = slug && slug.length > 0 ? slug.join('/') : 'index';
-  return allowedSlugs.has(key) || (slug?.[0] === 'openapi');
+  return allowedSlugs.has(key) || (slug?.[0] === 'openapi') || (slug?.[0] === 'api');
 }
 `
     : '';
@@ -148,7 +148,7 @@ function isAllowed(slug: string[] | undefined, lang?: string): boolean {
   if (allowedSlugs.size === 0) return true;
   const rawKey = slug && slug.length > 0 ? slug.join('/') : 'index';
   const key = lang ? \`\${lang}/\${rawKey}\` : rawKey;
-  return allowedSlugs.has(key) || (slug?.[0] === 'openapi');
+  return allowedSlugs.has(key) || (slug?.[0] === 'openapi') || (slug?.[0] === 'api');
 }
 `
     : '';

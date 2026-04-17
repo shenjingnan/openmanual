@@ -1370,12 +1370,17 @@ describe('generateProvider - i18n mode', () => {
 
 const openapiConfig: OpenManualConfig = {
   name: 'TestAPI',
-  openapi: { specPath: 'openapi.yaml' },
+  openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
 };
 
 const openapiConfigCustomLabel: OpenManualConfig = {
   name: 'TestAPI',
-  openapi: { specPath: 'docs/openapi.json', label: 'API Reference' },
+  openapi: {
+    specPath: 'docs/openapi.json',
+    label: 'API Reference',
+    groupBy: 'tag',
+    separateTab: false,
+  },
 };
 
 const openapiCtx = { config: openapiConfig, projectDir: '/tmp/test' };
@@ -1491,7 +1496,9 @@ describe('generateLibSource - with openapi', () => {
     );
     expect(result).toContain('multiple({');
     expect(result).toContain('openapiSource(openapi,');
-    expect(result).toContain("baseDir: 'openapi'");
+    expect(result).toContain("baseDir: 'api'");
+    expect(result).toContain('meta: true');
+    expect(result).toContain("groupBy: 'tag'");
     expect(result).toContain('plugins: [openapiPlugin()]');
   });
 
@@ -1589,7 +1596,7 @@ describe('generatePage - with openapi (i18n mode)', () => {
         ],
         parser: 'dot',
       },
-      openapi: { specPath: 'openapi.yaml' },
+      openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
     projectDir: '/tmp/test',
   };
@@ -1636,7 +1643,7 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
         ],
         parser: 'dot',
       },
-      openapi: { specPath: 'openapi.yaml' },
+      openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
     projectDir: '/tmp/test',
   };
@@ -1653,7 +1660,8 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
   it('should generate for..of loop over i18n.languages with baseDir template', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain('for (const lang of i18n.languages)');
-    expect(result).toContain('`${lang}/openapi`');
+    expect(result).toContain('`${lang}/api`');
+    expect(result).toContain('meta: true');
     expect(result).toContain('_omOpenApiFiles.push(...result.files)');
   });
 
@@ -1679,7 +1687,8 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
     expect(combinedResult).toContain('for (const lang of i18n.languages)');
     expect(singleResult).not.toContain('for (const lang of i18n.languages)');
     // Single uses direct openapiSource call; combined uses loop
-    expect(singleResult).toContain("baseDir: 'openapi'");
+    expect(singleResult).toContain("baseDir: 'api'");
+    expect(singleResult).toContain('meta: true');
     expect(combinedResult).not.toContain("baseDir: 'openapi'");
   });
 });
@@ -1745,5 +1754,185 @@ describe('generateGlobalCss - openapi + darkMode false combined', () => {
     expect(result).toContain('--primary-hue: 200');
     expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
     expect(result).not.toContain('.dark {');
+  });
+});
+
+// ============================================================
+// generateLibSource — separateTab: true 分支（覆盖 lib-source.ts:49, 57-61）
+// ============================================================
+
+describe('generateLibSource - separateTab true mode', () => {
+  const separateTabCtx = {
+    config: { ...openapiConfig, openapi: { ...(openapiConfig.openapi as any), separateTab: true } },
+    projectDir: '/tmp/test',
+  };
+
+  it('should use baseDir "openapi" when separateTab is true (single language)', () => {
+    const result = generateLibSource(separateTabCtx);
+    expect(result).toContain("baseDir: 'openapi'");
+    // separateTab=true 时不应包含 meta 和 groupBy
+    expect(result).not.toContain('meta: true');
+    expect(result).not.toContain('groupBy:');
+  });
+
+  it('should still include openapiPlugin when separateTab is true', () => {
+    const result = generateLibSource(separateTabCtx);
+    expect(result).toContain('plugins: [openapiPlugin()]');
+    expect(result).toContain('multiple({');
+  });
+});
+
+describe('generateLibSource - i18n + separateTab true mode', () => {
+  const i18nSeparateTabCtx: { config: OpenManualConfig; projectDir: string } = {
+    config: {
+      name: 'TestI18nSep',
+      i18n: {
+        enabled: true,
+        defaultLanguage: 'zh',
+        languages: [
+          { code: 'zh', name: '中文' },
+          { code: 'en', name: 'English' },
+        ],
+        parser: 'dot',
+      },
+      openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: true },
+    },
+    projectDir: '/tmp/test',
+  };
+
+  it('should use ${lang}/openapi baseDir template when separateTab is true with i18n', () => {
+    const result = generateLibSource(i18nSeparateTabCtx);
+    expect(result).toContain('`${lang}/openapi`');
+    // separateTab=true 不应包含 meta/groupBy
+    expect(result).not.toContain('meta: true');
+    expect(result).not.toContain('groupBy:');
+  });
+
+  it('should include for..of loop and _omOpenApiFiles in i18n + separateTab mode', () => {
+    const result = generateLibSource(i18nSeparateTabCtx);
+    expect(result).toContain('for (const lang of i18n.languages)');
+    expect(result).toContain('_omOpenApiFiles.push(...result.files)');
+  });
+});
+
+// ============================================================
+// generateLibSource — groupBy 变体（覆盖 lib-source.ts:11 的 groupBy 分支）
+// ============================================================
+
+describe('generateLibSource - groupBy variants', () => {
+  it('should use groupBy route when configured', () => {
+    const ctx = {
+      config: {
+        ...openapiConfig,
+        openapi: { ...(openapiConfig.openapi as any), groupBy: 'route', separateTab: false },
+      },
+      projectDir: '/tmp/test',
+    };
+    const result = generateLibSource(ctx);
+    expect(result).toContain("groupBy: 'route'");
+    expect(result).toContain('meta: true');
+  });
+
+  it('should use groupBy none when configured', () => {
+    const ctx = {
+      config: {
+        ...openapiConfig,
+        openapi: { ...(openapiConfig.openapi as any), groupBy: 'none', separateTab: false },
+      },
+      projectDir: '/tmp/test',
+    };
+    const result = generateLibSource(ctx);
+    expect(result).toContain("groupBy: 'none'");
+    expect(result).toContain('meta: true');
+  });
+
+  it('should use groupBy route in i18n mode', () => {
+    const ctx: { config: OpenManualConfig; projectDir: string } = {
+      config: {
+        name: 'T',
+        i18n: {
+          enabled: true,
+          languages: [
+            { code: 'zh', name: '中' },
+            { code: 'en', name: 'En' },
+          ],
+          parser: 'dot',
+        },
+        openapi: { specPath: 'a.yaml', groupBy: 'route', separateTab: false },
+      },
+      projectDir: '/tmp/test',
+    };
+    const result = generateLibSource(ctx);
+    expect(result).toContain("groupBy: 'route'");
+    expect(result).toContain('meta: true');
+  });
+});
+
+// ============================================================
+// generateOpenApiLib — 空 specPaths 返回 null（覆盖 openapi.ts:19）
+// ============================================================
+
+describe('generateOpenApiLib - empty specPaths returns null', () => {
+  it('should return null when openapi has no valid spec fields', () => {
+    // 构造 isOpenApiEnabled 返回 true 但 resolveOpenApiSpecPaths 返回空数组的场景
+    // 通过 specs: '' （空字符串，typeof 检查为 string 但 Zod 允许）
+    // 实际上 specs 为空字符串时 isOpenApiEnabled 返回 true（specs !== undefined）
+    // 但 resolveOpenApiSpecPaths 返回 ['']（非空数组），不会触发 length===0
+    //
+    // 正确的触发方式：openapi 对象存在但 specs 和 specPath 都无效
+    // 由于 Zod schema 验证，我们需要绕过或使用边界值
+    // 使用 specs: undefined 且 specPath: undefined → isOpenApiEnabled=false（被第一行拦截）
+    //
+    // 唯一能让 isOpenApiEnabled=true 且 specPaths=[] 的场景：
+    // specs 是一个空数组 []（Zod 允许，map 返回 []）
+    const ctx = {
+      config: {
+        name: 'Test',
+        openapi: { specs: [] as any },
+      } as OpenManualConfig,
+      projectDir: '/tmp/project',
+    };
+    // specs !== undefined → isOpenApiEnabled = true
+    expect(isOpenApiEnabled(ctx.config)).toBe(true);
+    // specs is [] → map returns [] → length === 0
+    const result = generateOpenApiLib(ctx);
+    expect(result).toBeNull();
+  });
+
+  it('should handle multi-file specs in generateOpenApiLib', () => {
+    const ctx = {
+      config: {
+        name: 'Test',
+        openapi: {
+          specs: [
+            { path: 'core-api.yaml', group: 'Core' },
+            { path: 'admin-api.yaml', group: 'Admin' },
+          ],
+        },
+      } as OpenManualConfig,
+      projectDir: '/tmp/myproject',
+    };
+    const result = generateOpenApiLib(ctx);
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result).toContain(
+        "input: ['/tmp/myproject/core-api.yaml', '/tmp/myproject/admin-api.yaml']"
+      );
+    }
+  });
+
+  it('should handle specs as single string in generateOpenApiLib', () => {
+    const ctx = {
+      config: {
+        name: 'Test',
+        openapi: { specs: 'single-spec.yaml' },
+      } as OpenManualConfig,
+      projectDir: '/tmp/myproject',
+    };
+    const result = generateOpenApiLib(ctx);
+    expect(result).not.toBeNull();
+    if (result) {
+      expect(result).toContain("input: ['/tmp/myproject/single-spec.yaml']");
+    }
   });
 });
