@@ -43,7 +43,7 @@ export interface GenerateContext {
   /** Pre-computed slugs from meta.json or file system (replaces collectConfiguredSlugs) */
   allSlugs?: Set<string>;
   /** Meta groups with root: true — used to generate explicit Layout Tabs in DocsLayout */
-  rootGroups?: Array<{ title: string; dirPath: string; url: string }>;
+  rootGroups?: Array<{ title: string; dirPath: string; url: string; urls: string[] }>;
 }
 
 export async function generateAll(ctx: GenerateContext): Promise<void> {
@@ -312,15 +312,24 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const treeLine = isI18n ? 'tree: source.getPageTree(lang),' : 'tree: source.getPageTree(),';
 
   // Generate explicit sidebar.tabs from root groups so Layout Tabs are visible on all pages (including homepage).
-  // In i18n mode, tabs are filtered dynamically by current lang; a "home" tab covers the language root.
-  // Tab URLs point to the first page inside each root folder (from meta.json pages array).
+  // Tab URLs use directory paths so isActive() prefix matching covers all pages in the group.
   const sidebarTabsLine =
     rootGroups && rootGroups.length > 0
       ? isI18n
-        ? `\n    sidebar: {\n      tabs: [\n        { title: '${config.name.replace(/'/g, "\\'")}', url: \`/\${lang}\` },\n        ...${JSON.stringify(rootGroups.map((g) => ({ title: g.title, dirPath: g.dirPath, url: g.url })))}.filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url })),\n      ],\n    },`
+        ? (() => {
+            // Inline root group data as JSON; filter by lang at runtime
+            const entries = rootGroups.map((g) => ({
+              title: g.title,
+              dirPath: g.dirPath,
+              url: g.url,
+              urls: g.urls,
+            }));
+            const entriesJson = JSON.stringify(entries);
+            return `\n    sidebar: {\n      tabs: [\n        { title: '${config.name.replace(/'/g, "\\'")}', url: \`/\${lang}\` },\n        ...(${entriesJson} as Array<{title:string;dirPath:string;url:string;urls:string[]}>).filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url, urls: new Set<string>(g.urls) })),\n      ],\n    },`;
+          })()
         : `\n    sidebar: {\n      tabs: ${JSON.stringify([
             { title: config.name, url: '/' },
-            ...rootGroups.map((g) => ({ title: g.title, url: g.url })),
+            ...rootGroups.map((g) => ({ title: g.title, url: g.url, urls: new Set(g.urls) })),
           ])},\n    },`
       : '';
 
@@ -450,41 +459,37 @@ async function computeAllSlugs(ctx: GenerateContext): Promise<void> {
         ctx.allSlugs.add(file.slug);
       }
     }
-    // Scan directories for groups that lack a pages field, so we can:
-    //   (a) collect their actual file slugs into ctx.allSlugs
-    //   (b) use the first real file as the tab URL for root groups
+    // Scan all directories to collect actual file slugs and enable urls Set generation.
     const scannedDirCache = new Map<string, ContentFile[]>();
     for (const group of metaGroups) {
-      if (!group.pages || group.pages.length === 0) {
-        const dirAbsPath = join(contentAbsDir, group.dirPath);
-        try {
-          const dirFiles = await scanContentDir(dirAbsPath);
-          scannedDirCache.set(group.dirPath, dirFiles);
+      const dirAbsPath = join(contentAbsDir, group.dirPath);
+      try {
+        const dirFiles = await scanContentDir(dirAbsPath);
+        scannedDirCache.set(group.dirPath, dirFiles);
+        // Only add to allSlugs if group has no explicit pages (avoid duplicates)
+        if (!group.pages || group.pages.length === 0) {
           for (const df of dirFiles) {
             ctx.allSlugs.add(`${group.dirPath}/${df.slug}`);
           }
-        } catch {
-          // Directory may not exist or be empty — skip
         }
+      } catch {
+        // Directory may not exist or empty — skip
       }
     }
     // Extract groups with root: true for explicit Layout Tabs generation.
-    // For each root group, resolve its tab URL in priority order:
-    //   1. meta.json pages[0] (explicit user config)
-    //   2. first .mdx/.md found by scanning the directory (auto-detected)
-    //   3. 'index' (legacy fallback)
+    // - url: first actual page (for navigation — avoids 404 on directory paths)
+    // - urls: Set of all pages in the group (for isLayoutTabActive exact matching)
     ctx.rootGroups = metaGroups
       .filter((g) => g.root === true)
       .map((g) => {
-        let firstPage = g.pages?.[0];
-        if (!firstPage) {
-          const cached = scannedDirCache.get(g.dirPath);
-          firstPage = cached?.[0]?.name ?? 'index';
-        }
+        const cached = scannedDirCache.get(g.dirPath);
+        const firstPage = g.pages?.[0] ?? cached?.[0]?.name ?? 'index';
+        const allUrls = (cached ?? []).map((f) => `/${g.dirPath}/${f.name}` as string);
         return {
           title: g.title,
           dirPath: g.dirPath,
           url: `/${g.dirPath}/${firstPage}`,
+          urls: allUrls,
         };
       });
     return;

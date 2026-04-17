@@ -373,10 +373,10 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   });
 
   // ============================================================
-  // 用例：rootGroups Tab URL 从文件系统扫描获取（无 pages 字段时）
+  // 用例：rootGroups Tab URL 使用文件路径导航 + urls Set 匹配全组页面
   // ============================================================
 
-  it('should use first scanned file as tab URL when meta.json has root:true but no pages', async () => {
+  it('should use file-path URL for navigation and urls Set for group-wide matching', async () => {
     // 模拟当前项目的实际结构：meta.json 只有 title 和 root，没有 pages
     // 注意：i18n 模式需要至少 2 个语言才能启用
     await setupContent({
@@ -405,26 +405,32 @@ describe('generateAll - meta auto-generation (real FS)', () => {
       contentDir: 'content',
     });
 
-    // 验证生成的 layout.tsx 中 sidebar.tabs 的 URL 指向实际文件而非 index
+    // 验证生成的 layout.tsx 中 sidebar.tabs 配置
     const layoutContent = await readFile(
       join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
       'utf-8'
     );
 
-    // "指南" tab 应指向 /zh/guide/configuration（字母序第一个文件），而非 /zh/guide/index
+    // "指南" tab URL 应为文件路径（用于导航到实际页面）
     expect(layoutContent).toContain('"url":"/zh/guide/configuration"');
-    expect(layoutContent).not.toContain('"url":"/zh/guide/index"');
 
-    // "进阶" tab 应指向 /zh/advanced/mdx（唯一文件），而非 /zh/advanced/index
+    // urls Set 应包含该分组下所有页面（用于 isLayoutTabActive 匹配）
+    expect(layoutContent).toContain('"/zh/guide/configuration"');
+    expect(layoutContent).toContain('"/zh/guide/deployment"');
+
+    // "进阶" tab URL 应为文件路径
     expect(layoutContent).toContain('"url":"/zh/advanced/mdx"');
-    expect(layoutContent).not.toContain('"url":"/zh/advanced/index"');
+    expect(layoutContent).toContain('"/zh/advanced/mdx"');
+
+    // 应包含 urls Set 构造
+    expect(layoutContent).toContain('new Set<string>');
   });
 
   // ============================================================
-  // 用例：rootGroups Tab URL 尊重显式 pages 配置
+  // 用例：rootGroups Tab URL 使用 pages[0] 作为导航目标
   // ============================================================
 
-  it('should use explicit pages[0] as tab URL when pages field is set in meta.json', async () => {
+  it('should use pages[0] as tab URL when explicitly configured in meta.json', async () => {
     await setupContent({
       'zh/guide/meta.json': JSON.stringify({
         title: '指南',
@@ -458,16 +464,19 @@ describe('generateAll - meta auto-generation (real FS)', () => {
       'utf-8'
     );
 
-    // 应使用 pages[0] = 'deployment'，而非扫描到的第一个文件 configuration
+    // URL 应使用 meta.json 中配置的 pages[0]
     expect(layoutContent).toContain('"url":"/zh/guide/deployment"');
-    expect(layoutContent).not.toContain('"url":"/zh/guide/configuration"');
+
+    // urls Set 仍应包含该分组所有扫描到的页面
+    expect(layoutContent).toContain('"/zh/guide/configuration"');
+    expect(layoutContent).toContain('"/zh/guide/deployment"');
   });
 
   // ============================================================
-  // 用例：rootGroups Tab URL 空目录 fallback 到 index
+  // 用例：rootGroups 空目录回退到 index
   // ============================================================
 
-  it('should fallback to index as tab URL when directory is empty', async () => {
+  it('should fallback to index as tab URL when directory has no scanned files', async () => {
     // meta.json 有 root:true 且无 pages，目录下无任何 mdx 文件
     await setupContent({
       'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
@@ -496,7 +505,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
       'utf-8'
     );
 
-    // 空目录应 fallback 到 index
+    // 空目录时 URL 回退到 index
     expect(layoutContent).toContain('"url":"/zh/guide/index"');
   });
 });
