@@ -2027,7 +2027,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/custom-logo.svg');
   });
 
-  it('should fallback to navbar logo when header.logo not provided', () => {
+  it('should fallback to config.name when header.logo not provided (no navbar fallback)', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2037,7 +2037,9 @@ describe('generateTopBarComponent', () => {
       },
     };
     const result = generateTopBarComponent(ctx);
-    expect(result).toContain('/nav-logo.svg');
+    // 不再回退到 navbar.logo，而是直接使用 config.name 作为文本
+    expect(result).toContain('type="text" text="Test"');
+    expect(result).not.toContain('/nav-logo.svg');
   });
 
   it('should fallback to config.name when no logo provided anywhere', () => {
