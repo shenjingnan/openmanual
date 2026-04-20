@@ -45,7 +45,7 @@ export function TopBar({
         } bg-fd-background text-fd-foreground`}
       >
         {/* 内层：与 Fumadocs 内容区（--fd-layout-width）同宽 */}
-        <div className="flex items-center justify-between mx-auto max-w-[var(--fd-layout-width,97rem)] px-4 xl:px-8 h-full">
+        <div className="flex items-center justify-between mx-auto max-w-[var(--fd-layout-width,97rem)] px-4 h-full">
           <div className="flex items-center gap-3 min-w-0">{left}</div>
           <div className="flex items-center justify-center flex-1 min-w-0 px-4 max-md:hidden">
             {center}

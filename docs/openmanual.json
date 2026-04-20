@@ -20,11 +20,7 @@
   "header": {
     "enabled": true,
     "height": "56px",
-    "links": [
-      { "label": "控制台", "href": "/console" },
-      { "label": "价格", "href": "/pricing" },
-      { "label": "API Key", "href": "/keys" }
-    ]
+    "links": [{ "label": "github", "href": "https://github.com/shenjingnan/openmanual" }]
   },
   "navbar": {
     "logo": {

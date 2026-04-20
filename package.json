@@ -19,13 +19,57 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./components/*": {
-      "import": "./dist/components/*.js",
-      "types": "./dist/components/*.d.ts"
+    "./components/app-layout": {
+      "import": "./dist/components/app-layout.js",
+      "types": "./dist/components/app-layout.d.ts"
     },
-    "./utils/*": {
-      "import": "./dist/utils/*.js",
-      "types": "./dist/utils/*.d.ts"
+    "./components/callout": {
+      "import": "./dist/components/callout.js",
+      "types": "./dist/components/callout.d.ts"
+    },
+    "./components/mermaid": {
+      "import": "./dist/components/mermaid.js",
+      "types": "./dist/components/mermaid.d.ts"
+    },
+    "./components/nav-layout": {
+      "import": "./dist/components/nav-layout.js",
+      "types": "./dist/components/nav-layout.d.ts"
+    },
+    "./components/page-actions": {
+      "import": "./dist/components/page-actions.js",
+      "types": "./dist/components/page-actions.d.ts"
+    },
+    "./components/provider": {
+      "import": "./dist/components/provider.js",
+      "types": "./dist/components/provider.d.ts"
+    },
+    "./components/safe-search-dialog": {
+      "import": "./dist/components/safe-search-dialog.js",
+      "types": "./dist/components/safe-search-dialog.d.ts"
+    },
+    "./components/top-bar": {
+      "import": "./dist/components/top-bar.js",
+      "types": "./dist/components/top-bar.d.ts"
+    },
+    "./utils/check-code-langs": {
+      "import": "./dist/utils/check-code-langs.js",
+      "types": "./dist/utils/check-code-langs.d.ts"
+    },
+    "./utils/copy-raw-markdown": {
+      "import": "./dist/utils/copy-raw-markdown.js",
+      "types": "./dist/utils/copy-raw-markdown.d.ts"
+    },
+    "./utils/install-deps": {
+      "import": "./dist/utils/install-deps.js",
+      "types": "./dist/utils/install-deps.d.ts"
+    },
+    "./utils/logger": {
+      "import": "./dist/utils/logger.js",
+      "types": "./dist/utils/logger.d.ts"
+    },
+    "./utils/temp-dir": {
+      "import": "./dist/utils/temp-dir.js",
+      "types": "./dist/utils/temp-dir.d.ts"
     }
   },
   "files": [
