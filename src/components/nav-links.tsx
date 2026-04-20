@@ -3,13 +3,20 @@
 import { DynamicIcon } from 'lucide-react/dynamic';
 import type { ComponentProps } from 'react';
 
+/** 图片路径检测：判断 icon 值是否为图片文件路径 */
+function isImagePath(value: string): boolean {
+  return (
+    /^\//i.test(value) || /^\.\.?\//i.test(value) || /\.(svg|png|jpe?g|gif|webp)$/i.test(value)
+  );
+}
+
 /** 单个导航链接项的配置 */
 export interface NavLinkItem {
   /** 链接地址 */
   href: string;
   /** 显示文本 */
   label?: string;
-  /** lucide-react 图标名称 */
+  /** lucide-react 图标名称，或图片文件路径（如 /icons/foo.svg） */
   icon?: string;
   /** 是否在新窗口打开（默认 true） */
   external?: boolean;
@@ -48,8 +55,37 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
 
   const hasIcon = !!icon;
   const hasLabel = !!label;
+  const isImage = hasIcon && isImagePath(icon!);
 
-  // icon + label 模式
+  // 图片路径 + label 模式
+  if (isImage && hasLabel) {
+    return (
+      <a
+        href={href}
+        {...externalAttrs}
+        className="inline-flex items-center gap-1.5 text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap"
+      >
+        <img src={icon} alt={label} className="size-4" />
+        {label}
+      </a>
+    );
+  }
+
+  // 仅图片路径模式
+  if (isImage) {
+    return (
+      <a
+        href={href}
+        {...externalAttrs}
+        className="inline-flex items-center justify-center text-fd-muted-foreground hover:text-fd-foreground transition-colors"
+        aria-label={label || icon}
+      >
+        <img src={icon} alt={label || icon} className="size-4" />
+      </a>
+    );
+  }
+
+  // lucide 图标 + label 模式
   if (hasIcon && hasLabel) {
     return (
       <a
@@ -63,7 +99,7 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
     );
   }
 
-  // 仅 icon 模式
+  // 仅 lucide 图标模式
   if (hasIcon) {
     return (
       <a
