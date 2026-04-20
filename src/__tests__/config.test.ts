@@ -5,6 +5,7 @@ import { loadConfig } from '../core/config/loader.js';
 import {
   collectConfiguredSlugs,
   isDirParser,
+  isHeaderEnabled,
   isI18nEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
@@ -1306,5 +1307,107 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
       groupBy: 'tag',
       separateTab: false,
     });
+  });
+});
+
+// ============================================================
+// TopBarSchema / isHeaderEnabled — 覆盖 schema.ts 新增
+// ============================================================
+
+describe('TopBarSchema', () => {
+  it('should accept valid header config with all fields', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: {
+        enabled: true,
+        height: '64px',
+        logo: '/logo.svg',
+        links: [
+          { label: 'Console', href: '/console' },
+          { label: 'Pricing', href: '/pricing' },
+        ],
+        sticky: true,
+        background: '#ffffff',
+        bordered: true,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept header with only enabled flag', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: { enabled: true },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept header with links array', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: {
+        enabled: true,
+        links: [{ label: 'API Key', href: '/keys', external: false }],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept header with object logo (light/dark)', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: {
+        enabled: true,
+        logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject header with non-string height', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: { enabled: true, height: 100 },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('isHeaderEnabled', () => {
+  it('should return false when header is undefined', () => {
+    expect(isHeaderEnabled({ name: 'T' })).toBe(false);
+  });
+
+  it('should return false when header.enabled is false', () => {
+    expect(
+      isHeaderEnabled({ name: 'T', header: { enabled: false, sticky: true, bordered: true } })
+    ).toBe(false);
+  });
+
+  it('should return false when header.enabled is undefined', () => {
+    expect(
+      isHeaderEnabled({ name: 'T', header: { height: '64px', sticky: true, bordered: true } })
+    ).toBe(false);
+  });
+
+  it('should return true when header.enabled is true', () => {
+    expect(
+      isHeaderEnabled({ name: 'T', header: { enabled: true, sticky: true, bordered: true } })
+    ).toBe(true);
+  });
+
+  it('should return true when header fully configured and enabled', () => {
+    expect(
+      isHeaderEnabled({
+        name: 'T',
+        header: {
+          enabled: true,
+          height: '56px',
+          sticky: true,
+          bordered: true,
+          links: [{ label: 'Console', href: '/console', external: true }],
+        },
+      })
+    ).toBe(true);
   });
 });

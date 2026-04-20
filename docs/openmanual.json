@@ -17,6 +17,15 @@
       { "code": "ko", "name": "한국어" }
     ]
   },
+  "header": {
+    "enabled": true,
+    "height": "56px",
+    "links": [
+      { "label": "控制台", "href": "/console" },
+      { "label": "价格", "href": "/pricing" },
+      { "label": "API Key", "href": "/keys" }
+    ]
+  },
   "navbar": {
     "logo": {
       "light": "/logo.svg",

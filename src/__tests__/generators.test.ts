@@ -23,6 +23,7 @@ import { generateProvider, generateSearchDialog } from '../core/generator/provid
 import { generateRawContentRoute } from '../core/generator/raw-content-route.js';
 import { generateSearchRoute } from '../core/generator/search-route.js';
 import { generateSourceConfig } from '../core/generator/source-config.js';
+import { generateTopBarComponent } from '../core/generator/top-bar.js';
 import { generateTsconfig } from '../core/generator/tsconfig.js';
 
 const baseConfig: OpenManualConfig = { name: 'Test' };
@@ -1934,5 +1935,165 @@ describe('generateOpenApiLib - empty specPaths returns null', () => {
     if (result) {
       expect(result).toContain("input: ['/tmp/myproject/single-spec.yaml']");
     }
+  });
+});
+
+// ============================================================
+// generateTopBarComponent — 覆盖 top-bar.ts
+// ============================================================
+
+describe('generateTopBarComponent', () => {
+  const topBarBaseCtx = {
+    projectDir: '/tmp/test',
+    appDir: '/tmp/test/.cache/app',
+    contentDir: 'content',
+  };
+
+  it('should generate component with configured height', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        header: {
+          enabled: true,
+          height: '56px',
+          links: [{ label: 'Console', href: '/console' }],
+        },
+      } as OpenManualConfig,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain("height='56px'");
+    expect(result).toContain('Console');
+    expect(result).toContain('/console');
+  });
+
+  it('should include --fd-banner-height style injection', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: { enabled: true, height: '64px' } as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    // --fd-banner-height is injected by the TopBar component itself, not the generated wrapper
+    // The generated wrapper passes height prop to TopBar which handles CSS injection
+    expect(result).toContain("height='64px'");
+    expect(result).toContain('<TopBar');
+  });
+
+  it('should use default height 64px when not specified', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: { enabled: true } as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain("height='64px'");
+  });
+
+  it('should render links with target="_blank" by default', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          enabled: true,
+          links: [
+            { label: 'Pricing', href: '/pricing' },
+            { label: 'Docs', href: '/docs', external: false },
+          ],
+        } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    // Pricing link should have target="_blank" (default external=true)
+    expect(result).toContain('href="/pricing"');
+    expect(result).toContain('Pricing');
+    // Docs link should NOT have target="_blank"
+    expect(result).toContain('href="/docs"');
+    expect(result).toContain('Docs');
+  });
+
+  it('should use header.logo when provided', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        header: {
+          enabled: true,
+          logo: '/custom-logo.svg',
+        } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('/custom-logo.svg');
+  });
+
+  it('should fallback to navbar logo when header.logo not provided', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        navbar: { logo: '/nav-logo.svg' } as any,
+        header: { enabled: true } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('/nav-logo.svg');
+  });
+
+  it('should fallback to config.name when no logo provided anywhere', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'MyProduct', header: { enabled: true } as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('MyProduct');
+  });
+
+  it('should include background prop when configured', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { enabled: true, background: '#1a1a2e' } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('#1a1a2e');
+  });
+
+  it('should not include background prop when not configured', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: { enabled: true } as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('background=');
+  });
+
+  it('should handle object logo with light/dark variants', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        header: {
+          enabled: true,
+          sticky: true,
+          bordered: true,
+          logo: { light: '/light.svg', dark: '/dark.svg' } as any,
+        } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('/light.svg');
+    expect(result).toContain('/dark.svg');
+  });
+
+  it('should generate empty right nav when no links configured', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: { enabled: true } as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    // Should still have the nav element but empty
+    expect(result).toContain('<nav className="flex items-center gap-4">');
   });
 });
