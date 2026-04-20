@@ -1319,7 +1319,6 @@ describe('TopBarSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
-        enabled: true,
         height: '64px',
         logo: '/logo.svg',
         links: [
@@ -1334,10 +1333,10 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept header with only enabled flag', () => {
+  it('should accept empty header config', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      header: { enabled: true },
+      header: {},
     });
     expect(result.success).toBe(true);
   });
@@ -1346,7 +1345,6 @@ describe('TopBarSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
-        enabled: true,
         links: [{ label: 'API Key', href: '/keys', external: false }],
       },
     });
@@ -1357,7 +1355,6 @@ describe('TopBarSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
-        enabled: true,
         logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' },
       },
     });
@@ -1367,7 +1364,7 @@ describe('TopBarSchema', () => {
   it('should reject header with non-string height', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      header: { enabled: true, height: 100 },
+      header: { height: 100 },
     });
     expect(result.success).toBe(false);
   });
@@ -1375,7 +1372,7 @@ describe('TopBarSchema', () => {
   it('should accept link with only label (backward compatible)', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      header: { enabled: true, links: [{ label: 'Docs', href: '/docs' }] },
+      header: { links: [{ label: 'Docs', href: '/docs' }] },
     });
     expect(result.success).toBe(true);
   });
@@ -1383,7 +1380,7 @@ describe('TopBarSchema', () => {
   it('should accept link with only icon', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      header: { enabled: true, links: [{ icon: 'Github', href: 'https://github.com/test' }] },
+      header: { links: [{ icon: 'Github', href: 'https://github.com/test' }] },
     });
     expect(result.success).toBe(true);
   });
@@ -1392,7 +1389,6 @@ describe('TopBarSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
-        enabled: true,
         links: [{ icon: 'Github', label: 'GitHub', href: 'https://github.com/test' }],
       },
     });
@@ -1402,7 +1398,7 @@ describe('TopBarSchema', () => {
   it('should reject link with neither icon nor label', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      header: { enabled: true, links: [{ href: 'https://example.com' }] },
+      header: { links: [{ href: 'https://example.com' }] },
     });
     expect(result.success).toBe(false);
   });
@@ -1413,34 +1409,38 @@ describe('isHeaderEnabled', () => {
     expect(isHeaderEnabled({ name: 'T' })).toBe(false);
   });
 
-  it('should return false when header.enabled is false', () => {
-    expect(
-      isHeaderEnabled({ name: 'T', header: { enabled: false, sticky: true, bordered: true } })
-    ).toBe(false);
+  it('should return true when header exists (even with minimal config)', () => {
+    expect(isHeaderEnabled({ name: 'T', header: { sticky: true, bordered: true } })).toBe(true);
   });
 
-  it('should return false when header.enabled is undefined', () => {
+  it('should return true when header has height configured', () => {
     expect(
       isHeaderEnabled({ name: 'T', header: { height: '64px', sticky: true, bordered: true } })
-    ).toBe(false);
-  });
-
-  it('should return true when header.enabled is true', () => {
-    expect(
-      isHeaderEnabled({ name: 'T', header: { enabled: true, sticky: true, bordered: true } })
     ).toBe(true);
   });
 
-  it('should return true when header fully configured and enabled', () => {
+  it('should return true when header is fully configured', () => {
     expect(
       isHeaderEnabled({
         name: 'T',
         header: {
-          enabled: true,
           height: '56px',
           sticky: true,
           bordered: true,
           links: [{ label: 'Console', href: '/console', external: true }],
+        },
+      })
+    ).toBe(true);
+  });
+
+  it('should return true when header has only links', () => {
+    expect(
+      isHeaderEnabled({
+        name: 'T',
+        header: {
+          links: [{ label: 'GitHub', href: 'https://github.com', external: true }],
+          sticky: true,
+          bordered: true,
         },
       })
     ).toBe(true);
