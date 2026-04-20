@@ -14,24 +14,31 @@ export function resolveLogoPaths(logo: LogoConfig): { light: string; dark: strin
   return { light: logo.light, dark: logo.dark };
 }
 
+/**
+ * 将 LogoConfig 解析为 NavLogo 组件的 props 字符串
+ *
+ * 消除 top-bar.ts 和 layout.ts 中重复的三分支判断。
+ */
+export function resolveNavLogoProps(logo: LogoConfig | string, alt: string): string {
+  if (typeof logo === 'string' && isImagePath(logo)) {
+    return `type="image" src="${logo}" alt="${alt}"`;
+  }
+  if (typeof logo === 'object') {
+    const { light, dark } = resolveLogoPaths(logo);
+    if (light === dark) {
+      return `type="image" src="${light}" alt="${alt}"`;
+    }
+    return `type="image" srcLight="${light}" srcDark="${dark}" alt="${alt}"`;
+  }
+  return `type="text" text="${logo}"`;
+}
+
 export function generateLayout(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
   const logo = config.navbar?.logo ?? config.name;
   const isI18n = config.i18n?.enabled === true;
 
-  let logoProps: string;
-  if (typeof logo === 'string' && isImagePath(logo)) {
-    logoProps = `type="image" src="${logo}" alt="${config.name}"`;
-  } else if (typeof logo === 'object') {
-    const { light, dark } = logo;
-    if (light === dark) {
-      logoProps = `type="image" src="${light}" alt="${config.name}"`;
-    } else {
-      logoProps = `type="image" srcLight="${light}" srcDark="${dark}" alt="${config.name}"`;
-    }
-  } else {
-    logoProps = `type="text" text="${logo}"`;
-  }
+  const logoProps = resolveNavLogoProps(logo, config.name);
 
   if (isI18n) {
     return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
