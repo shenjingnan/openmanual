@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import {
   isDirParser,
+  isHeaderEnabled,
   isI18nEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
@@ -37,6 +38,7 @@ import { generateProvider, generateSearchDialog } from './provider.js';
 import { generateRawContentRoute } from './raw-content-route.js';
 import { generateSearchRoute } from './search-route.js';
 import { generateSourceConfig } from './source-config.js';
+import { generateTopBarComponent } from './top-bar.js';
 import { generateTsconfig } from './tsconfig.js';
 
 export interface GenerateContext {
@@ -158,6 +160,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     },
   ];
 
+  // 顶部横条组件（条件性生成，在 i18n/单语言分支中分别注册正确路径）
+  const headerEnabled = isHeaderEnabled(ctx.config);
+
   let files: Array<{ path: string; content: string }>;
 
   if (isI18n) {
@@ -190,6 +195,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
         path: 'app/[lang]/components/search-dialog.tsx',
         content: generateSearchDialog(ctx),
       },
+      ...(headerEnabled
+        ? [{ path: 'app/[lang]/components/top-bar.tsx', content: generateTopBarComponent(ctx) }]
+        : []),
       {
         path: 'app/[lang]/[[...slug]]/layout.tsx',
         content: generateDocsLayout(ctx),
@@ -223,6 +231,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
         path: 'app/components/search-dialog.tsx',
         content: generateSearchDialog(ctx),
       },
+      ...(headerEnabled
+        ? [{ path: 'app/components/top-bar.tsx', content: generateTopBarComponent(ctx) }]
+        : []),
       {
         path: 'app/[[...slug]]/layout.tsx',
         content: generateDocsLayout(ctx),
@@ -262,6 +273,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
 function generateRootLayout(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
+  const headerEnabled = isHeaderEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -275,15 +287,19 @@ export const metadata: Metadata = {
 `
     : '';
 
-  return `import { AppLayout } from 'openmanual/components/app-layout';
+  const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
+
+  const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
+
+  return `${metadataExport}${topBarImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
-${metadataExport}import '../global.css';
+import '../global.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <AppLayout>
-      <AppProvider>{children}</AppProvider>
+      ${topBarJsx}<AppProvider>{children}</AppProvider>
     </AppLayout>
   );
 }
@@ -301,6 +317,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 function generateRootLayoutI18n(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
+  const headerEnabled = isHeaderEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -314,7 +331,11 @@ export const metadata: Metadata = {
 `
     : '';
 
-  return `${metadataExport}import { AppLayout } from 'openmanual/components/app-layout';
+  const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
+
+  const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
+
+  return `${metadataExport}${topBarImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
 import '../../global.css';
@@ -330,7 +351,7 @@ export default async function RootLayout({
 
   return (
     <AppLayout lang={lang}>
-      <AppProvider lang={lang}>{children}</AppProvider>
+      ${topBarJsx}<AppProvider lang={lang}>{children}</AppProvider>
     </AppLayout>
   );
 }

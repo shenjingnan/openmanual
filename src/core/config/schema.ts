@@ -101,6 +101,31 @@ export const OpenApiSchema = z.object({
   separateTab: z.boolean().optional().default(false),
 });
 
+/** 顶部横条链接项 */
+export const TopBarLinkSchema = z.object({
+  label: z.string(),
+  href: z.string(),
+  external: z.boolean().optional().default(true),
+});
+
+/** 顶部横条配置 */
+export const TopBarSchema = z.object({
+  /** 是否启用顶部横条 */
+  enabled: z.boolean().optional(),
+  /** 高度，默认 '64px' */
+  height: z.string().optional(),
+  /** Logo 配置（独立于 navbar.logo） */
+  logo: LogoSchema.optional(),
+  /** 右侧导航链接 */
+  links: z.array(TopBarLinkSchema).optional(),
+  /** 是否显示粘性（sticky），默认 true */
+  sticky: z.boolean().optional().default(true),
+  /** 背景色（CSS 值） */
+  background: z.string().optional(),
+  /** 底部边框 */
+  bordered: z.boolean().optional().default(true),
+});
+
 export const OpenManualConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
@@ -111,6 +136,7 @@ export const OpenManualConfigSchema = z.object({
   contentPolicy: z.enum(['strict', 'all']).optional(),
   favicon: FaviconSchema.optional(),
   navbar: NavbarSchema.optional(),
+  header: TopBarSchema.optional(),
   footer: FooterSchema.optional(),
   // @deprecated Use meta.json files in content directories instead
   sidebar: z.array(SidebarGroupSchema).optional(),
@@ -133,6 +159,8 @@ export type FaviconConfig = z.infer<typeof FaviconSchema>;
 export type I18nLocale = z.infer<typeof I18nLocaleSchema>;
 export type I18nConfig = z.infer<typeof I18nConfigSchema>;
 export type OpenApiConfig = z.infer<typeof OpenApiSchema>;
+export type TopBarConfig = z.infer<typeof TopBarSchema>;
+export type TopBarLink = z.infer<typeof TopBarLinkSchema>;
 
 // @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
@@ -196,4 +224,11 @@ export function resolveOpenApiSpecPaths(config: OpenManualConfig): string[] {
  */
 export function isSeparateTabMode(config: OpenManualConfig): boolean {
   return config.openapi?.separateTab === true;
+}
+
+/**
+ * 判断是否启用了顶部横条
+ */
+export function isHeaderEnabled(config: OpenManualConfig): boolean {
+  return config.header?.enabled === true;
 }
