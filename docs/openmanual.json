@@ -18,7 +18,6 @@
     ]
   },
   "header": {
-    "enabled": true,
     "height": "56px",
     "logo": {
       "light": "/logo.svg",

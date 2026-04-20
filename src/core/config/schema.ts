@@ -118,8 +118,6 @@ export const TopBarLinkSchema = z
 
 /** 顶部横条配置 */
 export const TopBarSchema = z.object({
-  /** 是否启用顶部横条 */
-  enabled: z.boolean().optional(),
   /** 高度，默认 '64px' */
   height: z.string().optional(),
   /** Logo 配置（独立于 navbar.logo） */
@@ -235,8 +233,8 @@ export function isSeparateTabMode(config: OpenManualConfig): boolean {
 }
 
 /**
- * 判断是否启用了顶部横条
+ * 判断是否启用了顶部横条（配置了 header 即启用）
  */
 export function isHeaderEnabled(config: OpenManualConfig): boolean {
-  return config.header?.enabled === true;
+  return config.header !== undefined;
 }

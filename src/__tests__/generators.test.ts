@@ -1955,7 +1955,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'Test',
         header: {
-          enabled: true,
           height: '56px',
           links: [{ label: 'Console', href: '/console' }],
         },
@@ -1970,7 +1969,7 @@ describe('generateTopBarComponent', () => {
   it('should include --fd-banner-height style injection', () => {
     const ctx = {
       ...topBarBaseCtx,
-      config: { name: 'T', header: { enabled: true, height: '64px' } as any },
+      config: { name: 'T', header: { height: '64px' } as any },
     };
     const result = generateTopBarComponent(ctx);
     // --fd-banner-height is injected by the TopBar component itself, not the generated wrapper
@@ -1982,7 +1981,7 @@ describe('generateTopBarComponent', () => {
   it('should use default height 64px when not specified', () => {
     const ctx = {
       ...topBarBaseCtx,
-      config: { name: 'T', header: { enabled: true } as any },
+      config: { name: 'T', header: {} as any },
     };
     const result = generateTopBarComponent(ctx);
     expect(result).toContain("height='64px'");
@@ -1994,7 +1993,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'T',
         header: {
-          enabled: true,
           links: [
             { label: 'Pricing', href: '/pricing' },
             { label: 'Docs', href: '/docs', external: false },
@@ -2018,7 +2016,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'Test',
         header: {
-          enabled: true,
           logo: '/custom-logo.svg',
         } as any,
       },
@@ -2033,7 +2030,7 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'Test',
         navbar: { logo: '/nav-logo.svg' } as any,
-        header: { enabled: true } as any,
+        header: {} as any,
       },
     };
     const result = generateTopBarComponent(ctx);
@@ -2045,7 +2042,7 @@ describe('generateTopBarComponent', () => {
   it('should fallback to config.name when no logo provided anywhere', () => {
     const ctx = {
       ...topBarBaseCtx,
-      config: { name: 'MyProduct', header: { enabled: true } as any },
+      config: { name: 'MyProduct', header: {} as any },
     };
     const result = generateTopBarComponent(ctx);
     expect(result).toContain('MyProduct');
@@ -2056,7 +2053,7 @@ describe('generateTopBarComponent', () => {
       ...topBarBaseCtx,
       config: {
         name: 'T',
-        header: { enabled: true, background: '#1a1a2e' } as any,
+        header: { background: '#1a1a2e' } as any,
       },
     };
     const result = generateTopBarComponent(ctx);
@@ -2066,7 +2063,7 @@ describe('generateTopBarComponent', () => {
   it('should not include background prop when not configured', () => {
     const ctx = {
       ...topBarBaseCtx,
-      config: { name: 'T', header: { enabled: true } as any },
+      config: { name: 'T', header: {} as any },
     };
     const result = generateTopBarComponent(ctx);
     expect(result).not.toContain('background=');
@@ -2078,7 +2075,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'Test',
         header: {
-          enabled: true,
           sticky: true,
           bordered: true,
           logo: { light: '/light.svg', dark: '/dark.svg' } as any,
@@ -2093,7 +2089,7 @@ describe('generateTopBarComponent', () => {
   it('should generate empty right nav when no links configured', () => {
     const ctx = {
       ...topBarBaseCtx,
-      config: { name: 'T', header: { enabled: true } as any },
+      config: { name: 'T', header: {} as any },
     };
     const result = generateTopBarComponent(ctx);
     // NavLinks component receives empty array
@@ -2106,7 +2102,7 @@ describe('generateTopBarComponent', () => {
       ...topBarBaseCtx,
       config: {
         name: 'T',
-        header: { enabled: true, links: [{ label: 'Docs', href: '/docs' }] } as any,
+        header: { links: [{ label: 'Docs', href: '/docs' }] } as any,
       } as any,
     };
     const result = generateTopBarComponent(ctx);
@@ -2121,7 +2117,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'T',
         header: {
-          enabled: true,
           links: [{ icon: 'Github', href: 'https://github.com/test' }],
         } as any,
       } as any,
@@ -2141,7 +2136,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'T',
         header: {
-          enabled: true,
           links: [{ icon: 'Github', label: 'GitHub', href: 'https://github.com/test' }] as any,
         },
       } as any,
@@ -2160,7 +2154,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'T',
         header: {
-          enabled: true,
           links: [
             { label: 'Docs', href: '/docs' },
             { label: 'Blog', href: '/blog' },
@@ -2179,7 +2172,6 @@ describe('generateTopBarComponent', () => {
       config: {
         name: 'T',
         header: {
-          enabled: true,
           links: [
             { icon: 'Github', label: 'GitHub', href: 'https://github.com/test' } as any,
             { icon: 'Twitter', href: 'https://twitter.com/test' } as any,
