@@ -3,6 +3,8 @@
 import { DynamicIcon } from 'lucide-react/dynamic';
 import type { ComponentProps } from 'react';
 
+import { cn } from '@/lib/utils';
+
 /** 图片路径检测：判断 icon 值是否为图片文件路径 */
 function isImagePath(value: string): boolean {
   return (
@@ -41,7 +43,7 @@ export function NavLinks({ links, className = '', ...props }: NavLinksProps) {
   if (links.length === 0) return null;
 
   return (
-    <nav className={`flex items-center gap-4 ${className}`} {...props}>
+    <nav className={cn('flex items-center gap-4', className)} {...props}>
       {links.map((link) => (
         <NavLinkItemRender key={link.href} {...link} />
       ))}

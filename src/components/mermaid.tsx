@@ -5,6 +5,8 @@ import { LocateFixed, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { use, useCallback, useEffect, useId, useRef, useState } from 'react';
 
+import { cn } from '@/lib/utils';
+
 interface MermaidAPI {
   initialize(config: {
     startOnLoad?: boolean;
@@ -196,9 +198,10 @@ function MermaidContent({ chart }: { chart: string }) {
         ref={overlayRef}
         role="dialog"
         aria-modal={dialogState !== 'closed' ? 'true' : undefined}
-        className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ease-out ${
-          dialogState === 'closed' ? 'pointer-events-none' : ''
-        }`}
+        className={cn(
+          'fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-200 ease-out',
+          dialogState === 'closed' && 'pointer-events-none'
+        )}
         style={{
           backgroundColor: 'var(--color-fd-background)',
           opacity: dialogState === 'closed' || dialogState === 'closing' ? 0 : 1,

@@ -10,7 +10,7 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import type { ComponentProps, CSSProperties, ReactNode } from 'react';
-import { twMerge as cn } from 'tailwind-merge';
+import { cn } from '@/lib/utils';
 
 export type CalloutType =
   | 'note'

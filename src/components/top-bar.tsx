@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react';
 
+import { cn } from '@/lib/utils';
+
 export interface TopBarProps {
   /** 高度值，如 '64px' */
   height: string;
@@ -40,9 +42,10 @@ export function TopBar({
           ...(sticky ? { position: 'sticky' as const, top: 0, zIndex: 40 } : {}),
           ...(background ? { background } : {}),
         }}
-        className={`w-full shrink-0 ${
-          bordered ? 'border-b border-fd-border' : ''
-        } bg-fd-background text-fd-foreground`}
+        className={cn(
+          'w-full shrink-0 bg-fd-background text-fd-foreground',
+          bordered && 'border-b border-fd-border'
+        )}
       >
         {/* 内层：与 Fumadocs 内容区（--fd-layout-width）同宽 */}
         <div className="flex items-center justify-between mx-auto max-w-[var(--fd-layout-width,97rem)] px-4 h-full">
