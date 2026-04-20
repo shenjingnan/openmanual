@@ -2096,4 +2096,102 @@ describe('generateTopBarComponent', () => {
     // Should still have the nav element but empty
     expect(result).toContain('<nav className="flex items-center gap-4">');
   });
+
+  it('should generate link with only label (backward compatible)', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { enabled: true, links: [{ label: 'Docs', href: '/docs' }] } as any,
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('Docs');
+    expect(result).not.toContain('DynamicIcon');
+    expect(result).not.toContain('lucide-react/dynamic');
+  });
+
+  it('should generate link with only icon using DynamicIcon', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          enabled: true,
+          links: [{ icon: 'Github', href: 'https://github.com/test' }],
+        } as any,
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('DynamicIcon');
+    expect(result).toContain('name="Github"');
+    expect(result).toContain('lucide-react/dynamic');
+    expect(result).toContain('aria-label="Github"');
+    expect(result).not.toContain('>GitHub</a>');
+  });
+
+  it('should generate link with both icon and label', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          enabled: true,
+          links: [{ icon: 'Github', label: 'GitHub', href: 'https://github.com/test' }] as any,
+        },
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('DynamicIcon');
+    expect(result).toContain('name="Github"');
+    expect(result).toContain('>GitHub</a>');
+    expect(result).toContain('inline-flex items-center gap-1.5');
+  });
+
+  it('should not import DynamicIcon when no icons are used', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          enabled: true,
+          links: [
+            { label: 'Docs', href: '/docs' },
+            { label: 'Blog', href: '/blog' },
+          ] as any,
+        },
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('DynamicIcon');
+    expect(result).not.toContain('lucide-react/dynamic');
+  });
+
+  it('should mix icon-only, label-only, and icon+label links', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          enabled: true,
+          links: [
+            { icon: 'Github', label: 'GitHub', href: 'https://github.com/test' } as any,
+            { icon: 'Twitter', href: 'https://twitter.com/test' } as any,
+            { label: 'Docs', href: '/docs' } as any,
+          ],
+        },
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    // Should import DynamicIcon (because there are icons)
+    expect(result).toContain('lucide-react/dynamic');
+    // icon+label mode
+    expect(result).toContain('name="Github"');
+    expect(result).toContain('>GitHub</a>');
+    // icon-only mode
+    expect(result).toContain('name="Twitter"');
+    expect(result).toContain('aria-label="Twitter"');
+    // label-only mode
+    expect(result).toContain('>Docs</a>');
+  });
 });

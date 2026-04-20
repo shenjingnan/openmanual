@@ -41,25 +41,38 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
     }
   }
 
-  // 处理链接
+  // 处理链接 — 支持 icon / label / icon+label 三种模式
   const links = header.links ?? [];
+  const hasAnyIcon = links.some((l) => l.icon);
   const linksJsx =
     links.length > 0
       ? links
           .map((l) => {
             const external =
               l.external !== false ? ` target="_blank" rel="noopener noreferrer"` : '';
-            return `<a href="${l.href}"${external} className="text-sm text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap">${l.label}</a>`;
+            const hasIcon = !!l.icon;
+            const hasLabel = !!l.label;
+
+            if (hasIcon && hasLabel) {
+              return `<a href="${l.href}"${external} className="inline-flex items-center gap-1.5 text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap"><DynamicIcon name="${l.icon}" className="size-4" />${l.label}</a>`;
+            }
+            if (hasIcon) {
+              return `<a href="${l.href}"${external} className="inline-flex items-center justify-center text-fd-muted-foreground hover:text-fd-foreground transition-colors" aria-label="${l.icon}"><DynamicIcon name="${l.icon}" className="size-4" /></a>`;
+            }
+            return `<a href="${l.href}"${external} className="text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap">${l.label}</a>`;
           })
           .join('\n          ')
       : '';
 
   const backgroundProp = background ? `\n    background='${background}',` : '';
+  const dynamicIconImport = hasAnyIcon
+    ? `\nimport { DynamicIcon } from 'lucide-react/dynamic';`
+    : '';
 
   return `'use client';
 
 import { TopBar } from 'openmanual/components/top-bar';
-import { NavLogo } from 'openmanual/components/nav-layout';
+import { NavLogo } from 'openmanual/components/nav-layout';${dynamicIconImport}
 
 export function OmTopBar() {
   return (
