@@ -1371,6 +1371,41 @@ describe('TopBarSchema', () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it('should accept link with only label (backward compatible)', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: { enabled: true, links: [{ label: 'Docs', href: '/docs' }] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept link with only icon', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: { enabled: true, links: [{ icon: 'Github', href: 'https://github.com/test' }] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept link with both icon and label', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: {
+        enabled: true,
+        links: [{ icon: 'Github', label: 'GitHub', href: 'https://github.com/test' }],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject link with neither icon nor label', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      header: { enabled: true, links: [{ href: 'https://example.com' }] },
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('isHeaderEnabled', () => {

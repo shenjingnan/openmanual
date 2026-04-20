@@ -102,11 +102,19 @@ export const OpenApiSchema = z.object({
 });
 
 /** 顶部横条链接项 */
-export const TopBarLinkSchema = z.object({
-  label: z.string(),
-  href: z.string(),
-  external: z.boolean().optional().default(true),
-});
+export const TopBarLinkSchema = z
+  .object({
+    /** 链接显示文本（与 icon 至少填一个） */
+    label: z.string().optional(),
+    /** lucide-react 图标名称（如 "Github", "Twitter"，与 label 至少填一个） */
+    icon: z.string().optional(),
+    href: z.string(),
+    external: z.boolean().optional().default(true),
+  })
+  .refine((data) => data.label || data.icon, {
+    message: '至少需要提供 label 或 icon 中的一个',
+    path: ['label'],
+  });
 
 /** 顶部横条配置 */
 export const TopBarSchema = z.object({
