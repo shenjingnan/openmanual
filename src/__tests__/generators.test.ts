@@ -2003,12 +2003,13 @@ describe('generateTopBarComponent', () => {
       },
     };
     const result = generateTopBarComponent(ctx);
-    // Pricing link should have target="_blank" (default external=true)
-    expect(result).toContain('href="/pricing"');
-    expect(result).toContain('Pricing');
-    // Docs link should NOT have target="_blank"
-    expect(result).toContain('href="/docs"');
-    expect(result).toContain('Docs');
+    // Links are serialized as JSON props to NavLinks component
+    expect(result).toContain('NavLinks');
+    expect(result).toContain('"label":"Pricing"');
+    expect(result).toContain('"/pricing"');
+    expect(result).toContain('"label":"Docs"');
+    expect(result).toContain('"/docs"');
+    expect(result).toContain('"external":false');
   });
 
   it('should use header.logo when provided', () => {
@@ -2093,8 +2094,9 @@ describe('generateTopBarComponent', () => {
       config: { name: 'T', header: { enabled: true } as any },
     };
     const result = generateTopBarComponent(ctx);
-    // Should still have the nav element but empty
-    expect(result).toContain('<nav className="flex items-center gap-4">');
+    // NavLinks component receives empty array
+    expect(result).toContain('NavLinks');
+    expect(result).toContain('links={[]}');
   });
 
   it('should generate link with only label (backward compatible)', () => {
@@ -2123,11 +2125,12 @@ describe('generateTopBarComponent', () => {
       } as any,
     };
     const result = generateTopBarComponent(ctx);
-    expect(result).toContain('DynamicIcon');
-    expect(result).toContain('name="Github"');
-    expect(result).toContain('lucide-react/dynamic');
-    expect(result).toContain('aria-label="Github"');
-    expect(result).not.toContain('>GitHub</a>');
+    // Icon links are serialized as JSON props to NavLinks (DynamicIcon is inside NavLinks)
+    expect(result).toContain('NavLinks');
+    expect(result).toContain('"icon":"Github"');
+    expect(result).toContain('"href":"https://github.com/test"');
+    // No inline DynamicIcon import in generated code (it's encapsulated in NavLinks)
+    expect(result).not.toContain('lucide-react/dynamic');
   });
 
   it('should generate link with both icon and label', () => {
@@ -2142,10 +2145,11 @@ describe('generateTopBarComponent', () => {
       } as any,
     };
     const result = generateTopBarComponent(ctx);
-    expect(result).toContain('DynamicIcon');
-    expect(result).toContain('name="Github"');
-    expect(result).toContain('>GitHub</a>');
-    expect(result).toContain('inline-flex items-center gap-1.5');
+    // Icon+label links are serialized as JSON props to NavLinks
+    expect(result).toContain('NavLinks');
+    expect(result).toContain('"icon":"Github"');
+    expect(result).toContain('"label":"GitHub"');
+    expect(result).toContain('"href":"https://github.com/test"');
   });
 
   it('should not import DynamicIcon when no icons are used', () => {
@@ -2183,15 +2187,16 @@ describe('generateTopBarComponent', () => {
       } as any,
     };
     const result = generateTopBarComponent(ctx);
-    // Should import DynamicIcon (because there are icons)
-    expect(result).toContain('lucide-react/dynamic');
+    // All links are serialized as JSON to NavLinks component
+    expect(result).toContain('NavLinks');
     // icon+label mode
-    expect(result).toContain('name="Github"');
-    expect(result).toContain('>GitHub</a>');
+    expect(result).toContain('"icon":"Github"');
+    expect(result).toContain('"label":"GitHub"');
     // icon-only mode
-    expect(result).toContain('name="Twitter"');
-    expect(result).toContain('aria-label="Twitter"');
+    expect(result).toContain('"icon":"Twitter"');
     // label-only mode
-    expect(result).toContain('>Docs</a>');
+    expect(result).toContain('"label":"Docs"');
+    // No inline lucide-react/dynamic import (encapsulated in NavLinks)
+    expect(result).not.toContain('lucide-react/dynamic');
   });
 });
