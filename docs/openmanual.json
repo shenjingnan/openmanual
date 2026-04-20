@@ -20,6 +20,10 @@
   "header": {
     "enabled": true,
     "height": "56px",
+    "logo": {
+      "light": "/logo.svg",
+      "dark": "/logo-dark.svg"
+    },
     "links": [
       { "icon": "bot", "href": "https://github.com/shenjingnan/openmanual" },
       { "icon": "/icons/github-fill.svg", "href": "https://github.com/shenjingnan/openmanual" },
@@ -32,10 +36,6 @@
     ]
   },
   "navbar": {
-    "logo": {
-      "light": "/logo.svg",
-      "dark": "/logo-dark.svg"
-    },
     "github": "https://github.com/shenjingnan/openmanual"
   },
   "theme": {

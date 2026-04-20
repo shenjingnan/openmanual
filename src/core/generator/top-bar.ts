@@ -9,8 +9,8 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   const bordered = header.bordered ?? true;
   const background = header.background ?? '';
 
-  // 处理 Logo — 复用共享工具函数消除重复
-  const logoSource = header.logo ?? config.navbar?.logo ?? config.name;
+  // 处理 Logo — 仅使用 header.logo 或回退到项目名称（不回退到 navbar.logo 避免双 logo）
+  const logoSource = header.logo ?? config.name;
   const logoProps = resolveNavLogoProps(logoSource, config.name);
 
   // 处理链接 — 序列化为 JSON 传给 NavLinks 组件
