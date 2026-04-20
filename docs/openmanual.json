@@ -21,7 +21,14 @@
     "enabled": true,
     "height": "56px",
     "links": [
-      { "icon": "/icons/github-fill.svg", "href": "https://github.com/shenjingnan/openmanual" }
+      { "icon": "bot", "href": "https://github.com/shenjingnan/openmanual" },
+      { "icon": "/icons/github-fill.svg", "href": "https://github.com/shenjingnan/openmanual" },
+      {
+        "icon": "/icons/github-fill.svg",
+        "label": "GitHub",
+        "href": "https://github.com/shenjingnan/openmanual"
+      },
+      { "label": "GitHub", "href": "https://github.com/shenjingnan/openmanual" }
     ]
   },
   "navbar": {

@@ -67,7 +67,7 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
         {...externalAttrs}
         className="inline-flex items-center gap-1.5 text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap"
       >
-        <img src={icon} alt={label} className="size-4" />
+        <img src={icon} alt={label} className="size-5" />
         {label}
       </a>
     );
@@ -82,7 +82,7 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
         className="inline-flex items-center justify-center text-fd-muted-foreground hover:text-fd-foreground transition-colors"
         aria-label={label || icon}
       >
-        <img src={icon} alt={label || icon} className="size-4" />
+        <img src={icon} alt={label || icon} className="size-5" />
       </a>
     );
   }
@@ -95,7 +95,7 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
         {...externalAttrs}
         className="inline-flex items-center gap-1.5 text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap"
       >
-        <DynamicIcon name={icon as any} className="size-4" />
+        <DynamicIcon name={icon as any} className="size-5" />
         {label}
       </a>
     );
@@ -110,7 +110,7 @@ function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) 
         className="inline-flex items-center justify-center text-fd-muted-foreground hover:text-fd-foreground transition-colors"
         aria-label={icon}
       >
-        <DynamicIcon name={icon as any} className="size-4" />
+        <DynamicIcon name={icon as any} className="size-5" />
       </a>
     );
   }
