@@ -366,6 +366,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const isI18n = isI18nEnabled(config);
   const isOApi = isOpenApiEnabled(config);
   const rootGroups = ctx.rootGroups;
+  const isHeaderSearch = config.search?.position === 'header';
 
   const linksArray = navLinks.map((l) => ({
     text: l.label,
@@ -448,7 +449,7 @@ ${
     ...baseOptions(lang),
     ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
-    }
+    }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
   };
 
   return (
@@ -473,7 +474,9 @@ const _omApiUrl = _omFirstApi?.url ?? '/openapi';
   }
 const docsOptions = {
   ...baseOptions(),
-  ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}
+  ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}${
+    isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
+  }
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {
