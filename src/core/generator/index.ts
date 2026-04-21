@@ -299,7 +299,7 @@ import '../global.css';
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <AppLayout>
-      ${topBarJsx}<AppProvider>{children}</AppProvider>
+      <AppProvider>${topBarJsx}{children}</AppProvider>
     </AppLayout>
   );
 }
@@ -351,7 +351,7 @@ export default async function RootLayout({
 
   return (
     <AppLayout lang={lang}>
-      ${topBarJsx}<AppProvider lang={lang}>{children}</AppProvider>
+      <AppProvider lang={lang}>${topBarJsx}{children}</AppProvider>
     </AppLayout>
   );
 }
