@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.14.0](https://github.com/shenjingnan/openmanual/compare/v0.13.0...v0.14.0) (2026-04-21)
+
+### Features
+
+* **header:** 支持 header.links 使用自定义图片图标（PNG/SVG） ([#119](https://github.com/shenjingnan/openmanual/issues/119)) ([545bc68](https://github.com/shenjingnan/openmanual/commit/545bc6862881e5fe345b2d6efed1b0449de99ad1))
+* **header:** 支持 header.links 图标（icon）字段 ([#117](https://github.com/shenjingnan/openmanual/issues/117)) ([a4834ef](https://github.com/shenjingnan/openmanual/commit/a4834efbe615415b0bd557703eee0f9094da1a2e))
+* **header:** 支持自定义顶部横条（TopBar）区域 ([#107](https://github.com/shenjingnan/openmanual/issues/107)) ([823fc01](https://github.com/shenjingnan/openmanual/commit/823fc016f0001e50b719babd5a36a65e3e425b11))
+* **nav-links:** 增大导航链接图标尺寸（size-4 → size-5） ([#121](https://github.com/shenjingnan/openmanual/issues/121)) ([f200646](https://github.com/shenjingnan/openmanual/commit/f200646b557da32ce876446222f6b831809a2fd9))
+* **openapi:** 支持 API 文档混合导航到文档树中 ([#106](https://github.com/shenjingnan/openmanual/issues/106)) ([c13c9ee](https://github.com/shenjingnan/openmanual/commit/c13c9ee646cdb6ca5148dc28840e50a411172ad7))
+* **openapi:** 集成 OpenAPI 接口文档渲染支持 ([#105](https://github.com/shenjingnan/openmanual/issues/105)) ([4b1cd07](https://github.com/shenjingnan/openmanual/commit/4b1cd076640d61dcd26deeb1c9edb4006171693c))
+* **search:** 重构搜索配置为「配置即启用」语义，支持 position 定位 ([#124](https://github.com/shenjingnan/openmanual/issues/124)) ([be85e7d](https://github.com/shenjingnan/openmanual/commit/be85e7da4c5ab0d257486e4bf8e2c69debd08624))
+* **skills:** 添加 Playwright CLI 浏览器自动化技能 ([#109](https://github.com/shenjingnan/openmanual/issues/109)) ([cf1a2de](https://github.com/shenjingnan/openmanual/commit/cf1a2deaaa0417754944ed169556c3a8d0e4dc50))
+
+### Bug Fixes
+
+* **css:** 修复 header hover 样式不生效问题 ([#125](https://github.com/shenjingnan/openmanual/issues/125)) ([bc59cfd](https://github.com/shenjingnan/openmanual/commit/bc59cfd6c0c6a0574558d5d00dac937203bb10d4))
+* **generator:** 修复 sidebar dropdown 切换后页面无法展示 ([#104](https://github.com/shenjingnan/openmanual/issues/104)) ([ef7659e](https://github.com/shenjingnan/openmanual/commit/ef7659ec056bf5d2e23d34f150045e04eb814187))
+* **header:** 移除 header logo 对 navbar.logo 的回退，避免双 logo 问题 ([#122](https://github.com/shenjingnan/openmanual/issues/122)) ([6e92324](https://github.com/shenjingnan/openmanual/commit/6e92324a549c1b1c40e45d899eefcac534ffe92b))
+* **top-bar:** 移除顶部横条超大屏幕额外内边距 ([#111](https://github.com/shenjingnan/openmanual/issues/111)) ([9059a43](https://github.com/shenjingnan/openmanual/commit/9059a4312ba8cffd9703b6dcdde99bcbec862a88))
+
+### Code Refactoring
+
+* **agents:** 将 commit 归属配置从 settings 迁移至命令文档 ([#101](https://github.com/shenjingnan/openmanual/issues/101)) ([f876217](https://github.com/shenjingnan/openmanual/commit/f87621792d59a87f5072bb994a0e2e221b1851f6))
+* **components:** 统一 cn() 工具函数，基于 clsx + tailwind-merge ([#120](https://github.com/shenjingnan/openmanual/issues/120)) ([d6f0cc3](https://github.com/shenjingnan/openmanual/commit/d6f0cc3a8471629263d98b74222d8a546ffe38ca))
+* **generator:** 移除 sidebar 配置依赖，改用文件系统 + meta.json 驱动生成 ([#103](https://github.com/shenjingnan/openmanual/issues/103)) ([3fdb5d3](https://github.com/shenjingnan/openmanual/commit/3fdb5d3e9ee2007ebf889b1ab008dd101325b666))
+* **header:** 移除冗余的 header.enabled 字段，改为「配置即启用」语义 ([#123](https://github.com/shenjingnan/openmanual/issues/123)) ([e733ef0](https://github.com/shenjingnan/openmanual/commit/e733ef0402c074f98408f7ab152d661e3fb8a453))
+* **top-bar:** 提取 NavLinks 组件并共享 Logo 解析逻辑 ([#118](https://github.com/shenjingnan/openmanual/issues/118)) ([e86314b](https://github.com/shenjingnan/openmanual/commit/e86314b118774ab259f0e9cb006288274c1e8900))
+
+### Documentation
+
+* 更新顶部横条链接为 GitHub 仓库地址 ([#110](https://github.com/shenjingnan/openmanual/issues/110)) ([4cd643b](https://github.com/shenjingnan/openmanual/commit/4cd643b157ee0a547b6ad158c443394823d68a50))
+* 添加 npm 下载量 badge 到 README ([#100](https://github.com/shenjingnan/openmanual/issues/100)) ([f08e423](https://github.com/shenjingnan/openmanual/commit/f08e423eb2091e61226b77188e892ac50c817307))
+
 ## [0.13.0](https://github.com/shenjingnan/openmanual/compare/v0.12.0...v0.13.0) (2026-04-14)
 
 ### Features
