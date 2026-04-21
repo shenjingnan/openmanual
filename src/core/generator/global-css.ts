@@ -30,6 +30,7 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   --color-fd-accent-foreground: hsl(35, 12%, 88%);
   --color-fd-ring: hsl(30, 30%, 50%);
   --color-fd-overlay: hsla(25, 20%, 5%, 0.5);
+  --color-fd-inputborder: hsla(30, 20%, 50%, 40%);   /* 输入框边框色（hover 用）*/
 
   /* Callout 类型色 */
   --callout-info-bg: hsl(213, 25%, 16%);
@@ -65,8 +66,19 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 
   return `@import 'tailwindcss';
 @source './node_modules/openmanual/dist/components/**/*.js';
-@import 'fumadocs-ui/style.css';${openapiCssImport}
-@custom-variant dark (&:is(.dark, .dark *));
+@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/preset.css';${openapiCssImport}
+
+@layer base {
+  body {
+    @apply flex flex-col min-h-screen;
+  }
+}
+
+/* 注册自定义颜色到 Tailwind v4 @theme，确保所有变体（hover/dark 等）可正确生成 */
+@theme {
+  --color-fd-inputborder: hsla(30, 12%, 80%, 50%);
+}
 
 :root {
   --primary-hue: ${primaryHue};
@@ -77,6 +89,8 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   --color-fd-muted: hsl(40, 15%, 95%);             /* 柔和的暖灰背景 */
   --color-fd-card: hsl(40, 18%, 94%);              /* 卡片背景 */
   --color-fd-popover: hsl(40, 20%, 97.5%);         /* 弹窗背景 */
+  --color-fd-muted-foreground: hsl(30, 10%, 55%);   /* 次要文字色 */
+  --color-fd-inputborder: hsla(30, 12%, 80%, 50%);  /* 输入框边框色（hover 用）*/
 
   /* Callout 类型色 */
   --callout-info-bg: hsl(210, 35%, 94%);
