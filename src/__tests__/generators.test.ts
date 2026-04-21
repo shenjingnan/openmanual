@@ -63,23 +63,28 @@ describe('generateGlobalCss', () => {
     expect(result).toContain('--primary-hue: 180');
   });
 
-  it('should include tailwindcss and fumadocs imports', () => {
+  it('should include tailwindcss and fumadocs imports (split to avoid double @import tailwindcss)', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain("@import 'tailwindcss'");
-    expect(result).toContain("@import 'fumadocs-ui/style.css'");
+    // 不再导入 style.css（其内部包含第二次 @import tailwindcss 会导致 hover 变体丢失）
+    // 改为直接导入子模块 neutral.css + preset.css
+    expect(result).toContain("@import 'fumadocs-ui/css/neutral.css'");
+    expect(result).toContain("@import 'fumadocs-ui/css/preset.css'");
   });
 
-  it('should include @custom-variant dark for class-based dark mode', () => {
+  it('should use fumadocs-ui built-in @variant dark instead of custom one', () => {
     const result = generateGlobalCss(baseCtx);
-    expect(result).toContain('@custom-variant dark (&:is(.dark, .dark *))');
+    // 不再自定义 @custom-variant dark（:is），复用 fumadocs-ui/base.css 内置的 @variant dark（:where）
+    expect(result).not.toContain('@custom-variant dark');
+    // 应包含 body 的 base layer 样式（从 style.css 提取）
+    expect(result).toContain('@layer base');
+    expect(result).toContain('@apply flex flex-col min-h-screen');
   });
 
-  it('should place @custom-variant after fumadocs import', () => {
+  it('should register custom colors in @theme block for variant generation', () => {
     const result = generateGlobalCss(baseCtx);
-    const fumadocsIndex = result.indexOf("@import 'fumadocs-ui/style.css'");
-    const variantIndex = result.indexOf('@custom-variant dark');
-    expect(fumadocsIndex).toBeGreaterThan(-1);
-    expect(variantIndex).toBeGreaterThan(fumadocsIndex);
+    expect(result).toContain('@theme');
+    expect(result).toContain('--color-fd-inputborder');
   });
 });
 
@@ -1484,12 +1489,13 @@ describe('generateGlobalCss - with openapi', () => {
     expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
   });
 
-  it('should place openapi CSS after fumadocs-ui CSS', () => {
+  it('should place openapi CSS after fumadocs-ui CSS imports', () => {
     const result = generateGlobalCss(openapiCtx);
-    const fumadocsIndex = result.indexOf("@import 'fumadocs-ui/style.css'");
+    // openapi import 应在 neutral.css + preset.css 之后
+    const presetIndex = result.indexOf("@import 'fumadocs-ui/css/preset.css'");
     const openapiIndex = result.indexOf("@import 'fumadocs-openapi/css/preset.css'");
-    expect(fumadocsIndex).toBeGreaterThan(-1);
-    expect(openapiIndex).toBeGreaterThan(fumadocsIndex);
+    expect(presetIndex).toBeGreaterThan(-1);
+    expect(openapiIndex).toBeGreaterThan(presetIndex);
   });
 
   it('should NOT include openapi CSS when openapi is not enabled', () => {
@@ -1754,7 +1760,9 @@ describe('generateGlobalCss - openapi + darkMode false combined', () => {
     expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
     expect(result).not.toContain('.dark {');
     expect(result).toContain("@import 'tailwindcss'");
-    expect(result).toContain("@import 'fumadocs-ui/style.css'");
+    // 使用拆分后的子模块导入，而非 style.css
+    expect(result).toContain("@import 'fumadocs-ui/css/neutral.css'");
+    expect(result).toContain("@import 'fumadocs-ui/css/preset.css'");
   });
 
   it('should include openapi CSS with custom primaryHue when darkMode false', () => {
