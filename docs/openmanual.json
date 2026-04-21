@@ -42,7 +42,7 @@
     "darkMode": true
   },
   "search": {
-    "enabled": true
+    "position": "header"
   },
   "mdx": {
     "latex": true

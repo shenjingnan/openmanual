@@ -42,7 +42,15 @@ export const ThemeSchema = z.object({
 });
 
 export const SearchSchema = z.object({
-  enabled: z.boolean().optional(),
+  /**
+   * 搜索入口位置
+   * - 'sidebar': 放在侧边栏顶部（Fumadocs 风格）
+   * - 'header': 放在 header 中间（Mintlify 风格）
+   *
+   * 默认值: 'sidebar'
+   * 不配置 search 字段则不启用搜索（与 header 的「配置即启用」语义一致）
+   */
+  position: z.enum(['sidebar', 'header']).optional(),
 });
 
 export const MdxSchema = z.object({

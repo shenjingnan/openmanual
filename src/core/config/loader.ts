@@ -12,9 +12,6 @@ const DEFAULT_CONFIG: Partial<OpenManualConfig> = {
     primaryHue: 213,
     darkMode: true,
   },
-  search: {
-    enabled: true,
-  },
   mdx: {},
   pageActions: { enabled: true },
 };
@@ -68,10 +65,8 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       ...DEFAULT_CONFIG.theme,
       ...config.theme,
     },
-    search: {
-      ...DEFAULT_CONFIG.search,
-      ...config.search,
-    },
+    // 「配置即启用」：用户不配 search 字段则保持 undefined（不启用搜索）
+    search: config.search ? { position: config.search.position ?? 'sidebar' } : undefined,
     mdx: {
       ...DEFAULT_CONFIG.mdx,
       ...config.mdx,

@@ -8,7 +8,9 @@ import type { OpenManualConfig } from '../config/schema.js';
  * 一次作为生成应用的依赖）导致的多实例 React Context 问题。
  */
 export function generateProvider(ctx: { config: OpenManualConfig }): string {
-  const searchEnabled = ctx.config.search?.enabled !== false;
+  const searchConfig = ctx.config.search;
+  // 「配置即启用」：存在 search 字段即启用搜索（与 header 语义一致）
+  const searchEnabled = searchConfig !== undefined;
   const isI18n = ctx.config.i18n?.enabled === true;
 
   if (isI18n) {
