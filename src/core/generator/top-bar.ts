@@ -18,11 +18,25 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
 
   const backgroundProp = background ? `\n    background='${background}',` : '';
 
+  // 搜索位置：header 模式下在 center 插槽渲染搜索触发器
+  const searchPosition = config.search?.position;
+  const isTopBarSearch = searchPosition === 'header';
+
+  const searchImport = isTopBarSearch
+    ? "\nimport { TopBarSearchTrigger } from 'openmanual/components/top-bar-search-trigger';"
+    : '';
+
+  // 将所有复杂 props 提取为变量，避免 Turbopack 解析行内大 JSON/JSX 时报错
+  const centerProp = isTopBarSearch ? '\n      center={searchCenter}' : '';
+
   return `'use client';
 
 import { TopBar } from 'openmanual/components/top-bar';
 import { NavLogo } from 'openmanual/components/nav-layout';
-import { NavLinks } from 'openmanual/components/nav-links';
+import { NavLinks } from 'openmanual/components/nav-links';${searchImport}
+
+const navLinks = ${linksJson};
+${isTopBarSearch ? 'const searchCenter = <TopBarSearchTrigger />;' : ''}
 
 export function OmTopBar() {
   return (
@@ -30,8 +44,8 @@ export function OmTopBar() {
       height='${height}'
       sticky={${sticky}}${backgroundProp}
       bordered={${bordered}}
-      left={<NavLogo ${logoProps} />}
-      right={<NavLinks links={${linksJson}} />}
+      left={<NavLogo ${logoProps} />}${centerProp}
+      right={<NavLinks links={navLinks} />}
     />
   );
 }

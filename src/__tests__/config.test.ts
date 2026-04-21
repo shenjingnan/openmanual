@@ -179,7 +179,7 @@ describe('loadConfig', () => {
     expect(config.contentPolicy).toBe('strict');
     expect(config.navbar?.logo).toBe('TestProject');
     expect(config.theme?.primaryHue).toBe(213);
-    expect(config.search?.enabled).toBe(true);
+    expect(config.search).toBeUndefined();
   });
 
   it('should respect contentPolicy all when provided', async () => {

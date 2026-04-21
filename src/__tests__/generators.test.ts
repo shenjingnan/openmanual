@@ -548,17 +548,26 @@ describe('generateProvider', () => {
     expect(result).toContain("'use client'");
   });
 
-  it('should enable search by default', () => {
+  it('should disable search when search config is absent (配置即启用)', () => {
+    // baseConfig 没有 search 字段 → 搜索不启用
     const result = generateProvider(baseCtx);
+    expect(result).toContain('enabled: false');
+  });
+
+  it('should enable search when search config exists (配置即启用)', () => {
+    const ctx = {
+      config: { ...baseConfig, search: {} },
+    };
+    const result = generateProvider(ctx);
     expect(result).toContain('enabled: true');
   });
 
-  it('should disable search when config.search.enabled is false', () => {
+  it('should enable search with position: header', () => {
     const ctx = {
-      config: { ...baseConfig, search: { enabled: false } },
+      config: { ...baseConfig, search: { position: 'header' as const } },
     };
     const result = generateProvider(ctx);
-    expect(result).toContain('enabled: false');
+    expect(result).toContain('enabled: true');
   });
 
   it('should import RootProvider from fumadocs-ui/provider/next', () => {
@@ -1339,15 +1348,16 @@ describe('generateProvider - i18n mode', () => {
     expect(result).toContain("import { i18nUI } from '@/lib/i18n-ui'");
   });
 
-  it('should enable search by default in i18n mode', () => {
+  it('should disable search when search config is absent in i18n mode (配置即启用)', () => {
+    // i18nConfig 没有 search 字段 → 搜索不启用
     const result = generateProvider(i18nCtx);
-    expect(result).toContain('enabled: true');
+    expect(result).toContain('enabled: false');
   });
 
-  it('should disable search when search.enabled is false in i18n mode', () => {
-    const ctx = { config: { ...i18nConfig, search: { enabled: false } } };
+  it('should enable search when search config exists in i18n mode', () => {
+    const ctx = { config: { ...i18nConfig, search: {} } };
     const result = generateProvider(ctx);
-    expect(result).toContain('enabled: false');
+    expect(result).toContain('enabled: true');
   });
 
   it('i18n provider should differ from single-language provider', () => {
@@ -2092,9 +2102,9 @@ describe('generateTopBarComponent', () => {
       config: { name: 'T', header: {} as any },
     };
     const result = generateTopBarComponent(ctx);
-    // NavLinks component receives empty array
+    // NavLinks component receives empty array via extracted variable
     expect(result).toContain('NavLinks');
-    expect(result).toContain('links={[]}');
+    expect(result).toContain('navLinks = []');
   });
 
   it('should generate link with only label (backward compatible)', () => {
@@ -2192,5 +2202,50 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('"label":"Docs"');
     // No inline lucide-react/dynamic import (encapsulated in NavLinks)
     expect(result).not.toContain('lucide-react/dynamic');
+  });
+
+  it('should not render search trigger in center when search position is not header', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { height: '56px' } as any,
+        search: { position: 'sidebar' as const },
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('TopBarSearchTrigger');
+    expect(result).not.toContain('center=');
+  });
+
+  it('should render TopBarSearchTrigger in center when search position is header', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { height: '56px' } as any,
+        search: { position: 'header' as const },
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('TopBarSearchTrigger');
+    expect(result).toContain('center={searchCenter}');
+    expect(result).toContain('const searchCenter = <TopBarSearchTrigger />');
+    expect(result).toContain(
+      "import { TopBarSearchTrigger } from 'openmanual/components/top-bar-search-trigger'"
+    );
+  });
+
+  it('should not render search trigger when search is absent', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { height: '56px' } as any,
+      },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('TopBarSearchTrigger');
+    expect(result).not.toContain('center=');
   });
 });
