@@ -1186,3 +1186,147 @@ describe('generateSearchRoute - all unsupported languages', () => {
     expect(result).not.toContain("'korean'");
   });
 });
+
+// ============================================================
+// generateDocsLayout — searchToggle 根据 search.position 隐藏侧边栏搜索
+// ============================================================
+
+describe('generateDocsLayout - searchToggle', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  function getI18nDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should include searchToggle: { enabled: false } when search.position=header (single-language)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        search: { position: 'header' as const },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain('searchToggle: { enabled: false }');
+  });
+
+  it('should NOT include searchToggle when search.position=sidebar (single-language)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        search: { position: 'sidebar' as const },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).not.toContain('searchToggle');
+  });
+
+  it('should NOT include searchToggle when search is not configured (single-language)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).not.toContain('searchToggle');
+  });
+
+  it('should include searchToggle: { enabled: false } when search.position=header (i18n)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        search: { position: 'header' as const },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain('searchToggle: { enabled: false }');
+  });
+
+  it('should NOT include searchToggle when search.position=sidebar (i18n)', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...i18nCtx,
+      config: {
+        ...i18nConfig,
+        search: { position: 'sidebar' as const },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).not.toContain('searchToggle');
+  });
+});
+
+// ============================================================
+// generateGlobalCss — header 搜索模式隐藏折叠面板搜索图标
+// ============================================================
+
+describe('generateGlobalCss - sidebar search hiding', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should include [data-sidebar-panel] hiding rule when search.position=header', async () => {
+    const { generateGlobalCss } = await import('../core/generator/global-css.js');
+
+    const result = generateGlobalCss({
+      config: { ...baseConfig, search: { position: 'header' } },
+    });
+
+    expect(result).toContain('[data-sidebar-panel]');
+    expect(result).toContain('[data-search]');
+    expect(result).toContain('display: none');
+  });
+
+  it('should NOT include [data-sidebar-panel] rule when search.position=sidebar', async () => {
+    const { generateGlobalCss } = await import('../core/generator/global-css.js');
+
+    const result = generateGlobalCss({
+      config: { ...baseConfig, search: { position: 'sidebar' } },
+    });
+
+    expect(result).not.toContain('[data-sidebar-panel]');
+  });
+
+  it('should NOT include [data-sidebar-panel] rule when search is not configured', async () => {
+    const { generateGlobalCss } = await import('../core/generator/global-css.js');
+
+    const result = generateGlobalCss({ config: baseConfig });
+
+    expect(result).not.toContain('[data-sidebar-panel]');
+  });
+});

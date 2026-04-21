@@ -140,5 +140,16 @@ figure.shiki > div {
 [style*="--callout-color"] {
   box-shadow: none;
 }
+${
+  config.search?.position === 'header'
+    ? `
+
+/* header 搜索模式：隐藏侧边栏折叠面板中的搜索图标 */
+[data-sidebar-panel] [data-search] {
+  display: none;
+}
+`
+    : ''
+}
 `;
 }
