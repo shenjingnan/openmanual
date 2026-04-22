@@ -18,6 +18,7 @@ export function generateTsconfig(): string {
         plugins: [{ name: 'next' }],
         paths: {
           '@/*': ['./*'],
+          'collections/*': ['./.source/*'],
         },
       },
       include: [

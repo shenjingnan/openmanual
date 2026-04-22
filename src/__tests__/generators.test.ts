@@ -293,9 +293,9 @@ describe('resolveNavLogoProps', () => {
 });
 
 describe('generateLibSource', () => {
-  it('should import from .source/server and use loader', () => {
+  it('should import from collections/server and use loader', () => {
     const result = generateLibSource(baseCtx);
-    expect(result).toContain("from '@/.source/server'");
+    expect(result).toContain("from 'collections/server'");
     expect(result).toContain("from 'fumadocs-core/source'");
   });
 
@@ -753,7 +753,10 @@ describe('generateTsconfig', () => {
   it('should configure paths alias', () => {
     const result = generateTsconfig();
     const parsed = JSON.parse(result);
-    expect(parsed.compilerOptions.paths).toEqual({ '@/*': ['./*'] });
+    expect(parsed.compilerOptions.paths).toEqual({
+      '@/*': ['./*'],
+      'collections/*': ['./.source/*'],
+    });
   });
 });
 
