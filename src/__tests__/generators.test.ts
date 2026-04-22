@@ -5,7 +5,12 @@ import { generateCalloutComponent } from '../core/generator/callout-component.js
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateI18nConfig } from '../core/generator/i18n-config.js';
 import { generateI18nUI } from '../core/generator/i18n-ui.js';
-import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
+import {
+  generateLayout,
+  isImagePath,
+  resolveLogoPaths,
+  resolveNavLogoProps,
+} from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
 import { generateMiddleware } from '../core/generator/middleware.js';
@@ -259,6 +264,31 @@ describe('resolveLogoPaths', () => {
   it('should resolve object logo to different light and dark', () => {
     const result = resolveLogoPaths({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
     expect(result).toEqual({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
+  });
+});
+
+describe('resolveNavLogoProps', () => {
+  it('should generate image props for image path string', () => {
+    const result = resolveNavLogoProps('/logo.svg', 'Test');
+    expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
+  });
+
+  it('should generate text props for plain text string', () => {
+    const result = resolveNavLogoProps('MyLogo', 'MyLogo');
+    expect(result).toBe('type="text" text="MyLogo"');
+  });
+
+  it('should generate single src when logo object has same light/dark paths', () => {
+    const result = resolveNavLogoProps({ light: '/logo.svg', dark: '/logo.svg' }, 'Test');
+    expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
+    expect(result).not.toContain('srcLight');
+    expect(result).not.toContain('srcDark');
+  });
+
+  it('should generate srcLight and srcDark when logo object has different paths', () => {
+    const result = resolveNavLogoProps({ light: '/light.svg', dark: '/dark.svg' }, 'Test');
+    expect(result).toContain('srcLight="/light.svg"');
+    expect(result).toContain('srcDark="/dark.svg"');
   });
 });
 
