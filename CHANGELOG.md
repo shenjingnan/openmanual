@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.15.0](https://github.com/shenjingnan/openmanual/compare/v0.14.1...v0.15.0) (2026-04-22)
+
+### Features
+
+* 默认隐藏侧边栏顶部导航区域 ([#128](https://github.com/shenjingnan/openmanual/issues/128)) ([090beff](https://github.com/shenjingnan/openmanual/commit/090befff10384430dcf3ff7fa327b954e10739a5)), closes [#nd-sidebar](https://github.com/shenjingnan/openmanual/issues/nd-sidebar) [#nd-sidebar](https://github.com/shenjingnan/openmanual/issues/nd-sidebar)
+
+### Documentation
+
+* remove root field from all locale meta.json files ([#127](https://github.com/shenjingnan/openmanual/issues/127)) ([330e5e3](https://github.com/shenjingnan/openmanual/commit/330e5e31fb7b94d0cd9bd9b46b0afc17bcdb44cb))
+
 ## [0.14.1](https://github.com/shenjingnan/openmanual/compare/v0.14.0...v0.14.1) (2026-04-22)
 
 ### Bug Fixes
