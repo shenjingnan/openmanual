@@ -351,6 +351,31 @@ describe('generateNextConfig', () => {
     expect(result).not.toContain('async rewrites()');
     expect(result).not.toContain('rewrites');
   });
+
+  it('should include turbopack resolveAlias for collections/* path alias', () => {
+    const result = generateNextConfig(baseCtx);
+    expect(result).toContain('turbopack:');
+    expect(result).toContain('resolveAlias:');
+    expect(result).toContain("'collections/*': './.source/*'");
+  });
+
+  it('should include turbopack resolveAlias in dev mode', () => {
+    const result = generateNextConfig({ ...baseCtx, dev: true });
+    expect(result).toContain("'collections/*': './.source/*'");
+  });
+
+  it('should include turbopack resolveAlias with output export mode', () => {
+    const result = generateNextConfig({
+      config: { ...baseConfig, siteUrl: 'https://example.com' },
+    });
+    expect(result).toContain("'collections/*': './.source/*'");
+    expect(result).toContain("output: 'export'");
+  });
+
+  it('should include turbopack resolveAlias in openapi mode', () => {
+    const result = generateNextConfig(openapiCtx);
+    expect(result).toContain("'collections/*': './.source/*'");
+  });
 });
 
 describe('generatePackageJson', () => {
