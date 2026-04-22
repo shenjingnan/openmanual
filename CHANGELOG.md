@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.2](https://github.com/shenjingnan/openmanual/compare/v0.15.1...v0.15.2) (2026-04-22)
+
+### Bug Fixes
+
+* **build:** 添加 turbopack.resolveAlias 修复 collections/server 模块解析失败 ([#130](https://github.com/shenjingnan/openmanual/issues/130)) ([55758c9](https://github.com/shenjingnan/openmanual/commit/55758c9b955a809554eef61cbea6580163e2d9d9))
+
 ## [0.15.1](https://github.com/shenjingnan/openmanual/compare/v0.15.0...v0.15.1) (2026-04-22)
 
 ### Bug Fixes
