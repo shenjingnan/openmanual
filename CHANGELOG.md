@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.14.1](https://github.com/shenjingnan/openmanual/compare/v0.14.0...v0.14.1) (2026-04-22)
+
+### Bug Fixes
+
+* **search:** search.position=header 时隐藏侧边栏搜索框 ([#126](https://github.com/shenjingnan/openmanual/issues/126)) ([02a58be](https://github.com/shenjingnan/openmanual/commit/02a58bea862851463e287c164b611176205150c2))
+
 ## [0.14.0](https://github.com/shenjingnan/openmanual/compare/v0.13.0...v0.14.0) (2026-04-21)
 
 ### Features
