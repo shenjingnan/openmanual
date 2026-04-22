@@ -124,7 +124,7 @@ ${openapiBranch}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
       </DocsBody>
     </DocsPage>
   );
@@ -257,7 +257,7 @@ ${openapiBranch}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
       </DocsBody>
     </DocsPage>
   );
