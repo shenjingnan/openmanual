@@ -16,7 +16,7 @@ export function generateLibSource(ctx: { config: OpenManualConfig }): string {
       // - !separateTab: 使用 ${lang}/api（混合到文档树中）
       const baseDirStr = separateTab ? 'openapi' : 'api';
 
-      return `import { docs } from '@/.source/server';
+      return `import { docs } from 'collections/server';
 import { loader, multiple } from 'fumadocs-core/source';
 import { openapiPlugin, openapiSource } from 'fumadocs-openapi/server';
 import { openapi } from '@/lib/openapi';
@@ -48,7 +48,7 @@ export const source = loader(
     // 单语言模式
     const baseDir = separateTab ? 'openapi' : 'api';
 
-    return `import { docs } from '@/.source/server';
+    return `import { docs } from 'collections/server';
 import { loader, multiple } from 'fumadocs-core/source';
 import { openapiPlugin, openapiSource } from 'fumadocs-openapi/server';
 import { openapi } from '@/lib/openapi';
@@ -71,7 +71,7 @@ ${!separateTab ? `      meta: true,\n      groupBy: '${groupBy}',` : ''}
 
   // === 无 OpenAPI：保持原有逻辑不变（向后兼容）===
   if (isI18n) {
-    return `import { docs } from '@/.source/server';
+    return `import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { i18n } from '@/lib/i18n';
 
@@ -83,7 +83,7 @@ export const source = loader({
 `;
   }
 
-  return `import { docs } from '@/.source/server';
+  return `import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 
 export const source = loader({
