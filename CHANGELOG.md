@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.1](https://github.com/shenjingnan/openmanual/compare/v0.15.0...v0.15.1) (2026-04-22)
+
+### Bug Fixes
+
+* **build:** 迁移 fumadocs 导入路径 .source/server → collections/server ([#129](https://github.com/shenjingnan/openmanual/issues/129)) ([ac2a2f5](https://github.com/shenjingnan/openmanual/commit/ac2a2f5e6f2fc3e9ee9616ac5bf0c760fd439c23))
+
 ## [0.15.0](https://github.com/shenjingnan/openmanual/compare/v0.14.1...v0.15.0) (2026-04-22)
 
 ### Features
