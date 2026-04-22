@@ -450,6 +450,7 @@ ${
     ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
     }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
+    sidebar: { collapsible: false },
   };
 
   return (
@@ -477,6 +478,7 @@ const docsOptions = {
   ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}${
     isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
   }
+  sidebar: { collapsible: false },
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {
