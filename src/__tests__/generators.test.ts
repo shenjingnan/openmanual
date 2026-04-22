@@ -5,7 +5,12 @@ import { generateCalloutComponent } from '../core/generator/callout-component.js
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateI18nConfig } from '../core/generator/i18n-config.js';
 import { generateI18nUI } from '../core/generator/i18n-ui.js';
-import { generateLayout, isImagePath, resolveLogoPaths } from '../core/generator/layout.js';
+import {
+  generateLayout,
+  isImagePath,
+  resolveLogoPaths,
+  resolveNavLogoProps,
+} from '../core/generator/layout.js';
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
 import { generateMiddleware } from '../core/generator/middleware.js';
@@ -156,28 +161,32 @@ describe('generateGlobalCss - dark theme', () => {
 });
 
 describe('generateLayout', () => {
-  it('should use logo text when navbar.logo is plain text', () => {
+  it('should disable nav by default (hide sidebar header)', () => {
+    const result = generateLayout(baseCtx);
+    expect(result).toContain('enabled: false');
+    expect(result).not.toContain('title:');
+    expect(result).not.toContain('NavLogo');
+  });
+
+  it('should disable nav regardless of logo config', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('type="text" text="MyLogo"');
+    expect(result).toContain('enabled: false');
+    expect(result).not.toContain('MyLogo');
   });
 
-  it('should generate image props when logo is an image path', () => {
+  it('should disable nav for image logo config', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('type="image" src="/logo.svg" alt="Test"');
+    expect(result).toContain('enabled: false');
+    expect(result).not.toContain('/logo.svg');
   });
 
-  it('should fallback to name as text when logo not set', () => {
-    const result = generateLayout(baseCtx);
-    expect(result).toContain('type="text" text="Test"');
-  });
-
-  it('should generate srcLight and srcDark props when logo object has different paths', () => {
+  it('should disable nav for dual-theme logo config', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -185,26 +194,20 @@ describe('generateLayout', () => {
       },
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('srcLight="/logo-light.svg"');
-    expect(result).toContain('srcDark="/logo-dark.svg"');
-  });
-
-  it('should generate single src prop when logo object has same paths', () => {
-    const ctx = {
-      config: {
-        ...baseConfig,
-        navbar: { logo: { light: '/logo.svg', dark: '/logo.svg' } },
-      },
-    };
-    const result = generateLayout(ctx);
-    expect(result).toContain('type="image" src="/logo.svg"');
+    expect(result).toContain('enabled: false');
     expect(result).not.toContain('srcLight=');
     expect(result).not.toContain('srcDark=');
   });
 
-  it('should import NavLogo from openmanual/components/nav-layout', () => {
+  it('should import BaseLayoutProps from fumadocs-ui', () => {
     const result = generateLayout(baseCtx);
-    expect(result).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
+    expect(result).toContain("import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'");
+  });
+
+  it('should not import NavLogo or ReactNode', () => {
+    const result = generateLayout(baseCtx);
+    expect(result).not.toContain('NavLogo');
+    expect(result).not.toContain('ReactNode');
   });
 
   // --- i18n 模式 ---
@@ -215,18 +218,20 @@ describe('generateLayout', () => {
     expect(result).not.toContain('baseOptions()');
   });
 
-  it('should use text logo in i18n mode baseOptions', () => {
+  it('should disable nav in i18n mode too', () => {
     const result = generateLayout(i18nCtx);
-    expect(result).toContain('type="text" text="TestI18n"');
+    expect(result).toContain('enabled: false');
+    expect(result).not.toContain('title:');
   });
 
-  it('should use image logo in i18n mode baseOptions', () => {
+  it('should disable nav in i18n mode regardless of logo config', () => {
     const ctx = {
       config: { ...i18nConfig, navbar: { logo: '/logo.svg' } },
       projectDir: '/tmp/test',
     };
     const result = generateLayout(ctx);
-    expect(result).toContain('type="image" src="/logo.svg"');
+    expect(result).toContain('enabled: false');
+    expect(result).not.toContain('/logo.svg');
   });
 });
 
@@ -259,6 +264,31 @@ describe('resolveLogoPaths', () => {
   it('should resolve object logo to different light and dark', () => {
     const result = resolveLogoPaths({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
     expect(result).toEqual({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
+  });
+});
+
+describe('resolveNavLogoProps', () => {
+  it('should generate image props for image path string', () => {
+    const result = resolveNavLogoProps('/logo.svg', 'Test');
+    expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
+  });
+
+  it('should generate text props for plain text string', () => {
+    const result = resolveNavLogoProps('MyLogo', 'MyLogo');
+    expect(result).toBe('type="text" text="MyLogo"');
+  });
+
+  it('should generate single src when logo object has same light/dark paths', () => {
+    const result = resolveNavLogoProps({ light: '/logo.svg', dark: '/logo.svg' }, 'Test');
+    expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
+    expect(result).not.toContain('srcLight');
+    expect(result).not.toContain('srcDark');
+  });
+
+  it('should generate srcLight and srcDark when logo object has different paths', () => {
+    const result = resolveNavLogoProps({ light: '/light.svg', dark: '/dark.svg' }, 'Test');
+    expect(result).toContain('srcLight="/light.svg"');
+    expect(result).toContain('srcDark="/dark.svg"');
   });
 });
 

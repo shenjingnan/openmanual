@@ -151,5 +151,10 @@ ${
 `
     : ''
 }
+
+/* 隐藏侧边栏顶部导航区域（logo/标题 + 折叠按钮容器） */
+#nd-sidebar > div:first-child {
+  display: none;
+}
 `;
 }

@@ -35,20 +35,15 @@ export function resolveNavLogoProps(logo: LogoConfig | string, alt: string): str
 
 export function generateLayout(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
-  const logo = config.navbar?.logo ?? config.name;
   const isI18n = config.i18n?.enabled === true;
-
-  const logoProps = resolveNavLogoProps(logo, config.name);
 
   if (isI18n) {
     return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import type { ReactNode } from 'react';
-import { NavLogo } from 'openmanual/components/nav-layout';
 
 export function baseOptions(_locale: string): BaseLayoutProps {
   return {
     nav: {
-      title: <NavLogo ${logoProps} /> as ReactNode,
+      enabled: false,
     },
   };
 }
@@ -56,13 +51,11 @@ export function baseOptions(_locale: string): BaseLayoutProps {
   }
 
   return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import type { ReactNode } from 'react';
-import { NavLogo } from 'openmanual/components/nav-layout';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
-      title: <NavLogo ${logoProps} /> as ReactNode,
+      enabled: false,
     },
   };
 }

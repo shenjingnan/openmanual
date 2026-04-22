@@ -1330,3 +1330,91 @@ describe('generateGlobalCss - sidebar search hiding', () => {
     expect(result).not.toContain('[data-sidebar-panel]');
   });
 });
+
+// generateGlobalCss — 始终输出侧边栏头部隐藏规则
+// ============================================================
+
+describe('generateGlobalCss - sidebar header hiding', () => {
+  it('should always include #nd-sidebar hiding rule', async () => {
+    const { generateGlobalCss } = await import('../core/generator/global-css.js');
+
+    const result = generateGlobalCss({ config: baseConfig });
+
+    expect(result).toContain('#nd-sidebar > div:first-child');
+    expect(result).toContain('display: none');
+  });
+
+  it('should include #nd-sidebar hiding rule even when search.position=header', async () => {
+    const { generateGlobalCss } = await import('../core/generator/global-css.js');
+
+    const result = generateGlobalCss({
+      config: { ...baseConfig, search: { position: 'header' as const } },
+    });
+
+    expect(result).toContain('#nd-sidebar > div:first-child');
+    // Both rules should coexist
+    expect(result).toContain('[data-sidebar-panel]');
+  });
+});
+
+// generateDocsLayout — sidebar.collapsible: false 默认禁用折叠
+// ============================================================
+
+describe('generateDocsLayout - sidebar collapsible', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  function getI18nDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should include sidebar.collapsible: false in single-language mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain('collapsible: false');
+  });
+
+  it('should include sidebar.collapsible: false in i18n mode', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      },
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain('collapsible: false');
+  });
+});
