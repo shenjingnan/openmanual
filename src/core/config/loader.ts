@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { type OpenManualConfig, OpenManualConfigSchema } from './schema.js';
+import { normalizeTopLevelLogo, type OpenManualConfig, OpenManualConfigSchema } from './schema.js';
 
 const DEFAULT_CONFIG: Partial<OpenManualConfig> = {
   contentDir: 'content',
@@ -45,17 +45,51 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<OpenManua
 }
 
 function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
+  // 解析顶级 logo（如有），用于后续传播
+  const topLevelLogo = config.logo ? normalizeTopLevelLogo(config.logo) : null;
+
+  // 将顶级 logo 的 light/dark 部分提取为 LogoConfig 格式（去掉 position）
+  const topLevelLogoSource = topLevelLogo
+    ? topLevelLogo.light === topLevelLogo.dark
+      ? topLevelLogo.light
+      : { light: topLevelLogo.light, dark: topLevelLogo.dark }
+    : null;
+
   return {
     ...config,
     contentPolicy: config.contentPolicy ?? 'strict',
     contentDir: config.contentDir ?? DEFAULT_CONFIG.contentDir ?? 'content',
     outputDir: config.outputDir ?? DEFAULT_CONFIG.outputDir ?? 'dist',
     locale: config.locale ?? DEFAULT_CONFIG.locale ?? 'zh',
+    // 标准化顶级 logo 的 position 默认值
+    logo: topLevelLogo
+      ? typeof config.logo === 'string'
+        ? config.logo
+        : { light: topLevelLogo.light, dark: topLevelLogo.dark, position: topLevelLogo.position }
+      : undefined,
     navbar: {
       ...DEFAULT_CONFIG.navbar,
       ...config.navbar,
-      logo: config.navbar?.logo ?? config.name,
+      // 传播逻辑：有顶级 logo 且 position=sidebar → 传播到 navbar.logo
+      // 否则保持原有 navbar.logo ?? config.name 逻辑
+      logo:
+        config.navbar?.logo ??
+        (topLevelLogo && topLevelLogo.position === 'sidebar'
+          ? (topLevelLogoSource ?? config.name)
+          : config.name),
     },
+    header: config.header
+      ? {
+          ...config.header,
+          // 传播逻辑：有顶级 logo 且 position=header → 传播到 header.logo
+          // 否则保持原有 header.logo 不变
+          logo:
+            config.header.logo ??
+            (topLevelLogo && topLevelLogo.position === 'header'
+              ? (topLevelLogoSource ?? undefined)
+              : undefined),
+        }
+      : undefined,
     footer: {
       ...DEFAULT_CONFIG.footer,
       ...config.footer,

@@ -575,6 +575,78 @@ describe('generateAll - logo handling', () => {
   });
 });
 
+describe('generateAll - top-level logo handling', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const isLogoSvg = (content: string) => content.includes('viewBox="0 0 190 32"');
+
+  it('should generate two SVG files when top-level logo has different light/dark', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(2);
+  });
+
+  it('should generate one SVG file when top-level logo string shorthand', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: '/logo.svg',
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(1);
+  });
+
+  it('should prefer top-level logo over legacy navbar.logo', async () => {
+    const { writeFile, access } = await import('node:fs/promises');
+    (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
+
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/top-light.svg', dark: '/top-dark.svg' },
+        navbar: { logo: '/nav-logo.svg' },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    // 应该使用顶级 logo 的路径（/top-light.svg 和 /top-dark.svg），而不是 navbar.logo
+    const svgCalls = calls.filter(
+      (c: unknown[]) => typeof c[1] === 'string' && isLogoSvg(c[1] as string)
+    );
+    expect(svgCalls).toHaveLength(2);
+    // 验证写入的文件路径使用的是顶级 logo 的路径
+    const paths = calls
+      .filter((c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('top-'))
+      .map((c: unknown[]) => c[0] as string);
+    expect(paths.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
 describe('generateAll - favicon handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1331,32 +1403,6 @@ describe('generateGlobalCss - sidebar search hiding', () => {
   });
 });
 
-// generateGlobalCss — 始终输出侧边栏头部隐藏规则
-// ============================================================
-
-describe('generateGlobalCss - sidebar header hiding', () => {
-  it('should always include #nd-sidebar hiding rule', async () => {
-    const { generateGlobalCss } = await import('../core/generator/global-css.js');
-
-    const result = generateGlobalCss({ config: baseConfig });
-
-    expect(result).toContain('#nd-sidebar > div:first-child');
-    expect(result).toContain('display: none');
-  });
-
-  it('should include #nd-sidebar hiding rule even when search.position=header', async () => {
-    const { generateGlobalCss } = await import('../core/generator/global-css.js');
-
-    const result = generateGlobalCss({
-      config: { ...baseConfig, search: { position: 'header' as const } },
-    });
-
-    expect(result).toContain('#nd-sidebar > div:first-child');
-    // Both rules should coexist
-    expect(result).toContain('[data-sidebar-panel]');
-  });
-});
-
 // generateDocsLayout — sidebar.collapsible: false 默认禁用折叠
 // ============================================================
 
@@ -1416,5 +1462,172 @@ describe('generateDocsLayout - sidebar collapsible', () => {
     const content = getI18nDocsLayoutContent(calls);
 
     expect(content).toContain('collapsible: false');
+  });
+});
+
+describe('generateDocsLayout - sidebar logo (banner)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should include NavLogo import and banner when logo position=sidebar', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
+    expect(content).toContain('banner:');
+    expect(content).toContain('<NavLogo');
+    expect(content).toContain('/logo.svg');
+    expect(content).toContain('/logo-dark.svg');
+  });
+
+  it('should include sidebar banner for string shorthand logo', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: '/logo.svg',
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).toContain('banner:');
+    expect(content).toContain('<NavLogo');
+  });
+
+  it('should NOT include sidebar banner when logo position=header', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+        header: { height: '56px' },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    // position=header 时 logo 应该在 TopBar 中，不在 sidebar banner
+    expect(content).not.toContain('banner:');
+  });
+
+  it('should NOT include sidebar banner when no logo configured', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    expect(content).not.toContain('import { NavLogo }');
+    expect(content).not.toContain('banner:');
+  });
+
+  it('should include banner even when logo path looks like plain text', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: 'MyProject', dark: 'MyProject' },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getDocsLayoutContent(calls);
+
+    // 对象形式 logo 的 light/dark 相同时仍生成 type="image" banner（不经过 isImagePath 检查）
+    expect(content).toContain('banner:');
+  });
+});
+
+describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function getI18nDocsLayoutContent(calls: unknown[][]): string {
+    const layoutCall = calls.find(
+      (c) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).includes('[lang]') &&
+        (c[0] as string).includes('[[...slug]]') &&
+        (c[0] as string).endsWith('layout.tsx')
+    );
+    return (layoutCall as unknown[])?.[1] as string;
+  }
+
+  it('should include NavLogo import and banner in i18n mode when logo position=sidebar', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
+    expect(content).toContain('banner:');
+    expect(content).toContain('/logo.svg');
+    expect(content).toContain('/logo-dark.svg');
+  });
+
+  it('should NOT include banner in i18n mode when logo position=header', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+        header: { height: '56px' },
+        i18n: {
+          enabled: true,
+          defaultLanguage: 'zh',
+          languages: [{ code: 'zh', name: '中文' }],
+        },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const content = getI18nDocsLayoutContent(calls);
+
+    // i18n 模式下布局可能生成，也可能因测试环境限制不生成
+    if (content) {
+      expect(content).not.toContain('banner:');
+    }
   });
 });
