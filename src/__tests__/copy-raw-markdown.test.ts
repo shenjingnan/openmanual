@@ -13,13 +13,13 @@ describe('copyRawMarkdown', () => {
     vi.clearAllMocks();
   });
 
-  it('should create target directory recursively', async () => {
+  it('应当递归创建目标目录', async () => {
     const { copyRawMarkdown } = await import('../utils/copy-raw-markdown.js');
     await copyRawMarkdown('/src', '/dest');
     expect(mkdir).toHaveBeenCalledWith('/dest', { recursive: true });
   });
 
-  it('should copy .md files keeping .md extension', async () => {
+  it('应当复制 .md 文件并保留 .md 扩展名', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue(['readme.md']);
     (stat as ReturnType<typeof vi.fn>).mockResolvedValue({ isDirectory: () => false });
 
@@ -29,7 +29,7 @@ describe('copyRawMarkdown', () => {
     expect(copyFile).toHaveBeenCalledWith('/src/readme.md', '/dest/readme.md');
   });
 
-  it('should copy .mdx files and rename to .md', async () => {
+  it('应当复制 .mdx 文件并重命名为 .md', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue(['guide.mdx']);
     (stat as ReturnType<typeof vi.fn>).mockResolvedValue({ isDirectory: () => false });
 
@@ -39,7 +39,7 @@ describe('copyRawMarkdown', () => {
     expect(copyFile).toHaveBeenCalledWith('/src/guide.mdx', '/dest/guide.md');
   });
 
-  it('should skip non-markdown files', async () => {
+  it('应当跳过非 Markdown 文件', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       'image.png',
       'data.json',
@@ -53,7 +53,7 @@ describe('copyRawMarkdown', () => {
     expect(copyFile).not.toHaveBeenCalled();
   });
 
-  it('should recursively process subdirectories', async () => {
+  it('应当递归处理子目录', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockImplementation((dir: string) => {
       if (dir === '/src') return Promise.resolve(['guide']);
       if (dir === '/src/guide') return Promise.resolve(['intro.md']);
@@ -72,7 +72,7 @@ describe('copyRawMarkdown', () => {
     expect(copyFile).toHaveBeenCalledWith('/src/guide/intro.md', '/dest/guide/intro.md');
   });
 
-  it('should handle uppercase extensions (.MDX, .MD)', async () => {
+  it('应当处理大写扩展名（.MDX、.MD）', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue(['README.MD', 'GUIDE.MDX']);
     (stat as ReturnType<typeof vi.fn>).mockResolvedValue({ isDirectory: () => false });
 
@@ -83,7 +83,7 @@ describe('copyRawMarkdown', () => {
     expect(copyFile).toHaveBeenCalledWith('/src/GUIDE.MDX', '/dest/GUIDE.md');
   });
 
-  it('should handle empty source directory', async () => {
+  it('应当处理空的源目录', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const { copyRawMarkdown } = await import('../utils/copy-raw-markdown.js');
@@ -93,7 +93,7 @@ describe('copyRawMarkdown', () => {
     expect(mkdir).toHaveBeenCalledWith('/dest', { recursive: true });
   });
 
-  it('should handle mixed files and directories', async () => {
+  it('应当处理混合的文件和目录', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockImplementation((dir: string) => {
       if (dir === '/src') return Promise.resolve(['index.md', 'sub', 'image.png']);
       if (dir === '/src/sub') return Promise.resolve(['detail.mdx']);

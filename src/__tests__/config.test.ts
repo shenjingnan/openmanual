@@ -19,22 +19,22 @@ import { getContentTree, scanContentDir } from '../core/content/scanner.js';
 import { buildPageTree, generateSourceConfigContent } from '../core/content/tree.js';
 
 describe('OpenManualConfigSchema', () => {
-  it('should validate a minimal valid config', () => {
+  it('应当验证通过最小有效配置', () => {
     const result = OpenManualConfigSchema.safeParse({ name: 'Test' });
     expect(result.success).toBe(true);
   });
 
-  it('should reject config without name', () => {
+  it('应当拒绝没有 name 的配置', () => {
     const result = OpenManualConfigSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 
-  it('should reject empty name', () => {
+  it('应当拒绝空 name', () => {
     const result = OpenManualConfigSchema.safeParse({ name: '' });
     expect(result.success).toBe(false);
   });
 
-  it('should accept full config', () => {
+  it('应当接受完整配置', () => {
     const config = {
       name: 'MyProject',
       description: 'A test project',
@@ -65,7 +65,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject invalid github url', () => {
+  it('应当拒绝无效的 GitHub URL', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       navbar: { github: 'not-a-url' },
@@ -73,7 +73,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should reject primaryHue out of range', () => {
+  it('应当拒绝超出范围的 primaryHue', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       theme: { primaryHue: 400 },
@@ -81,7 +81,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should accept logo as object with light and dark paths', () => {
+  it('应当接受包含 light 和 dark 路径的 logo 对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       navbar: { logo: { light: '/logo-light.svg', dark: '/logo-dark.svg' } },
@@ -89,7 +89,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject logo object missing dark field', () => {
+  it('应当拒绝缺少 dark 字段的 logo 对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       navbar: { logo: { light: '/logo-light.svg' } },
@@ -97,7 +97,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should reject logo object missing light field', () => {
+  it('应当拒绝缺少 light 字段的 logo 对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       navbar: { logo: { dark: '/logo-dark.svg' } },
@@ -105,7 +105,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should accept contentPolicy as strict', () => {
+  it('应当接受 contentPolicy 为 strict', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       contentPolicy: 'strict',
@@ -113,7 +113,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept contentPolicy as all', () => {
+  it('应当接受 contentPolicy 为 all', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       contentPolicy: 'all',
@@ -121,7 +121,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject invalid contentPolicy value', () => {
+  it('应当拒绝无效的 contentPolicy 值', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       contentPolicy: 'invalid',
@@ -129,17 +129,17 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should accept favicon as .ico path', () => {
+  it('应当接受 .ico 路径的 favicon', () => {
     const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: '/favicon.ico' });
     expect(result.success).toBe(true);
   });
 
-  it('should accept favicon as .svg path', () => {
+  it('应当接受 .svg 路径的 favicon', () => {
     const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: '/favicon.svg' });
     expect(result.success).toBe(true);
   });
 
-  it('should accept favicon with subdirectory path', () => {
+  it('应当接受带子目录路径的 favicon', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       favicon: '/icons/favicon.png',
@@ -147,7 +147,7 @@ describe('OpenManualConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject favicon as non-string value', () => {
+  it('应当拒绝非字符串类型的 favicon 值', () => {
     const result = OpenManualConfigSchema.safeParse({ name: 'Test', favicon: 123 });
     expect(result.success).toBe(false);
   });
@@ -160,17 +160,17 @@ describe('loadConfig', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should throw when openmanual.json not found', async () => {
+  it('当 openmanual.json 不存在时应抛出异常', async () => {
     await expect(loadConfig(tmpDir)).rejects.toThrow('not found');
   });
 
-  it('should throw when invalid JSON', async () => {
+  it('当 JSON 无效应抛出异常', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), 'invalid');
     await expect(loadConfig(tmpDir)).rejects.toThrow('not valid JSON');
   });
 
-  it('should load and merge defaults', async () => {
+  it('应当加载配置并合并默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
     const config = await loadConfig(tmpDir);
@@ -184,7 +184,7 @@ describe('loadConfig', () => {
     expect(config.search).toBeUndefined();
   });
 
-  it('should respect contentPolicy all when provided', async () => {
+  it('当提供 contentPolicy 时应保留其值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -215,19 +215,19 @@ describe('content scanner', () => {
     await rm(contentTmpDir, { recursive: true, force: true });
   });
 
-  it('should scan all md/mdx files', async () => {
+  it('应当扫描所有 md/mdx 文件', async () => {
     const files = await scanContentDir(contentTmpDir);
     expect(files).toHaveLength(3);
   });
 
-  it('should parse frontmatter', async () => {
+  it('应当解析 frontmatter', async () => {
     const files = await scanContentDir(contentTmpDir);
     const indexFile = files.find((f) => f.slug === 'index');
     expect(indexFile).toBeDefined();
     expect(indexFile?.frontmatter.title).toBe('Home');
   });
 
-  it('should generate correct slugs', async () => {
+  it('应当生成正确的 slug', async () => {
     const files = await scanContentDir(contentTmpDir);
     const slugs = files.map((f) => f.slug);
     expect(slugs).toContain('index');
@@ -235,7 +235,7 @@ describe('content scanner', () => {
     expect(slugs).toContain('guide/api');
   });
 
-  it('should build content tree', async () => {
+  it('应当构建内容树', async () => {
     const files = await scanContentDir(contentTmpDir);
     const tree = getContentTree(files);
     expect(tree.files).toHaveLength(2); // index.mdx and getting-started.md
@@ -245,7 +245,7 @@ describe('content scanner', () => {
 });
 
 describe('page tree builder', () => {
-  it('should build from file system structure', () => {
+  it('应当从文件系统结构构建', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -275,7 +275,7 @@ describe('page tree builder', () => {
     expect(folderGuide?.children).toHaveLength(1);
   });
 
-  it('should auto-build from file system when no sidebar', () => {
+  it('当没有 sidebar 时应当从文件系统自动构建', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -293,7 +293,7 @@ describe('page tree builder', () => {
     expect(tree[0]?.name).toBe('Home');
   });
 
-  it('should auto-build multi-level nested tree from file system', () => {
+  it('应当从文件系统自动构建多级嵌套树', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -335,7 +335,7 @@ describe('page tree builder', () => {
     expect(advancedFolder?.children?.[0]?.name).toBe('Configuration');
   });
 
-  it('should use formatTitle when no frontmatter title', () => {
+  it('当没有 frontmatter title 时应当使用 formatTitle', () => {
     const files = [
       {
         filePath: '/test/my-page.mdx',
@@ -351,7 +351,7 @@ describe('page tree builder', () => {
     expect(tree[0]?.name).toBe('My Page');
   });
 
-  it('should set index property for directories with index file', () => {
+  it('应当为包含 index 文件的目录设置 index 属性', () => {
     const files = [
       {
         filePath: '/test/guide/index.mdx',
@@ -378,7 +378,7 @@ describe('page tree builder', () => {
     expect(guideFolder?.slug).toBe('guide');
   });
 
-  it('should fallback to "index" when slug replaces to empty string', () => {
+  it('当 slug 替换为空字符串时应回退到 "index"', () => {
     const files = [
       {
         filePath: '/test/index/index.mdx',
@@ -407,7 +407,7 @@ describe('page tree builder', () => {
     expect(indexFolder?.slug).toBe('index');
   });
 
-  it('should build page without icon from frontmatter', () => {
+  it('应当构建不带 icon 的页面（来自 frontmatter）', () => {
     const files = [
       {
         filePath: '/test/index.mdx',
@@ -426,7 +426,7 @@ describe('page tree builder', () => {
     expect(tree[0]?.icon).toBeUndefined();
   });
 
-  it('should use formatTitle when frontmatter title is empty', () => {
+  it('当 frontmatter title 为空时应当使用 formatTitle', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -444,7 +444,7 @@ describe('page tree builder', () => {
     expect(tree[0]?.name).toBe('Guide');
   });
 
-  it('should use frontmatter title when available', () => {
+  it('当 frontmatter title 存在时应当使用它', () => {
     const files = [
       {
         filePath: '/test/guide.mdx',
@@ -461,7 +461,7 @@ describe('page tree builder', () => {
   });
 
   // 覆盖 tree.ts 行73: slug.replace(/\/index$/, '') 结果为空时 || 回退到 'index'
-  it('should fallback to "index" when slug replace results in empty string', () => {
+  it('当 slug 替换结果为空字符串时应回退到 "index"', () => {
     // 构造一个特殊场景：目录下的 index 文件，其 slug 恰好为 "index"
     // 正常情况下这不会发生（slug 至少为 'dir/index'），但覆盖防御性代码
     const files = [
@@ -494,7 +494,7 @@ describe('page tree builder', () => {
 
   // 覆盖 tree.ts 行73: slug.replace(/\/index$/, '') 结果为空字符串时 || 回退到 'index'
   // 构造 slug 为 '/index' 的人工数据，使 replace 返回 ''（而非 'index'）
-  it('should fallback to "index" when slug replace results in empty string', () => {
+  it('当 slug 替换结果为空字符串时应回退到 "index"', () => {
     const files = [
       {
         filePath: '/test/somedir/index.mdx',
@@ -524,7 +524,7 @@ describe('page tree builder', () => {
 });
 
 describe('generateSourceConfigContent', () => {
-  it('should generate source config with custom content dir', () => {
+  it('应当使用自定义内容目录生成源配置', () => {
     const result = generateSourceConfigContent('docs');
     expect(result).toContain("dir: 'docs'");
     expect(result).toContain('defineDocs');
@@ -539,7 +539,7 @@ describe('loadConfig validation errors', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should include field paths in validation error message', async () => {
+  it('验证错误消息中应当包含字段路径', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -550,17 +550,17 @@ describe('loadConfig validation errors', () => {
 });
 
 describe('collectConfiguredSlugs', () => {
-  it('should return empty set when no sidebar', () => {
+  it('当没有 sidebar 时应当返回空集合', () => {
     const slugs = collectConfiguredSlugs({ name: 'Test' } as OpenManualConfig);
     expect(slugs.size).toBe(0);
   });
 
-  it('should return empty set when sidebar is empty', () => {
+  it('当 sidebar 为空时应当返回空集合', () => {
     const slugs = collectConfiguredSlugs({ name: 'Test', sidebar: [] } as OpenManualConfig);
     expect(slugs.size).toBe(0);
   });
 
-  it('should collect all slugs from sidebar config', () => {
+  it('应当从 sidebar 配置中收集所有 slug', () => {
     const config = {
       name: 'Test',
       sidebar: [
@@ -592,14 +592,14 @@ describe('loadConfig - mergeDefaults branches', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should fallback navbar.logo to config.name when navbar not provided', async () => {
+  it('当未提供 navbar 时 navbar.logo 应回退到 config.name', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
     const config = await loadConfig(tmpDir);
     expect(config.navbar?.logo).toBe('MyApp');
   });
 
-  it('should use MIT template with current year and project name as default footer text', async () => {
+  it('应当使用 MIT 模板（含当前年份和项目名）作为默认 footer 文本', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
     const config = await loadConfig(tmpDir);
@@ -607,7 +607,7 @@ describe('loadConfig - mergeDefaults branches', () => {
     expect(config.footer?.text).toBe(`MIT ${year} © MyApp.`);
   });
 
-  it('should use provided navbar logo when explicitly set', async () => {
+  it('当显式设置时应当使用提供的 navbar logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -617,7 +617,7 @@ describe('loadConfig - mergeDefaults branches', () => {
     expect(config.navbar?.logo).toBe('/logo.svg');
   });
 
-  it('should use provided footer text when explicitly set', async () => {
+  it('当显式设置时应当使用提供的 footer 文本', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -635,7 +635,7 @@ describe('content scanner - error handling', () => {
     await rm(contentTmpDir, { recursive: true, force: true });
   });
 
-  it('should skip files that fail to read and return remaining files', async () => {
+  it('应当跳过读取失败的文件并返回剩余文件', async () => {
     await mkdir(contentTmpDir, { recursive: true });
     await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
     // Create a file then make it unreadable by writing invalid content scenario
@@ -646,7 +646,7 @@ describe('content scanner - error handling', () => {
   });
 
   // 覆盖 scanner.ts 行59: parseContentFile 的 catch 块返回 null
-  it('should return null for unreadable files (catch block in parseContentFile)', async () => {
+  it('不可读文件应当返回 null（parseContentFile 中的 catch 块）', async () => {
     await mkdir(contentTmpDir, { recursive: true });
     await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
     // 创建一个不可读的文件（用符号链接到不存在目标触发 readFile 异常）
@@ -668,7 +668,7 @@ describe('content scanner - error handling', () => {
   });
 
   // 覆盖 scanner.ts 行59：使用 chmod 000 触发 parseContentFile 的 catch 块
-  it('should skip unreadable files via catch block in parseContentFile', async () => {
+  it('应当通过 parseContentFile 的 catch 块跳过不可读文件', async () => {
     await mkdir(contentTmpDir, { recursive: true });
     await writeFile(join(contentTmpDir, 'good.md'), '---\ntitle: Good\n---\nContent');
     const unreadablePath = join(contentTmpDir, 'unreadable.md');
@@ -705,11 +705,11 @@ describe('content scanner - error handling', () => {
 // ============================================================
 
 describe('isI18nEnabled', () => {
-  it('should return false when i18n is undefined', () => {
+  it('当 i18n 为 undefined 时应当返回 false', () => {
     expect(isI18nEnabled({ name: 'Test' })).toBe(false);
   });
 
-  it('should return false when i18n.enabled is false', () => {
+  it('当 i18n.enabled 为 false 时应当返回 false', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
@@ -724,7 +724,7 @@ describe('isI18nEnabled', () => {
     ).toBe(false);
   });
 
-  it('should return false when enabled but only 1 language', () => {
+  it('当启用但只有 1 种语言时应当返回 false', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
@@ -733,15 +733,15 @@ describe('isI18nEnabled', () => {
     ).toBe(false);
   });
 
-  it('should return false when enabled but languages array is empty', () => {
+  it('当启用但 languages 数组为空时应当返回 false', () => {
     expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true, languages: [] } })).toBe(false);
   });
 
-  it('should return false when enabled but languages is undefined', () => {
+  it('当启用但 languages 为 undefined 时应当返回 false', () => {
     expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true } })).toBe(false);
   });
 
-  it('should return true when enabled and languages has 2+ entries', () => {
+  it('当启用且 languages 有 2+ 条目时应当返回 true', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
@@ -756,7 +756,7 @@ describe('isI18nEnabled', () => {
     ).toBe(true);
   });
 
-  it('should return true when enabled and languages has 3+ entries', () => {
+  it('当启用且 languages 有 3+ 条目时应当返回 true', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
@@ -774,25 +774,25 @@ describe('isI18nEnabled', () => {
 });
 
 describe('isDirParser', () => {
-  it('should return true when parser is "dir"', () => {
+  it('当 parser 为 "dir" 时应当返回 true', () => {
     expect(isDirParser({ name: 'T', i18n: { parser: 'dir' } })).toBe(true);
   });
 
-  it('should return false when parser is "dot"', () => {
+  it('当 parser 为 "dot" 时应当返回 false', () => {
     expect(isDirParser({ name: 'T', i18n: { parser: 'dot' } })).toBe(false);
   });
 
-  it('should return false when parser is undefined', () => {
+  it('当 parser 为 undefined 时应当返回 false', () => {
     expect(isDirParser({ name: 'T', i18n: { enabled: true } })).toBe(false);
   });
 
-  it('should return false when i18n config is undefined', () => {
+  it('当 i18n 配置为 undefined 时应当返回 false', () => {
     expect(isDirParser({ name: 'T' })).toBe(false);
   });
 });
 
 describe('I18nLocaleSchema', () => {
-  it('should accept valid locale with code and name', () => {
+  it('应当接受包含 code 和 name 的有效 locale', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: {
@@ -803,7 +803,7 @@ describe('I18nLocaleSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject empty code', () => {
+  it('应当拒绝空 code', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: { languages: [{ code: '', name: 'English' }] },
@@ -811,7 +811,7 @@ describe('I18nLocaleSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should reject empty name', () => {
+  it('应当拒绝空 name', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: { languages: [{ code: 'en', name: '' }] },
@@ -821,7 +821,7 @@ describe('I18nLocaleSchema', () => {
 });
 
 describe('I18nConfigSchema', () => {
-  it('should accept full i18n config with all fields', () => {
+  it('应当接受包含所有字段的完整 i18n 配置', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: {
@@ -837,7 +837,7 @@ describe('I18nConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept minimal i18n config (only enabled)', () => {
+  it('应当接受最小 i18n 配置（仅 enabled）', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: { enabled: true },
@@ -845,7 +845,7 @@ describe('I18nConfigSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject invalid parser value', () => {
+  it('应当拒绝无效的 parser 值', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: { parser: 'invalid' },
@@ -853,7 +853,7 @@ describe('I18nConfigSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should accept i18n as optional field', () => {
+  it('应当接受 i18n 作为可选字段', () => {
     const result = OpenManualConfigSchema.safeParse({ name: 'Test' });
     expect(result.success).toBe(true);
   });
@@ -870,7 +870,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should merge i18n defaults when i18n config provided', async () => {
+  it('当提供 i18n 配置时应当合并 i18n 默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -893,7 +893,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.languages).toHaveLength(2);
   });
 
-  it('should use provided i18n.defaultLanguage over fallback', async () => {
+  it('应当优先使用提供的 i18n.defaultLanguage 而非回退值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -911,7 +911,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.defaultLanguage).toBe('en');
   });
 
-  it('should use provided i18n.parser over fallback', async () => {
+  it('应当优先使用提供的 i18n.parser 而非回退值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -931,7 +931,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.parser).toBe('dir');
   });
 
-  it('should set i18n to undefined when i18n not in config', async () => {
+  it('当配置中不含 i18n 时应当将 i18n 设为 undefined', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
     const config = await loadConfig(tmpDir);
@@ -939,7 +939,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
   });
 
   // 覆盖 loader.ts 行85: i18n.enabled 为 undefined 时 fallback 到 false
-  it('should fallback i18n.enabled to false when not provided', async () => {
+  it('当未提供时 i18n.enabled 应回退到 false', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -959,7 +959,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
   });
 
   // 覆盖 loader.ts 行87 第一级 ??: defaultLanguage undefined → fallback 到 locale
-  it('should fallback i18n.defaultLanguage to locale when not provided', async () => {
+  it('当未提供时 i18n.defaultLanguage 应回退到 locale', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -978,7 +978,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
   });
 
   // 覆盖 loader.ts 行87 第二级 ??: locale 也 undefined → fallback 到 'zh'
-  it('should fallback i18n.defaultLanguage to zh when neither provided', async () => {
+  it('当两者都未提供时 i18n.defaultLanguage 应回退到 zh', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1011,7 +1011,7 @@ describe('loadConfig - mergeDefaults openapi', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should default openapi.label to 接口文档 when label not provided', async () => {
+  it('当未提供 label 时 openapi.label 默认应为接口文档', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1026,7 +1026,7 @@ describe('loadConfig - mergeDefaults openapi', () => {
     expect(config.openapi?.label).toBe('接口文档'); // 默认 label
   });
 
-  it('should preserve custom openapi.label when provided', async () => {
+  it('当提供时应当保留自定义 openapi.label', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1039,7 +1039,7 @@ describe('loadConfig - mergeDefaults openapi', () => {
     expect(config.openapi?.label).toBe('Custom API Docs');
   });
 
-  it('should set openapi to undefined when not configured', async () => {
+  it('当未配置时应当将 openapi 设为 undefined', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
     const config = await loadConfig(tmpDir);
@@ -1059,14 +1059,14 @@ describe('loadConfig - field fallback defaults', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should fallback contentDir to content when omitted', async () => {
+  it('当省略时 contentDir 应回退到 content', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
     const config = await loadConfig(tmpDir);
     expect(config.contentDir).toBe('content');
   });
 
-  it('should use provided contentDir over default', async () => {
+  it('应当优先使用提供的 contentDir 而非默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1076,14 +1076,14 @@ describe('loadConfig - field fallback defaults', () => {
     expect(config.contentDir).toBe('custom-docs');
   });
 
-  it('should fallback outputDir to dist when omitted', async () => {
+  it('当省略时 outputDir 应回退到 dist', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
     const config = await loadConfig(tmpDir);
     expect(config.outputDir).toBe('dist');
   });
 
-  it('should use provided outputDir over default', async () => {
+  it('应当优先使用提供的 outputDir 而非默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1093,21 +1093,21 @@ describe('loadConfig - field fallback defaults', () => {
     expect(config.outputDir).toBe('out');
   });
 
-  it('should fallback locale to zh when omitted', async () => {
+  it('当省略时 locale 应回退到 zh', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
     const config = await loadConfig(tmpDir);
     expect(config.locale).toBe('zh');
   });
 
-  it('should use provided locale over default', async () => {
+  it('应当优先使用提供的 locale 而非默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T', locale: 'en' }));
     const config = await loadConfig(tmpDir);
     expect(config.locale).toBe('en');
   });
 
-  it('should fallback contentPolicy to strict when omitted', async () => {
+  it('当省略时 contentPolicy 应回退到 strict', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T' }));
     const config = await loadConfig(tmpDir);
@@ -1120,25 +1120,25 @@ describe('loadConfig - field fallback defaults', () => {
 // ============================================================
 
 describe('resolveOpenApiSpecPaths', () => {
-  it('should return empty array when openapi is undefined', () => {
+  it('当 openapi 为 undefined 时应当返回空数组', () => {
     expect(resolveOpenApiSpecPaths({ name: 'Test' })).toEqual([]);
   });
 
-  it('should return empty array when openapi has no specs or specPath', () => {
+  it('当 openapi 没有 specs 或 specPath 时应当返回空数组', () => {
     expect(resolveOpenApiSpecPaths({ name: 'Test', openapi: {} as any })).toEqual([]);
   });
 
-  it('should return single path from specPath (legacy format)', () => {
+  it('应当从 specPath 返回单一路径（旧格式）', () => {
     const config = { name: 'T', openapi: { specPath: 'openapi.yaml' } as any };
     expect(resolveOpenApiSpecPaths(config)).toEqual(['openapi.yaml']);
   });
 
-  it('should return array with single string from specs (new format)', () => {
+  it('应当从 specs 返回包含单个字符串的数组（新格式）', () => {
     const config = { name: 'T', openapi: { specs: 'api-spec.yaml' } as any };
     expect(resolveOpenApiSpecPaths(config)).toEqual(['api-spec.yaml']);
   });
 
-  it('should return paths from specs array (multi-file new format)', () => {
+  it('应当从 specs 数组返回路径（多文件新格式）', () => {
     const config = {
       name: 'T',
       openapi: {
@@ -1151,7 +1151,7 @@ describe('resolveOpenApiSpecPaths', () => {
     expect(resolveOpenApiSpecPaths(config)).toEqual(['core-api.yaml', 'admin-api.yaml']);
   });
 
-  it('should prefer specs over specPath when both present', () => {
+  it('当两者同时存在时应当优先使用 specs 而非 specPath', () => {
     const config = {
       name: 'T',
       openapi: { specPath: 'old.yaml', specs: 'new.yaml' } as any,
@@ -1159,7 +1159,7 @@ describe('resolveOpenApiSpecPaths', () => {
     expect(resolveOpenApiSpecPaths(config)).toEqual(['new.yaml']);
   });
 
-  it('should return empty array for empty specs array', () => {
+  it('空 specs 数组应当返回空数组', () => {
     const config = { name: 'T', openapi: { specs: [] } as any };
     // Zod schema allows empty array; map returns []
     expect(resolveOpenApiSpecPaths(config)).toEqual([]);
@@ -1171,11 +1171,11 @@ describe('resolveOpenApiSpecPaths', () => {
 // ============================================================
 
 describe('isOpenApiEnabled - new specs format', () => {
-  it('should return true when specs is a non-empty string', () => {
+  it('当 specs 为非空字符串时应当返回 true', () => {
     expect(isOpenApiEnabled({ name: 'T', openapi: { specs: 'spec.yaml' } as any })).toBe(true);
   });
 
-  it('should return true when specs is a non-empty array', () => {
+  it('当 specs 为非空数组时应当返回 true', () => {
     expect(
       isOpenApiEnabled({
         name: 'T',
@@ -1184,11 +1184,11 @@ describe('isOpenApiEnabled - new specs format', () => {
     ).toBe(true);
   });
 
-  it('should return false when specPath is null', () => {
+  it('当 specPath 为 null 时应当返回 false', () => {
     expect(isOpenApiEnabled({ name: 'T', openapi: { specPath: null as any } as any })).toBe(false);
   });
 
-  it('should return false when openapi object has no valid spec fields', () => {
+  it('当 openapi 对象没有有效 spec 字段时应当返回 false', () => {
     expect(isOpenApiEnabled({ name: 'T', openapi: { label: 'API' } as any })).toBe(false);
   });
 });
@@ -1198,23 +1198,23 @@ describe('isOpenApiEnabled - new specs format', () => {
 // ============================================================
 
 describe('isSeparateTabMode', () => {
-  it('should return true when separateTab is true', () => {
+  it('当 separateTab 为 true 时应当返回 true', () => {
     expect(
       isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml', separateTab: true } as any })
     ).toBe(true);
   });
 
-  it('should return false when separateTab is false', () => {
+  it('当 separateTab 为 false 时应当返回 false', () => {
     expect(
       isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml', separateTab: false } as any })
     ).toBe(false);
   });
 
-  it('should return false when separateTab is undefined (default)', () => {
+  it('当 separateTab 为 undefined（默认值）时应当返回 false', () => {
     expect(isSeparateTabMode({ name: 'T', openapi: { specPath: 'a.yaml' } as any })).toBe(false);
   });
 
-  it('should return false when openapi is undefined', () => {
+  it('当 openapi 为 undefined 时应当返回 false', () => {
     expect(isSeparateTabMode({ name: 'T' })).toBe(false);
   });
 });
@@ -1231,7 +1231,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should default groupBy to tag when not provided', async () => {
+  it('当未提供时 groupBy 默认应为 tag', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1241,7 +1241,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect(config.openapi?.groupBy).toBe('tag');
   });
 
-  it('should default separateTab to false when not provided', async () => {
+  it('当未提供时 separateTab 默认应为 false', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1251,7 +1251,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect(config.openapi?.separateTab).toBe(false);
   });
 
-  it('should preserve provided groupBy value', async () => {
+  it('应当保留提供的 groupBy 值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1261,7 +1261,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect(config.openapi?.groupBy).toBe('route');
   });
 
-  it('should preserve provided separateTab value', async () => {
+  it('应当保留提供的 separateTab 值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1271,7 +1271,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect(config.openapi?.separateTab).toBe(true);
   });
 
-  it('should pass through specs field when provided as string', async () => {
+  it('当 specs 以字符串形式提供时应当透传', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1281,7 +1281,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect(config.openapi?.specs).toBe('my-spec.yaml');
   });
 
-  it('should pass through specs field when provided as array', async () => {
+  it('当 specs 以数组形式提供时应当透传', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1295,7 +1295,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
     expect((config.openapi?.specs as Array<any>).length).toBe(2);
   });
 
-  it('should merge all openapi defaults together correctly', async () => {
+  it('应当正确合并所有 openapi 默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1317,7 +1317,7 @@ describe('loadConfig - mergeDefaults openapi new fields', () => {
 // ============================================================
 
 describe('TopBarSchema', () => {
-  it('should accept valid header config with all fields', () => {
+  it('应当接受包含所有字段的有效 header 配置', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
@@ -1335,7 +1335,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept empty header config', () => {
+  it('应当接受空的 header 配置', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {},
@@ -1343,7 +1343,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept header with links array', () => {
+  it('应当接受带 links 数组的 header', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
@@ -1353,7 +1353,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept header with object logo (light/dark)', () => {
+  it('应当接受带对象形式 logo（light/dark）的 header', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
@@ -1363,7 +1363,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject header with non-string height', () => {
+  it('应当拒绝非字符串类型的 header height', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: { height: 100 },
@@ -1371,7 +1371,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should accept link with only label (backward compatible)', () => {
+  it('应当接受仅含 label 的链接（向后兼容）', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: { links: [{ label: 'Docs', href: '/docs' }] },
@@ -1379,7 +1379,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept link with only icon', () => {
+  it('应当接受仅含 icon 的链接', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: { links: [{ icon: 'Github', href: 'https://github.com/test' }] },
@@ -1387,7 +1387,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept link with both icon and label', () => {
+  it('应当接受同时包含 icon 和 label 的链接', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: {
@@ -1397,7 +1397,7 @@ describe('TopBarSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject link with neither icon nor label', () => {
+  it('应当拒绝既不含 icon 也不含 label 的链接', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       header: { links: [{ href: 'https://example.com' }] },
@@ -1407,21 +1407,21 @@ describe('TopBarSchema', () => {
 });
 
 describe('isHeaderEnabled', () => {
-  it('should return false when header is undefined', () => {
+  it('当 header 为 undefined 时应当返回 false', () => {
     expect(isHeaderEnabled({ name: 'T' })).toBe(false);
   });
 
-  it('should return true when header exists (even with minimal config)', () => {
+  it('当 header 存在时（即使配置最小）应当返回 true', () => {
     expect(isHeaderEnabled({ name: 'T', header: { sticky: true, bordered: true } })).toBe(true);
   });
 
-  it('should return true when header has height configured', () => {
+  it('当 header 配置了 height 时应当返回 true', () => {
     expect(
       isHeaderEnabled({ name: 'T', header: { height: '64px', sticky: true, bordered: true } })
     ).toBe(true);
   });
 
-  it('should return true when header is fully configured', () => {
+  it('当 header 完全配置时应当返回 true', () => {
     expect(
       isHeaderEnabled({
         name: 'T',
@@ -1435,7 +1435,7 @@ describe('isHeaderEnabled', () => {
     ).toBe(true);
   });
 
-  it('should return true when header has only links', () => {
+  it('当 header 仅包含 links 时应当返回 true', () => {
     expect(
       isHeaderEnabled({
         name: 'T',
@@ -1450,7 +1450,7 @@ describe('isHeaderEnabled', () => {
 });
 
 describe('TopLevelLogoSchema', () => {
-  it('should accept string shorthand', () => {
+  it('应当接受字符串简写形式', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: '/logo.svg',
@@ -1458,7 +1458,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept object with light and dark', () => {
+  it('应当接受包含 light 和 dark 的对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
@@ -1466,7 +1466,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should accept object with position', () => {
+  it('应当接受包含 position 的对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
@@ -1474,7 +1474,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('should reject invalid position value', () => {
+  it('应当拒绝无效的 position 值', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { light: '/l.svg', dark: '/d.svg', position: 'invalid' },
@@ -1482,7 +1482,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should reject object missing light field', () => {
+  it('应当拒绝缺少 light 字段的对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { dark: '/dark.svg' },
@@ -1490,7 +1490,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('should reject object missing dark field', () => {
+  it('应当拒绝缺少 dark 字段的对象', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { light: '/light.svg' },
@@ -1500,24 +1500,24 @@ describe('TopLevelLogoSchema', () => {
 });
 
 describe('normalizeTopLevelLogo', () => {
-  it('should normalize string shorthand to object with sidebar position', () => {
+  it('应当将字符串简写标准化为带 sidebar position 的对象', () => {
     const result = normalizeTopLevelLogo('/logo.svg');
     expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg', position: 'sidebar' });
   });
 
-  it('should normalize object without position to default sidebar', () => {
+  it('应当将不含 position 的对象标准化为默认 sidebar', () => {
     const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg' });
     expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'sidebar' });
   });
 
-  it('should preserve explicit position', () => {
+  it('应当保留显式指定的 position', () => {
     const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg', position: 'header' });
     expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'header' });
   });
 });
 
 describe('resolveEffectiveLogo', () => {
-  it('should return top-level logo as highest priority', () => {
+  it('应当返回顶层 logo 作为最高优先级', () => {
     const config = {
       name: 'Test',
       logo: { light: '/top-light.svg', dark: '/top-dark.svg' },
@@ -1529,7 +1529,7 @@ describe('resolveEffectiveLogo', () => {
     expect(result.position).toBe('sidebar');
   });
 
-  it('should return top-level logo with header position', () => {
+  it('应当返回带 header position 的顶层 logo', () => {
     const config = {
       name: 'Test',
       logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
@@ -1539,7 +1539,7 @@ describe('resolveEffectiveLogo', () => {
     expect(result.position).toBe('header');
   });
 
-  it('should fallback to navbar.logo when no top-level logo', () => {
+  it('当没有顶层 logo 时应回退到 navbar.logo', () => {
     const config = {
       name: 'Test',
       navbar: { logo: '/nav.svg' },
@@ -1549,7 +1549,7 @@ describe('resolveEffectiveLogo', () => {
     expect(result.position).toBe('sidebar');
   });
 
-  it('should fallback to header.logo when no top-level or navbar logo', () => {
+  it('当没有顶层或 navbar logo 时应回退到 header.logo', () => {
     const config = {
       name: 'Test',
       header: { logo: '/hdr.svg', height: '64px' },
@@ -1559,14 +1559,14 @@ describe('resolveEffectiveLogo', () => {
     expect(result.position).toBe('header');
   });
 
-  it('should return undefined when no logo configured anywhere', () => {
+  it('当任何位置都未配置 logo 时应当返回 undefined', () => {
     const config = { name: 'Test' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
     expect(result.source).toBeUndefined();
     expect(result.position).toBe('sidebar');
   });
 
-  it('should handle string shorthand top-level logo', () => {
+  it('应当处理字符串简写形式的顶层 logo', () => {
     const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
     // 字符串简写被 normalizeTopLevelLogo 标准化为 { light, dark } 对象
@@ -1582,7 +1582,7 @@ describe('loadConfig - top-level logo propagation', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should propagate top-level logo with position=sidebar to navbar.logo', async () => {
+  it('应当将 position=sidebar 的顶层 logo 传播到 navbar.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1596,7 +1596,7 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.header?.logo).toBeUndefined();
   });
 
-  it('should propagate top-level logo with position=header to header.logo', async () => {
+  it('应当将 position=header 的顶层 logo 传播到 header.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1612,7 +1612,7 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.navbar?.logo).toBe('MyApp');
   });
 
-  it('should propagate string shorthand top-level logo to navbar.logo by default', async () => {
+  it('默认应当将字符串简写形式的顶层 logo 传播到 navbar.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1622,7 +1622,7 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.navbar?.logo).toBe('/logo.svg');
   });
 
-  it('should preserve legacy navbar.logo when no top-level logo', async () => {
+  it('当没有顶层 logo 时应当保留旧版 navbar.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1632,7 +1632,7 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.navbar?.logo).toBe('/legacy-nav.svg');
   });
 
-  it('should preserve legacy header.logo when no top-level logo', async () => {
+  it('当没有顶层 logo 时应当保留旧版 header.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1645,7 +1645,7 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.header?.logo).toBe('/legacy-hdr.svg');
   });
 
-  it('should normalize position default in merged config', async () => {
+  it('应当在合并配置中标准化 position 默认值', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1660,7 +1660,7 @@ describe('loadConfig - top-level logo propagation', () => {
 });
 
 describe('resolveEffectiveLogo - full priority chain coverage', () => {
-  it('should prioritize top-level logo over both navbar and header logos', () => {
+  it('应当优先使用顶层 logo 而非 navbar 和 header logo', () => {
     const config = {
       name: 'Test',
       logo: { light: '/top.svg', dark: '/top-dark.svg' },
@@ -1672,7 +1672,7 @@ describe('resolveEffectiveLogo - full priority chain coverage', () => {
     expect(result.position).toBe('sidebar');
   });
 
-  it('should return header position when only header.logo exists (no top-level or navbar)', () => {
+  it('当仅存在 header.logo（无顶层或 navbar）时应当返回 header position', () => {
     const config = {
       name: 'Test',
       header: { logo: '/hdr.svg', height: '64px' },
@@ -1682,7 +1682,7 @@ describe('resolveEffectiveLogo - full priority chain coverage', () => {
     expect(result.position).toBe('header');
   });
 
-  it('should return sidebar position for navbar.logo even without top-level logo', () => {
+  it('即使没有顶层 logo，navbar.logo 也应当返回 sidebar position', () => {
     const config = {
       name: 'Test',
       navbar: { logo: '/nav.svg' },
@@ -1692,7 +1692,7 @@ describe('resolveEffectiveLogo - full priority chain coverage', () => {
     expect(result.position).toBe('sidebar');
   });
 
-  it('should handle top-level string shorthand with explicit object comparison', () => {
+  it('应当处理顶层字符串简写并进行显式对象比较', () => {
     const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
     // String shorthand normalized to { light, dark: same }
@@ -1708,14 +1708,14 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('should default search.position to sidebar when search is configured without position', async () => {
+  it('当 search 配置但未指定 position 时 search.position 默认应为 sidebar', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp', search: {} }));
     const config = await loadConfig(tmpDir);
     expect(config.search?.position).toBe('sidebar');
   });
 
-  it('should default i18n.languages to empty array when i18n enabled without languages', async () => {
+  it('当 i18n 启用但未指定 languages 时 i18n.languages 默认应为空数组', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1726,7 +1726,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.i18n?.languages).toEqual([]);
   });
 
-  it('should use provided i18n.languages when explicitly set', async () => {
+  it('当显式设置时应当使用提供的 i18n.languages', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1739,7 +1739,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.i18n?.languages).toEqual([{ code: 'zh', name: '中文' }]);
   });
 
-  it('should default openapi.groupBy to tag when not specified', async () => {
+  it('当未指定时 openapi.groupBy 默认应为 tag', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1749,7 +1749,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.openapi?.groupBy).toBe('tag');
   });
 
-  it('should default openapi.separateTab to false when not specified', async () => {
+  it('当未指定时 openapi.separateTab 默认应为 false', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1759,7 +1759,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.openapi?.separateTab).toBe(false);
   });
 
-  it('should default openapi.label to 接口文档 when not specified', async () => {
+  it('当未指定时 openapi.label 默认应为接口文档', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1769,14 +1769,14 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.openapi?.label).toBe('接口文档');
   });
 
-  it('should not set search when search field is absent', async () => {
+  it('当 search 字段不存在时不应设置 search', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
     const config = await loadConfig(tmpDir);
     expect(config.search).toBeUndefined();
   });
 
-  it('should preserve existing header.logo when top-level logo position=sidebar', async () => {
+  it('当顶层 logo position=sidebar 时应当保留已有的 header.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),

@@ -20,7 +20,7 @@ describe('checkCodeLangs', () => {
     vi.clearAllMocks();
   });
 
-  it('should return empty array when all languages are supported', async () => {
+  it('当所有语言都支持时应返回空数组', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'test.md', isDirectory: () => false, isFile: () => true },
     ]);
@@ -33,7 +33,7 @@ describe('checkCodeLangs', () => {
     expect(results).toEqual([]);
   });
 
-  it('should detect unsupported languages', async () => {
+  it('应当检测到不支持的语言', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'test.md', isDirectory: () => false, isFile: () => true },
     ]);
@@ -45,7 +45,7 @@ describe('checkCodeLangs', () => {
     expect(results[0]?.lang).toBe('foobar');
   });
 
-  it('should return correct relative file path and line number', async () => {
+  it('应当返回正确的相对文件路径和行号', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockImplementation((dir: string) => {
       if (dir === '/content')
         return Promise.resolve([{ name: 'guide', isDirectory: () => true, isFile: () => false }]);
@@ -64,7 +64,7 @@ describe('checkCodeLangs', () => {
     expect(results[0]?.line).toBe(3);
   });
 
-  it('should not report whitelisted plain text languages', async () => {
+  it('不应报告白名单中的纯文本语言', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'test.md', isDirectory: () => false, isFile: () => true },
     ]);
@@ -77,7 +77,7 @@ describe('checkCodeLangs', () => {
     expect(results).toEqual([]);
   });
 
-  it('should recursively collect files from subdirectories', async () => {
+  it('应当递归收集子目录中的文件', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockImplementation((dir: string) => {
       if (dir === '/content')
         return Promise.resolve([
@@ -98,7 +98,7 @@ describe('checkCodeLangs', () => {
     expect(readFile).toHaveBeenCalledTimes(2);
   });
 
-  it('should skip non-markdown files', async () => {
+  it('应当跳过非 Markdown 文件', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'image.png', isDirectory: () => false, isFile: () => true },
       { name: 'data.json', isDirectory: () => false, isFile: () => true },
@@ -110,7 +110,7 @@ describe('checkCodeLangs', () => {
     expect(readFile).not.toHaveBeenCalled();
   });
 
-  it('should handle multiple files with multiple code blocks', async () => {
+  it('应当处理包含多个代码块的多个文件', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'a.md', isDirectory: () => false, isFile: () => true },
       { name: 'b.md', isDirectory: () => false, isFile: () => true },
@@ -129,7 +129,7 @@ describe('checkCodeLangs', () => {
     expect(results.map((r) => r.lang)).toEqual(['badlang1', 'badlang2', 'anotherbad']);
   });
 
-  it('should not be affected by empty lines and inline code', async () => {
+  it('不应受空行和行内代码的影响', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([
       { name: 'test.md', isDirectory: () => false, isFile: () => true },
     ]);
@@ -142,7 +142,7 @@ describe('checkCodeLangs', () => {
     expect(results).toEqual([]);
   });
 
-  it('should return empty array for empty directory', async () => {
+  it('空目录应返回空数组', async () => {
     (readdir as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const { checkCodeLangs } = await import('../utils/check-code-langs.js');

@@ -57,18 +57,18 @@ const i18nCtx = { config: i18nConfig, projectDir: '/tmp/test' };
 const i18nCtxDir = { config: i18nConfigDirParser, projectDir: '/tmp/test' };
 
 describe('generateGlobalCss', () => {
-  it('should use default primaryHue 213 when theme not set', () => {
+  it('当未设置主题时应当使用默认的 primaryHue 213', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain('--primary-hue: 213');
   });
 
-  it('should use custom primaryHue when provided', () => {
+  it('当提供了自定义 primaryHue 时应当使用它', () => {
     const ctx = { config: { ...baseConfig, theme: { primaryHue: 180 } } };
     const result = generateGlobalCss(ctx);
     expect(result).toContain('--primary-hue: 180');
   });
 
-  it('should include tailwindcss and fumadocs imports (split to avoid double @import tailwindcss)', () => {
+  it('应当包含 tailwindcss 和 fumadocs 导入（拆分以避免重复 @import tailwindcss）', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain("@import 'tailwindcss'");
     // 不再导入 style.css（其内部包含第二次 @import tailwindcss 会导致 hover 变体丢失）
@@ -77,7 +77,7 @@ describe('generateGlobalCss', () => {
     expect(result).toContain("@import 'fumadocs-ui/css/preset.css'");
   });
 
-  it('should use fumadocs-ui built-in @variant dark instead of custom one', () => {
+  it('应当使用 fumadocs-ui 内置的 @variant dark 而非自定义的', () => {
     const result = generateGlobalCss(baseCtx);
     // 不再自定义 @custom-variant dark（:is），复用 fumadocs-ui/base.css 内置的 @variant dark（:where）
     expect(result).not.toContain('@custom-variant dark');
@@ -86,28 +86,28 @@ describe('generateGlobalCss', () => {
     expect(result).toContain('@apply flex flex-col min-h-screen');
   });
 
-  it('should register custom colors in @theme block for variant generation', () => {
+  it('应当在 @theme 块中注册自定义颜色以用于变体生成', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain('@theme');
     expect(result).toContain('--color-fd-inputborder');
   });
 });
 
-describe('generateGlobalCss - dark theme', () => {
-  it('should generate .dark block by default when darkMode not set', () => {
+describe('generateGlobalCss - 暗色主题', () => {
+  it('当未设置 darkMode 时默认应当生成 .dark 块', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain('.dark {');
     expect(result).toContain('--color-fd-background: hsl(30, 18%, 10%)');
     expect(result).toContain('--color-fd-foreground: hsl(35, 15%, 90%)');
   });
 
-  it('should generate .dark block when darkMode is true', () => {
+  it('当 darkMode 为 true 时应当生成 .dark 块', () => {
     const ctx = { config: { ...baseConfig, theme: { darkMode: true } } };
     const result = generateGlobalCss(ctx);
     expect(result).toContain('.dark {');
   });
 
-  it('should not generate .dark block when darkMode is false', () => {
+  it('当 darkMode 为 false 时不应生成 .dark 块', () => {
     const ctx = { config: { ...baseConfig, theme: { darkMode: false } } };
     const result = generateGlobalCss(ctx);
     expect(result).not.toContain('.dark {');
@@ -133,7 +133,7 @@ describe('generateGlobalCss - dark theme', () => {
     '--color-fd-overlay',
   ];
 
-  it('should include all 17 fumadocs variables in .dark block', () => {
+  it('应当在 .dark 块中包含全部 17 个 fumadocs 变量', () => {
     const result = generateGlobalCss(baseCtx);
     const darkBlock = result.match(/\.dark \{[^}]+\}/s)?.[0];
     expect(darkBlock).toBeDefined();
@@ -143,14 +143,14 @@ describe('generateGlobalCss - dark theme', () => {
     expect(darkVariables).toHaveLength(17);
   });
 
-  it('should include dark gradient on body', () => {
+  it('应当在 body 上包含暗色渐变', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain('.dark body {');
     expect(result).toContain('linear-gradient');
     expect(result).toContain('hsla(30, 30%, 15%, 0.4)');
   });
 
-  it('should apply primaryHue and darkMode together', () => {
+  it('应当同时应用 primaryHue 和 darkMode', () => {
     const ctx = {
       config: { ...baseConfig, theme: { primaryHue: 180, darkMode: true } },
     };
@@ -161,14 +161,14 @@ describe('generateGlobalCss - dark theme', () => {
 });
 
 describe('generateLayout', () => {
-  it('should disable nav by default (hide sidebar header)', () => {
+  it('默认应当禁用导航（隐藏侧边栏头部）', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain('enabled: false');
     expect(result).not.toContain('title:');
     expect(result).not.toContain('NavLogo');
   });
 
-  it('should disable nav regardless of logo config', () => {
+  it('无论 logo 配置如何都应当禁用导航', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: 'MyLogo' } },
     };
@@ -177,7 +177,7 @@ describe('generateLayout', () => {
     expect(result).not.toContain('MyLogo');
   });
 
-  it('should disable nav for image logo config', () => {
+  it('对于图片 logo 配置应当禁用导航', () => {
     const ctx = {
       config: { ...baseConfig, navbar: { logo: '/logo.svg' } },
     };
@@ -186,7 +186,7 @@ describe('generateLayout', () => {
     expect(result).not.toContain('/logo.svg');
   });
 
-  it('should disable nav for dual-theme logo config', () => {
+  it('对于双主题 logo 配置应当禁用导航', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -199,12 +199,12 @@ describe('generateLayout', () => {
     expect(result).not.toContain('srcDark=');
   });
 
-  it('should import BaseLayoutProps from fumadocs-ui', () => {
+  it('应当从 fumadocs-ui 导入 BaseLayoutProps', () => {
     const result = generateLayout(baseCtx);
     expect(result).toContain("import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'");
   });
 
-  it('should not import NavLogo or ReactNode', () => {
+  it('不应导入 NavLogo 或 ReactNode', () => {
     const result = generateLayout(baseCtx);
     expect(result).not.toContain('NavLogo');
     expect(result).not.toContain('ReactNode');
@@ -212,19 +212,19 @@ describe('generateLayout', () => {
 
   // --- i18n 模式 ---
 
-  it('should generate baseOptions with _locale param in i18n mode', () => {
+  it('在 i18n 模式下应当生成带 _locale 参数的 baseOptions', () => {
     const result = generateLayout(i18nCtx);
     expect(result).toContain('baseOptions(_locale: string)');
     expect(result).not.toContain('baseOptions()');
   });
 
-  it('should disable nav in i18n mode too', () => {
+  it('在 i18n 模式下也应当禁用导航', () => {
     const result = generateLayout(i18nCtx);
     expect(result).toContain('enabled: false');
     expect(result).not.toContain('title:');
   });
 
-  it('should disable nav in i18n mode regardless of logo config', () => {
+  it('在 i18n 模式下无论 logo 配置如何都应当禁用导航', () => {
     const ctx = {
       config: { ...i18nConfig, navbar: { logo: '/logo.svg' } },
       projectDir: '/tmp/test',
@@ -236,12 +236,12 @@ describe('generateLayout', () => {
 });
 
 describe('isImagePath', () => {
-  it('should detect absolute paths as image paths', () => {
+  it('应当将绝对路径识别为图片路径', () => {
     expect(isImagePath('/logo.svg')).toBe(true);
     expect(isImagePath('/images/logo.png')).toBe(true);
   });
 
-  it('should detect file extensions as image paths', () => {
+  it('应当将文件扩展名识别为图片路径', () => {
     expect(isImagePath('logo.svg')).toBe(true);
     expect(isImagePath('logo.png')).toBe(true);
     expect(isImagePath('logo.jpg')).toBe(true);
@@ -249,43 +249,43 @@ describe('isImagePath', () => {
     expect(isImagePath('logo.webp')).toBe(true);
   });
 
-  it('should not detect plain text as image path', () => {
+  it('不应将纯文本识别为图片路径', () => {
     expect(isImagePath('MyLogo')).toBe(false);
     expect(isImagePath('OpenManual')).toBe(false);
   });
 });
 
 describe('resolveLogoPaths', () => {
-  it('should resolve string logo to same light and dark', () => {
+  it('应当将字符串 logo 解析为相同的 light 和 dark', () => {
     const result = resolveLogoPaths('/logo.svg');
     expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
   });
 
-  it('should resolve object logo to different light and dark', () => {
+  it('应当将对象 logo 解析为不同的 light 和 dark', () => {
     const result = resolveLogoPaths({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
     expect(result).toEqual({ light: '/logo-light.svg', dark: '/logo-dark.svg' });
   });
 });
 
 describe('resolveNavLogoProps', () => {
-  it('should generate image props for image path string', () => {
+  it('应当为图片路径字符串生成图片属性', () => {
     const result = resolveNavLogoProps('/logo.svg', 'Test');
     expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
   });
 
-  it('should generate text props for plain text string', () => {
+  it('应当为纯文本字符串生成文本属性', () => {
     const result = resolveNavLogoProps('MyLogo', 'MyLogo');
     expect(result).toBe('type="text" text="MyLogo"');
   });
 
-  it('should generate single src when logo object has same light/dark paths', () => {
+  it('当 logo 对象的 light/dark 路径相同时应当生成单个 src', () => {
     const result = resolveNavLogoProps({ light: '/logo.svg', dark: '/logo.svg' }, 'Test');
     expect(result).toBe('type="image" src="/logo.svg" alt="Test"');
     expect(result).not.toContain('srcLight');
     expect(result).not.toContain('srcDark');
   });
 
-  it('should generate srcLight and srcDark when logo object has different paths', () => {
+  it('当 logo 对象的路径不同时应当生成 srcLight 和 srcDark', () => {
     const result = resolveNavLogoProps({ light: '/light.svg', dark: '/dark.svg' }, 'Test');
     expect(result).toContain('srcLight="/light.svg"');
     expect(result).toContain('srcDark="/dark.svg"');
@@ -293,13 +293,13 @@ describe('resolveNavLogoProps', () => {
 });
 
 describe('generateLibSource', () => {
-  it('should import from collections/server and use loader', () => {
+  it('应当从 collections/server 导入并使用 loader', () => {
     const result = generateLibSource(baseCtx);
     expect(result).toContain("from '@/.source/server'");
     expect(result).toContain("from 'fumadocs-core/source'");
   });
 
-  it('should configure loader with baseUrl and source', () => {
+  it('应当使用 baseUrl 和 source 配置 loader', () => {
     const result = generateLibSource(baseCtx);
     expect(result).toContain("baseUrl: '/'");
     expect(result).toContain('source: docs.toFumadocsSource()');
@@ -307,7 +307,7 @@ describe('generateLibSource', () => {
 });
 
 describe('generateNextConfig', () => {
-  it('should include output export when siteUrl is set and not dev mode', () => {
+  it('当设置了 siteUrl 且非开发模式时应当包含 output export', () => {
     const ctx = {
       config: { ...baseConfig, siteUrl: 'https://example.com' },
     };
@@ -315,12 +315,12 @@ describe('generateNextConfig', () => {
     expect(result).toContain("output: 'export'");
   });
 
-  it('should not include output when siteUrl is not set', () => {
+  it('当未设置 siteUrl 时不应包含 output', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).not.toContain("output: 'export'");
   });
 
-  it('should not include output when siteUrl is set but dev mode is true', () => {
+  it('当设置了 siteUrl 但开发模式为 true 时不应包含 output', () => {
     const ctx = {
       config: { ...baseConfig, siteUrl: 'https://example.com' },
       dev: true,
@@ -329,41 +329,41 @@ describe('generateNextConfig', () => {
     expect(result).not.toContain("output: 'export'");
   });
 
-  it('should always set images.unoptimized to true', () => {
+  it('应当始终将 images.unoptimized 设为 true', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain('unoptimized: true');
   });
 
-  it('should include mermaid in serverExternalPackages', () => {
+  it('应当在 serverExternalPackages 中包含 mermaid', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain("serverExternalPackages: ['mermaid']");
   });
 
-  it('should include rewrites for .md URLs in dev mode', () => {
+  it('在开发模式下应当包含 .md URL 的 rewrites', () => {
     const result = generateNextConfig({ ...baseCtx, dev: true });
     expect(result).toContain('async rewrites()');
     expect(result).toContain("source: '/:path(.+)\\\\.md'");
     expect(result).toContain("destination: '/api/raw/:path'");
   });
 
-  it('should not include rewrites in non-dev mode', () => {
+  it('在非开发模式下不应包含 rewrites', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).not.toContain('async rewrites()');
     expect(result).not.toContain('rewrites');
   });
 
-  it('should not include turbopack resolveAlias by default', () => {
+  it('默认不应包含 turbopack resolveAlias', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).not.toContain('turbopack:');
     expect(result).not.toContain('resolveAlias:');
   });
 
-  it('should not include turbopack resolveAlias in dev mode', () => {
+  it('在开发模式下不应包含 turbopack resolveAlias', () => {
     const result = generateNextConfig({ ...baseCtx, dev: true });
     expect(result).not.toContain("'collections/*': './.source/*'");
   });
 
-  it('should not include turbopack resolveAlias with output export mode', () => {
+  it('在 output export 模式下不应包含 turbopack resolveAlias', () => {
     const result = generateNextConfig({
       config: { ...baseConfig, siteUrl: 'https://example.com' },
     });
@@ -371,20 +371,20 @@ describe('generateNextConfig', () => {
     expect(result).toContain("output: 'export'");
   });
 
-  it('should not include turbopack resolveAlias in openapi mode', () => {
+  it('在 openapi 模式下不应包含 turbopack resolveAlias', () => {
     const result = generateNextConfig(openapiCtx);
     expect(result).not.toContain("'collections/*': './.source/*'");
   });
 });
 
 describe('generatePackageJson', () => {
-  it('should produce valid JSON', () => {
+  it('应当生成有效的 JSON', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed).toBeDefined();
   });
 
-  it('should have correct name, type, and private fields', () => {
+  it('应当具有正确的 name、type 和 private 字段', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed.name).toBe('openmanual-app');
@@ -392,7 +392,7 @@ describe('generatePackageJson', () => {
     expect(parsed.private).toBe(true);
   });
 
-  it('should include required scripts and dependencies', () => {
+  it('应当包含必需的 scripts 和 dependencies', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed.scripts.dev).toBe('next dev');
@@ -403,20 +403,20 @@ describe('generatePackageJson', () => {
     expect(parsed.dependencies['fumadocs-core']).toBeDefined();
   });
 
-  it('should include mermaid and next-themes dependencies', () => {
+  it('应当包含 mermaid 和 next-themes 依赖', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed.dependencies.mermaid).toBeDefined();
     expect(parsed.dependencies['next-themes']).toBeDefined();
   });
 
-  it('should use version range when openmanualRoot is not set', () => {
+  it('当未设置 openmanualRoot 时应当使用版本范围', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed.dependencies.openmanual).toMatch(/^\^\d+\.\d+\.\d+/);
   });
 
-  it('should use file: link when openmanualRoot and appDir are set', () => {
+  it('当设置了 openmanualRoot 和 appDir 时应当使用 file: 链接', () => {
     const ctx = {
       config: baseConfig,
       projectDir: '/tmp/test',
@@ -428,7 +428,7 @@ describe('generatePackageJson', () => {
     expect(parsed.dependencies.openmanual).toBe('file:../..');
   });
 
-  it('should compute correct relative path for file: link', () => {
+  it('应当为 file: 链接计算正确的相对路径', () => {
     const ctx = {
       config: baseConfig,
       projectDir: '/tmp/myproject',
@@ -440,7 +440,7 @@ describe('generatePackageJson', () => {
     expect(parsed.dependencies.openmanual).toBe('file:../..');
   });
 
-  it('should fall back to version when openmanualRoot is set but appDir is not', () => {
+  it('当设置了 openmanualRoot 但未设置 appDir 时应回退到版本号', () => {
     const ctx = {
       config: baseConfig,
       projectDir: '/tmp/test',
@@ -451,7 +451,7 @@ describe('generatePackageJson', () => {
     expect(parsed.dependencies.openmanual).toMatch(/^\^\d+\.\d+\.\d+/);
   });
 
-  it('should use __VERSION__ when defined', () => {
+  it('当定义了 __VERSION__ 时应当使用它', () => {
     vi.stubGlobal('__VERSION__', '1.0.0-test');
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
@@ -461,20 +461,20 @@ describe('generatePackageJson', () => {
 });
 
 describe('generatePage', () => {
-  it('should import source and MDX components', () => {
+  it('应当导入 source 和 MDX 组件', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain("from '@/lib/source'");
     expect(result).toContain("from 'fumadocs-ui/page'");
     expect(result).toContain("from 'fumadocs-ui/mdx'");
   });
 
-  it('should import and register Mermaid component', () => {
+  it('应当导入并注册 Mermaid 组件', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain("from '@/components/mermaid'");
     expect(result).toContain('Mermaid');
   });
 
-  it('should import and register Callout components', () => {
+  it('应当导入并注册 Callout 组件', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain("from '@/components/callout'");
     expect(result).toContain('Callout');
@@ -482,20 +482,20 @@ describe('generatePage', () => {
     expect(result).toContain('CalloutDescription');
   });
 
-  it('should export generateStaticParams', () => {
+  it('应当导出 generateStaticParams', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('export function generateStaticParams()');
     expect(result).toContain('source.generateParams()');
   });
 
-  it('should include root path fallback in generateStaticParams', () => {
+  it('应当在 generateStaticParams 中包含根路径回退', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('p.slug.length === 0');
     expect(result).toContain('params.unshift');
     expect(result).toContain('homepage ?? params[0]');
   });
 
-  it('should include allowedSlugs filter in strict mode', () => {
+  it('在严格模式下应当包含 allowedSlugs 过滤器', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -518,7 +518,7 @@ describe('generatePage', () => {
     expect(result).toContain('params.filter');
   });
 
-  it('should not include allowedSlugs filter when contentPolicy is all', () => {
+  it('当 contentPolicy 为 all 时不应包含 allowedSlugs 过滤器', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -536,7 +536,7 @@ describe('generatePage', () => {
     expect(result).not.toContain('isAllowed');
   });
 
-  it('should default to strict mode when contentPolicy is not set', () => {
+  it('当未设置 contentPolicy 时默认应使用严格模式', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -553,7 +553,7 @@ describe('generatePage', () => {
     expect(result).toContain('isAllowed');
   });
 
-  it('should generate correct isAllowed function with index fallback', () => {
+  it('应当生成带有 index 回退的正确 isAllowed 函数', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -571,7 +571,7 @@ describe('generatePage', () => {
     expect(result).toContain("'index'");
   });
 
-  it('should import PageActions and use flex layout by default', () => {
+  it('默认应当导入 PageActions 并使用 flex 布局', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain("from '@/components/page-actions'");
     expect(result).toContain('PageActions');
@@ -579,7 +579,7 @@ describe('generatePage', () => {
     expect(result).toContain('data-content-area');
   });
 
-  it('should not include PageActions when pageActions.enabled is false', () => {
+  it('当 pageActions.enabled 为 false 时不应包含 PageActions', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -595,14 +595,14 @@ describe('generatePage', () => {
 });
 
 describe('generatePostcssConfig', () => {
-  it('should include tailwindcss postcss plugin', () => {
+  it('应当包含 tailwindcss postcss 插件', () => {
     const result = generatePostcssConfig();
     expect(result).toContain("'@tailwindcss/postcss'");
   });
 });
 
 describe('generateProvider', () => {
-  it('should have use client directive', () => {
+  it('应当包含 use client 指令', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain("'use client'");
   });
@@ -621,7 +621,7 @@ describe('generateProvider', () => {
     expect(result).toContain('enabled: true');
   });
 
-  it('should enable search with position: header', () => {
+  it('当 position 为 header 时应当启用搜索', () => {
     const ctx = {
       config: { ...baseConfig, search: { position: 'header' as const } },
     };
@@ -629,72 +629,72 @@ describe('generateProvider', () => {
     expect(result).toContain('enabled: true');
   });
 
-  it('should import RootProvider from fumadocs-ui/provider/next', () => {
+  it('应当从 fumadocs-ui/provider/next 导入 RootProvider', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain("import { RootProvider } from 'fumadocs-ui/provider/next'");
   });
 
-  it('should import SafeSearchDialog from local components', () => {
+  it('应当从本地组件导入 SafeSearchDialog', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain("import SafeSearchDialog from './components/search-dialog'");
   });
 
-  it('should export AppProvider', () => {
+  it('应当导出 AppProvider', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain('export function AppProvider');
   });
 });
 
 describe('generateSearchDialog', () => {
-  it('should have use client directive', () => {
+  it('应当包含 use client 指令', () => {
     const result = generateSearchDialog();
     expect(result).toContain("'use client'");
   });
 
-  it('should import from fumadocs-ui directly', () => {
+  it('应当直接从 fumadocs-ui 导入', () => {
     const result = generateSearchDialog();
     expect(result).toContain("from 'fumadocs-ui/components/dialog/search'");
     expect(result).toContain("from 'fumadocs-ui/contexts/i18n'");
     expect(result).toContain("from 'fumadocs-core/search/client'");
   });
 
-  it('should export SafeSearchDialog as default', () => {
+  it('应当将 SafeSearchDialog 作为默认导出', () => {
     const result = generateSearchDialog();
     expect(result).toContain('export default function SafeSearchDialog');
   });
 
-  it('should include Array.isArray guard for safeItems', () => {
+  it('应当为 safeItems 包含 Array.isArray 守卫', () => {
     const result = generateSearchDialog();
     expect(result).toContain('Array.isArray(query.data) ? query.data : defaultItems');
   });
 });
 
 describe('generateSourceConfig', () => {
-  it('should define docs with content dir', () => {
+  it('应当使用内容目录定义 docs', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).toContain('defineDocs');
     expect(result).toContain("dir: 'content'");
   });
 
-  it('should export defineConfig as default', () => {
+  it('应当将 defineConfig 作为默认导出', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).toContain('export default defineConfig(');
     expect(result).toContain('fallbackLanguage');
   });
 
-  it('should import and configure remarkMdxMermaid', () => {
+  it('应当导入并配置 remarkMdxMermaid', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).toContain("import { remarkMdxMermaid } from 'fumadocs-core/mdx-plugins'");
     expect(result).toContain('remarkPlugins: [remarkMdxMermaid]');
   });
 
-  it('should NOT contain titleMap (titles come from frontmatter natively)', () => {
+  it('不应包含 titleMap（标题原生来自 frontmatter）', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).not.toContain('titleMap');
     expect(result).not.toContain('titleFromPath');
   });
 
-  it('should NOT contain titleMap even when sidebar is configured', () => {
+  it('即使配置了 sidebar 也不应包含 titleMap', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -714,7 +714,7 @@ describe('generateSourceConfig', () => {
     expect(result).not.toContain('项目介绍');
   });
 
-  it('should NOT contain allowedSlugs or strict mode filtering', () => {
+  it('不应包含 allowedSlugs 或严格模式过滤', () => {
     const ctx = {
       config: {
         ...baseConfig,
@@ -733,7 +733,7 @@ describe('generateSourceConfig', () => {
     expect(result).not.toContain('slugFromPath');
   });
 
-  it('should contain simple defineDocs with dir content only', () => {
+  it('应当包含仅含 dir 内容的简单 defineDocs', () => {
     const result = generateSourceConfig(baseCtx);
     expect(result).toContain('export const docs = defineDocs({');
     expect(result).toContain("dir: 'content',");
@@ -743,7 +743,7 @@ describe('generateSourceConfig', () => {
     expect(result).not.toContain("import { z } from 'zod'");
   });
 
-  it('should work identically regardless of i18n or parser mode', () => {
+  it('无论 i18n 或解析器模式如何都应表现一致', () => {
     const results = [
       generateSourceConfig(baseCtx),
       generateSourceConfig({ config: { ...baseConfig, ...i18nConfig } }),
@@ -760,13 +760,13 @@ describe('generateSourceConfig', () => {
 });
 
 describe('generateTsconfig', () => {
-  it('should produce valid JSON', () => {
+  it('应当生成有效的 JSON', () => {
     const result = generateTsconfig();
     const parsed = JSON.parse(result);
     expect(parsed).toBeDefined();
   });
 
-  it('should have correct compiler options', () => {
+  it('应当具有正确的编译器选项', () => {
     const result = generateTsconfig();
     const parsed = JSON.parse(result);
     expect(parsed.compilerOptions.target).toBe('ES2022');
@@ -774,7 +774,7 @@ describe('generateTsconfig', () => {
     expect(parsed.compilerOptions.jsx).toBe('react-jsx');
   });
 
-  it('should configure paths alias', () => {
+  it('应当配置路径别名', () => {
     const result = generateTsconfig();
     const parsed = JSON.parse(result);
     expect(parsed.compilerOptions.paths).toEqual({
@@ -785,24 +785,24 @@ describe('generateTsconfig', () => {
 });
 
 describe('generateMermaidComponent', () => {
-  it('should generate use client directive', () => {
+  it('应当生成 use client 指令', () => {
     const result = generateMermaidComponent();
     expect(result).toContain("'use client'");
   });
 
-  it('should re-export Mermaid from openmanual/components/mermaid', () => {
+  it('应当从 openmanual/components/mermaid 重导出 Mermaid', () => {
     const result = generateMermaidComponent();
     expect(result).toContain("export { Mermaid } from 'openmanual/components/mermaid'");
   });
 });
 
 describe('generateCalloutComponent', () => {
-  it('should generate use client directive', () => {
+  it('应当生成 use client 指令', () => {
     const result = generateCalloutComponent();
     expect(result).toContain("'use client'");
   });
 
-  it('should re-export Callout components from openmanual/components/callout', () => {
+  it('应当从 openmanual/components/callout 重导出 Callout 组件', () => {
     const result = generateCalloutComponent();
     expect(result).toContain(
       "export { Callout, CalloutTitle, CalloutDescription } from 'openmanual/components/callout'"
@@ -811,88 +811,88 @@ describe('generateCalloutComponent', () => {
 });
 
 describe('generatePageActionsComponent', () => {
-  it('should generate use client directive', () => {
+  it('应当生成 use client 指令', () => {
     const result = generatePageActionsComponent();
     expect(result).toContain("'use client'");
   });
 
-  it('should re-export PageActions from openmanual/components/page-actions', () => {
+  it('应当从 openmanual/components/page-actions 重导出 PageActions', () => {
     const result = generatePageActionsComponent();
     expect(result).toContain("export { PageActions } from 'openmanual/components/page-actions'");
   });
 });
 
 describe('generateRawContentRoute', () => {
-  it('should import readFile from node:fs/promises', () => {
+  it('应当从 node:fs/promises 导入 readFile', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { readFile } from 'node:fs/promises'");
   });
 
-  it('should import NextResponse from next/server', () => {
+  it('应当从 next/server 导入 NextResponse', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("import { NextResponse } from 'next/server'");
   });
 
-  it('should export GET handler', () => {
+  it('应当导出 GET 处理器', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain('export async function GET');
   });
 
-  it('should try .mdx and .md extensions', () => {
+  it('应当尝试 .mdx 和 .md 扩展名', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'.mdx'");
     expect(result).toContain("'.md'");
   });
 
-  it('should return text/plain content type', () => {
+  it('应当返回 text/plain 内容类型', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Content-Type': 'text/plain; charset=utf-8'");
   });
 
-  it('should return 404 when file not found', () => {
+  it('当文件未找到时应当返回 404', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
   });
 
-  it('should read from content directory', () => {
+  it('应当从 content 目录读取', () => {
     const result = generateRawContentRoute(baseCtx);
     expect(result).toContain("'content'");
   });
 });
 
 describe('generateSearchRoute', () => {
-  it('should import source from @/lib/source', () => {
+  it('应当从 @/lib/source 导入 source', () => {
     const result = generateSearchRoute();
     expect(result).toContain("import { source } from '@/lib/source'");
   });
 
-  it('should import createFromSource from fumadocs-core/search/server', () => {
+  it('应当从 fumadocs-core/search/server 导入 createFromSource', () => {
     const result = generateSearchRoute();
     expect(result).toContain("import { createFromSource } from 'fumadocs-core/search/server'");
   });
 
-  it('should export revalidate as false', () => {
+  it('应当将 revalidate 导出为 false', () => {
     const result = generateSearchRoute();
     expect(result).toContain('export const revalidate = false');
   });
 
-  it('should export staticGET as GET from createFromSource', () => {
+  it('应当从 createFromSource 将 staticGET 导出为 GET', () => {
     const result = generateSearchRoute();
     expect(result).toContain('export const { staticGET: GET } = createFromSource(source)');
   });
 
-  it('should use source as argument to createFromSource', () => {
+  it('应当将 source 作为 createFromSource 的参数', () => {
     const result = generateSearchRoute();
     expect(result).toMatch(/createFromSource\(source\)/);
   });
 
-  it('should not include localeMap when i18n is not enabled', () => {
+  it('当未启用 i18n 时不应包含 localeMap', () => {
     const result = generateSearchRoute();
     expect(result).not.toContain('localeMap');
   });
 
-  it('should generate localeMap with i18n config (zh + en)', () => {
+  it('应当使用 i18n 配置生成 localeMap（zh + en）', () => {
     const result = generateSearchRoute({
       config: {
         i18n: {
@@ -917,7 +917,7 @@ describe('generateSearchRoute', () => {
     expect(result).toContain("en: 'english'");
   });
 
-  it('should map all supported languages correctly in i18n mode', () => {
+  it('在 i18n 模式下应当正确映射所有支持的语言', () => {
     const result = generateSearchRoute({
       config: {
         i18n: {
@@ -939,7 +939,7 @@ describe('generateSearchRoute', () => {
     expect(result).toContain('ja: {}');
   });
 
-  it('should NOT include localeMap when i18n enabled but only 1 language', () => {
+  it('当启用 i18n 但只有 1 种语言时不应包含 localeMap', () => {
     const result = generateSearchRoute({
       config: {
         i18n: {
@@ -954,7 +954,7 @@ describe('generateSearchRoute', () => {
   });
 
   // 覆盖 search-route.ts 行68: 所有语言都不在 SUPPORTED_LOCALE_MAP 中时全走 {} 分支
-  it('should map all unsupported languages to empty object in localeMap', () => {
+  it('应当将所有不支持的语言映射为 localeMap 中的空对象', () => {
     const result = generateSearchRoute({
       config: {
         name: 'Test',
@@ -988,7 +988,7 @@ describe('generateSearchRoute', () => {
 // ============================================================
 
 describe('generateI18nConfig', () => {
-  it('should generate defineI18n config with dot parser (no parser field)', () => {
+  it('应当使用 dot 解析器生成 defineI18n 配置（无 parser 字段）', () => {
     const result = generateI18nConfig(i18nCtx);
     expect(result).toContain("import { defineI18n } from 'fumadocs-core/i18n'");
     expect(result).toContain("defaultLanguage: 'zh'");
@@ -996,14 +996,14 @@ describe('generateI18nConfig', () => {
     expect(result).not.toContain("parser: 'dir'");
   });
 
-  it('should include parser: dir when parser is dir', () => {
+  it('当 parser 为 dir 时应当包含 parser: dir', () => {
     const result = generateI18nConfig(i18nCtxDir);
     expect(result).toContain("parser: 'dir'");
     expect(result).toContain("defaultLanguage: 'zh'");
     expect(result).toContain("languages: ['zh', 'en']");
   });
 
-  it('should fallback defaultLanguage to config.locale', () => {
+  it('应当将 defaultLanguage 回退到 config.locale', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1015,7 +1015,7 @@ describe('generateI18nConfig', () => {
     expect(result).toContain("defaultLanguage: 'ja'");
   });
 
-  it('should fallback defaultLanguage to zh when neither set', () => {
+  it('当两者都未设置时应当将 defaultLanguage 回退到 zh', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1026,7 +1026,7 @@ describe('generateI18nConfig', () => {
     expect(result).toContain("defaultLanguage: 'zh'");
   });
 
-  it('should throw when i18n.enabled is false', () => {
+  it('当 i18n.enabled 为 false 时应抛出错误', () => {
     const ctx = {
       config: {
         name: 'T',
@@ -1044,7 +1044,7 @@ describe('generateI18nConfig', () => {
     );
   });
 
-  it('should throw when only 1 language configured', () => {
+  it('当只配置了 1 种语言时应抛出错误', () => {
     const ctx = {
       config: { name: 'T', i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] } },
     };
@@ -1060,7 +1060,7 @@ describe('generateI18nConfig', () => {
     );
   });
 
-  it('should throw when i18n config is missing', () => {
+  it('当缺少 i18n 配置时应抛出错误', () => {
     const ctx = { config: { name: 'T' } };
     expect(() => generateI18nConfig(ctx)).toThrow(
       /generateI18nConfig called but i18n is not properly configured/
@@ -1069,7 +1069,7 @@ describe('generateI18nConfig', () => {
 });
 
 describe('generateI18nUI', () => {
-  it('should generate defineI18nUI with multiple language displayNames', () => {
+  it('应当生成带有多种语言 displayName 的 defineI18nUI', () => {
     const result = generateI18nUI(i18nCtx);
     expect(result).toContain("import { defineI18nUI } from 'fumadocs-ui/i18n'");
     expect(result).toContain('"zh": {');
@@ -1078,7 +1078,7 @@ describe('generateI18nUI', () => {
     expect(result).toContain('displayName: "English"');
   });
 
-  it('should work with single language', () => {
+  it('应当支持单语言', () => {
     const ctx = {
       config: { name: 'T', i18n: { languages: [{ code: 'ja', name: '日本語' }] } },
     };
@@ -1087,7 +1087,7 @@ describe('generateI18nUI', () => {
     expect(result).toContain('displayName: "日本語"');
   });
 
-  it('should correctly map three languages', () => {
+  it('应当正确映射三种语言', () => {
     const ctx = {
       config: {
         name: 'T',
@@ -1106,29 +1106,29 @@ describe('generateI18nUI', () => {
     expect(result).toContain('"ja": {');
   });
 
-  it('should throw when languages array is empty', () => {
+  it('当 languages 数组为空时应抛出错误', () => {
     const ctx = { config: { name: 'T', i18n: { languages: [] } } };
     expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
   });
 
-  it('should throw when languages is undefined', () => {
+  it('当 languages 为未定义时应抛出错误', () => {
     const ctx = { config: { name: 'T', i18n: { enabled: true } } };
     expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
   });
 
-  it('should throw when i18n config is missing', () => {
+  it('当缺少 i18n 配置时应抛出错误', () => {
     const ctx = { config: { name: 'T' } };
     expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
   });
 });
 
 describe('generateMiddleware', () => {
-  it('should use i18n.defaultLanguage as defaultLanguage', () => {
+  it('应当使用 i18n.defaultLanguage 作为 defaultLanguage', () => {
     const result = generateMiddleware(i18nCtx);
     expect(result).toContain("const defaultLanguage = 'zh'");
   });
 
-  it('should fallback to config.locale when defaultLanguage not set', () => {
+  it('当未设置 defaultLanguage 时应回退到 config.locale', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1140,7 +1140,7 @@ describe('generateMiddleware', () => {
     expect(result).toContain("const defaultLanguage = 'en'");
   });
 
-  it('should fallback to zh when neither defaultLanguage nor locale set', () => {
+  it('当 defaultLanguage 和 locale 都未设置时应回退到 zh', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1151,7 +1151,7 @@ describe('generateMiddleware', () => {
     expect(result).toContain("const defaultLanguage = 'zh'");
   });
 
-  it('should contain complete middleware template structure', () => {
+  it('应当包含完整的中间件模板结构', () => {
     const result = generateMiddleware(i18nCtx);
     expect(result).toContain('NextResponse.redirect');
     expect(result).toContain("pathname === '/'");
@@ -1161,7 +1161,7 @@ describe('generateMiddleware', () => {
 });
 
 describe('generateRawContentRoute - i18n modes', () => {
-  it('should generate dir parser route with correct params type (no lang in params)', () => {
+  it('应当生成带有正确参数类型的 dir 解析器路由（params 中不含 lang）', () => {
     const result = generateRawContentRoute(i18nCtxDir);
     // dir parser: params 中只有 path，不含 lang（因为路由路径是 app/api/raw/[...path]/route.ts）
     expect(result).toContain('{ path: string[] }');
@@ -1179,7 +1179,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain('status: 404');
   });
 
-  it('should generate dot parser route with fallback logic and lang from query param', () => {
+  it('应当生成带有回退逻辑和来自查询参数的 lang 的 dot 解析器路由', () => {
     const result = generateRawContentRoute(i18nCtx);
     // dot parser: params 中只有 path，不含 lang
     expect(result).toContain('{ path: string[] }');
@@ -1197,7 +1197,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain('status: 404');
   });
 
-  it('dot parser should try .mdx and .md extensions in order', () => {
+  it('dot 解析器应当按顺序尝试 .mdx 和 .md 扩展名', () => {
     const result = generateRawContentRoute(i18nCtx);
     const mdxIndex = result.indexOf("'.mdx'");
     const mdIndex = result.indexOf("'.md'");
@@ -1205,13 +1205,13 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(mdIndex).toBeGreaterThan(mdxIndex);
   });
 
-  it('dir parser should use correct file path pattern', () => {
+  it('dir 解析器应当使用正确的文件路径模式', () => {
     const result = generateRawContentRoute(i18nCtxDir);
     // dir parser path: join(cwd(), 'content', lang, `${slug}.ext`)
     expect(result).toContain("'content', lang,");
   });
 
-  it('dot parser should handle 404 after all extensions exhausted', () => {
+  it('dot 解析器应当在所有扩展名耗尽后处理 404', () => {
     const result = generateRawContentRoute(i18nCtx);
     // 404 should be outside both extension loops
     const last404 = result.lastIndexOf("'Not found'");
@@ -1219,7 +1219,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result.indexOf('status: 404')).toBeGreaterThan(last404 - 20);
   });
 
-  it('dir parser should handle 404 after all extensions exhausted', () => {
+  it('dir 解析器应当在所有扩展名耗尽后处理 404', () => {
     const result = generateRawContentRoute(i18nCtxDir);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
@@ -1227,18 +1227,18 @@ describe('generateRawContentRoute - i18n modes', () => {
 
   // --- 显式断言确保分支覆盖 ---
 
-  it('dir parser route should embed _defaultLang constant with resolved value', () => {
+  it('dir 解析器路由应当嵌入带有解析值的 _defaultLang 常量', () => {
     const result = generateRawContentRoute(i18nCtxDir);
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  it('dot parser route should embed _defaultLang constant with resolved value', () => {
+  it('dot 解析器路由应当嵌入带有解析值的 _defaultLang 常量', () => {
     const result = generateRawContentRoute(i18nCtx);
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
   // 覆盖 raw-content-route.ts 行10/45: defaultLanguage 和 locale 都未定义时回退到 'zh'
-  it('dir parser should fallback defaultLang to zh when neither defaultLanguage nor locale is set', () => {
+  it('当 defaultLanguage 和 locale 都未设置时 dir 解析器应将 defaultLang 回退到 zh', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',
@@ -1257,7 +1257,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  it('dot parser should fallback defaultLang to zh when neither defaultLanguage nor locale is set', () => {
+  it('当 defaultLanguage 和 locale 都未设置时 dot 解析器应将 defaultLang 回退到 zh', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',
@@ -1275,7 +1275,7 @@ describe('generateRawContentRoute - i18n modes', () => {
   });
 
   // 覆盖 raw-content-route.ts 行10/45: 使用 locale 作为 defaultLang 回退
-  it('dir parser should use locale as defaultLang fallback when defaultLanguage is missing', () => {
+  it('当缺少 defaultLanguage 时 dir 解析器应使用 locale 作为 defaultLang 回退', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',
@@ -1297,7 +1297,7 @@ describe('generateRawContentRoute - i18n modes', () => {
 });
 
 describe('generatePage - i18n mode', () => {
-  it('should generate i18n page with lang param in Page signature', () => {
+  it('应当生成在 Page 签名中带有 lang 参数的 i18n 页面', () => {
     const result = generatePage(i18nCtx);
     // i18n page: params includes lang
     expect(result).toContain('{ slug?: string[]; lang: string }');
@@ -1307,7 +1307,7 @@ describe('generatePage - i18n mode', () => {
     expect(result).toContain('export function generateStaticParams()');
   });
 
-  it('should include allowedSlugs and isAllowed in strict i18n mode', () => {
+  it('在严格 i18n 模式下应当包含 allowedSlugs 和 isAllowed', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1329,7 +1329,7 @@ describe('generatePage - i18n mode', () => {
     expect(result).toContain('params.filter');
   });
 
-  it('should not include allowedSlugs when contentPolicy is all in i18n mode', () => {
+  it('在 i18n 模式下当 contentPolicy 为 all 时不应包含 allowedSlugs', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1342,14 +1342,14 @@ describe('generatePage - i18n mode', () => {
     expect(result).not.toContain('isAllowed');
   });
 
-  it('should import PageActions and use flex layout by default in i18n mode', () => {
+  it('在 i18n 模式下默认应当导入 PageActions 并使用 flex 布局', () => {
     const result = generatePage(i18nCtx);
     expect(result).toContain("from '@/components/page-actions'");
     expect(result).toContain('PageActions');
     expect(result).toContain('flex items-start justify-between');
   });
 
-  it('should not include PageActions when disabled in i18n mode', () => {
+  it('在 i18n 模式下禁用时不应包含 PageActions', () => {
     const ctx = {
       config: { ...i18nConfig, pageActions: { enabled: false } },
     };
@@ -1360,7 +1360,7 @@ describe('generatePage - i18n mode', () => {
     expect(result).toContain('<DocsTitle>');
   });
 
-  it('i18n staticParams filter should have lang in param type', () => {
+  it('i18n staticParams 过滤器应当在参数类型中包含 lang', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1372,7 +1372,7 @@ describe('generatePage - i18n mode', () => {
     expect(result).toContain('{ slug: string[]; lang: string }');
   });
 
-  it('i18n strict mode should use slug.join and index fallback', () => {
+  it('i18n 严格模式应当使用 slug.join 和 index 回退', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1386,13 +1386,13 @@ describe('generatePage - i18n mode', () => {
 });
 
 describe('generateLibSource - i18n mode', () => {
-  it('should import i18n and include i18n in loader config', () => {
+  it('应当导入 i18n 并在 loader 配置中包含它', () => {
     const result = generateLibSource(i18nCtx);
     expect(result).toContain("import { i18n } from '@/lib/i18n'");
     expect(result).toContain('i18n,');
   });
 
-  it('should keep baseUrl and source in i18n mode', () => {
+  it('在 i18n 模式下应当保留 baseUrl 和 source', () => {
     const result = generateLibSource(i18nCtx);
     expect(result).toContain("baseUrl: '/'");
     expect(result).toContain('source: docs.toFumadocsSource()');
@@ -1400,7 +1400,7 @@ describe('generateLibSource - i18n mode', () => {
 });
 
 describe('generateProvider - i18n mode', () => {
-  it('should generate AppProvider with lang param and i18n prop', () => {
+  it('应当生成带有 lang 参数和 i18n 属性的 AppProvider', () => {
     const result = generateProvider(i18nCtx);
     // i18n provider: AppProvider accepts lang
     expect(result).toContain('{ children, lang }: { children: ReactNode; lang: string }');
@@ -1416,13 +1416,13 @@ describe('generateProvider - i18n mode', () => {
     expect(result).toContain('enabled: false');
   });
 
-  it('should enable search when search config exists in i18n mode', () => {
+  it('在 i18n 模式下当存在搜索配置时应当启用搜索', () => {
     const ctx = { config: { ...i18nConfig, search: {} } };
     const result = generateProvider(ctx);
     expect(result).toContain('enabled: true');
   });
 
-  it('i18n provider should differ from single-language provider', () => {
+  it('i18n provider 应当与单语言 provider 不同', () => {
     const i18nResult = generateProvider(i18nCtx);
     const singleResult = generateProvider(baseCtx);
 
@@ -1460,26 +1460,26 @@ const openapiCtx = { config: openapiConfig, projectDir: '/tmp/test' };
 const openapiCtxCustomLabel = { config: openapiConfigCustomLabel, projectDir: '/tmp/test' };
 
 describe('isOpenApiEnabled', () => {
-  it('should return true when openapi is configured with specPath', () => {
+  it('当 openapi 配置了 specPath 时应当返回 true', () => {
     expect(isOpenApiEnabled(openapiConfig)).toBe(true);
   });
 
-  it('should return false when openapi is not configured', () => {
+  it('当未配置 openapi 时应当返回 false', () => {
     expect(isOpenApiEnabled(baseConfig)).toBe(false);
   });
 
-  it('should return false when openapi is undefined', () => {
+  it('当 openapi 为未定义时应当返回 false', () => {
     expect(isOpenApiEnabled({ name: 'T' })).toBe(false);
   });
 });
 
 describe('generateOpenApiLib', () => {
-  it('should return null when openapi is not enabled', () => {
+  it('当未启用 openapi 时应当返回 null', () => {
     const result = generateOpenApiLib(baseCtx);
     expect(result).toBeNull();
   });
 
-  it('should generate createOpenAPI import and instance when enabled', () => {
+  it('启用时应当生成 createOpenAPI 导入和实例', () => {
     const result = generateOpenApiLib(openapiCtx);
     expect(result).not.toBeNull();
     if (result) {
@@ -1489,14 +1489,14 @@ describe('generateOpenApiLib', () => {
     }
   });
 
-  it('should resolve specPath as absolute path', () => {
+  it('应当将 specPath 解析为绝对路径', () => {
     const result = generateOpenApiLib(openapiCtx);
     if (result) {
       expect(result).toContain('"/tmp/test/openapi.yaml"');
     }
   });
 
-  it('should handle nested specPath correctly with absolute path', () => {
+  it('应当正确处理嵌套的 specPath 绝对路径', () => {
     const result = generateOpenApiLib(openapiCtxCustomLabel);
     if (result) {
       expect(result).toContain('"/tmp/test/docs/openapi.json"');
@@ -1505,35 +1505,35 @@ describe('generateOpenApiLib', () => {
 });
 
 describe('generateApiClientComponent', () => {
-  it('should generate use client directive', () => {
+  it('应当生成 use client 指令', () => {
     const result = generateApiClientComponent();
     expect(result).toContain("'use client'");
   });
 
-  it('should import defineClientConfig from fumadocs-openapi/ui/client', () => {
+  it('应当从 fumadocs-openapi/ui/client 导入 defineClientConfig', () => {
     const result = generateApiClientComponent();
     expect(result).toContain("import { defineClientConfig } from 'fumadocs-openapi/ui/client'");
   });
 
-  it('should export default defineClientConfig() call', () => {
+  it('应当默认导出 defineClientConfig() 调用', () => {
     const result = generateApiClientComponent();
     expect(result).toContain('export default defineClientConfig()');
   });
 });
 
 describe('generateApiPageComponent', () => {
-  it('should import from openapi lib and fumadocs-openapi/ui', () => {
+  it('应当从 openapi 库和 fumadocs-openapi/ui 导入', () => {
     const result = generateApiPageComponent();
     expect(result).toContain("import { openapi } from '@/lib/openapi'");
     expect(result).toContain("import { createAPIPage } from 'fumadocs-openapi/ui'");
   });
 
-  it('should import client component', () => {
+  it('应当导入客户端组件', () => {
     const result = generateApiPageComponent();
     expect(result).toContain("import client from './api-page.client'");
   });
 
-  it('should export APIPage using createAPIPage', () => {
+  it('应当使用 createAPIPage 导出 APIPage', () => {
     const result = generateApiPageComponent();
     expect(result).toContain('export const APIPage = createAPIPage(openapi,');
     expect(result).toContain('client,');
@@ -1541,12 +1541,12 @@ describe('generateApiPageComponent', () => {
 });
 
 describe('generateGlobalCss - with openapi', () => {
-  it('should include openapi CSS import when openapi is enabled', () => {
+  it('当启用 openapi 时应当包含 openapi CSS 导入', () => {
     const result = generateGlobalCss(openapiCtx);
     expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
   });
 
-  it('should place openapi CSS after fumadocs-ui CSS imports', () => {
+  it('应当将 openapi CSS 放在 fumadocs-ui CSS 导入之后', () => {
     const result = generateGlobalCss(openapiCtx);
     // openapi import 应在 neutral.css + preset.css 之后
     const presetIndex = result.indexOf("@import 'fumadocs-ui/css/preset.css'");
@@ -1555,14 +1555,14 @@ describe('generateGlobalCss - with openapi', () => {
     expect(openapiIndex).toBeGreaterThan(presetIndex);
   });
 
-  it('should NOT include openapi CSS when openapi is not enabled', () => {
+  it('当未启用 openapi 时不应包含 openapi CSS', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).not.toContain('fumadocs-openapi');
   });
 });
 
 describe('generateLibSource - with openapi', () => {
-  it('should use multiple() and openapiPlugin() when openapi enabled (single lang)', () => {
+  it('当启用 openapi 时应当使用 multiple() 和 openapiPlugin()（单语言）', () => {
     const result = generateLibSource(openapiCtx);
     expect(result).toContain("import { loader, multiple } from 'fumadocs-core/source'");
     expect(result).toContain(
@@ -1576,13 +1576,13 @@ describe('generateLibSource - with openapi', () => {
     expect(result).toContain('plugins: [openapiPlugin()]');
   });
 
-  it('should include both docs and openapi in multiple source', () => {
+  it('应当在 multiple source 中同时包含 docs 和 openapi', () => {
     const result = generateLibSource(openapiCtx);
     expect(result).toContain('docs: docs.toFumadocsSource()');
     expect(result).toContain('openapi:');
   });
 
-  it('should keep simple loader when openapi not enabled (regression)', () => {
+  it('当未启用 openapi 时应当保持简单 loader（回归测试）', () => {
     const result = generateLibSource(baseCtx);
     expect(result).not.toContain('multiple');
     expect(result).not.toContain('openapiPlugin');
@@ -1591,13 +1591,13 @@ describe('generateLibSource - with openapi', () => {
 });
 
 describe('generateNextConfig - with openapi', () => {
-  it('should include shiki in serverExternalPackages when openapi enabled', () => {
+  it('当启用 openapi 时应当在 serverExternalPackages 中包含 shiki', () => {
     const result = generateNextConfig(openapiCtx);
     expect(result).toContain("'shiki'");
     expect(result).toContain("'mermaid'");
   });
 
-  it('should only have mermaid when openapi not enabled (regression)', () => {
+  it('当未启用 openapi 时应当只有 mermaid（回归测试）', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain("['mermaid']");
     expect(result).not.toContain('shiki');
@@ -1605,14 +1605,14 @@ describe('generateNextConfig - with openapi', () => {
 });
 
 describe('generatePackageJson - with openapi', () => {
-  it('should include fumadocs-openapi and shiki dependencies when openapi enabled', () => {
+  it('当启用 openapi 时应当包含 fumadocs-openapi 和 shiki 依赖', () => {
     const result = generatePackageJson(openapiCtx);
     const parsed = JSON.parse(result);
     expect(parsed.dependencies['fumadocs-openapi']).toBeDefined();
     expect(parsed.dependencies.shiki).toBeDefined();
   });
 
-  it('should NOT include openapi deps when not enabled (regression)', () => {
+  it('当未启用时不应包含 openapi 依赖（回归测试）', () => {
     const result = generatePackageJson(baseCtx);
     const parsed = JSON.parse(result);
     expect(parsed.dependencies['fumadocs-openapi']).toBeUndefined();
@@ -1621,24 +1621,24 @@ describe('generatePackageJson - with openapi', () => {
 });
 
 describe('generatePage - with openapi (single language)', () => {
-  it('should import APIPage component when openapi enabled', () => {
+  it('当启用 openapi 时应当导入 APIPage 组件', () => {
     const result = generatePage(openapiCtx);
     expect(result).toContain("import { APIPage } from '@/components/api-page'");
   });
 
-  it('should NOT import APIPage when openapi not enabled (regression)', () => {
+  it('当未启用 openapi 时不应导入 APIPage（回归测试）', () => {
     const result = generatePage(baseCtx);
     expect(result).not.toContain('APIPage');
   });
 
-  it('should include openapi type render branch when enabled', () => {
+  it('启用时应当包含 openapi 类型渲染分支', () => {
     const result = generatePage(openapiCtx);
     expect(result).toContain("page.data.type === 'openapi'");
     expect(result).toContain('<APIPage {...(page.data as any).getAPIPageProps()} />');
     expect(result).toContain('<DocsPage full>');
   });
 
-  it('should allow openapi slugs in strict mode isAllowed check', () => {
+  it('在严格模式 isAllowed 检查中应当允许 openapi slug', () => {
     const ctx = {
       config: {
         ...openapiConfig,
@@ -1651,7 +1651,7 @@ describe('generatePage - with openapi (single language)', () => {
     expect(result).contains("slug?.[0] === 'openapi'");
   });
 
-  it('should NOT include openapi branch when not enabled (regression)', () => {
+  it('未启用时不应包含 openapi 分支（回归测试）', () => {
     const result = generatePage(baseCtx);
     expect(result).not.toContain("page.data.type === 'openapi'");
   });
@@ -1675,18 +1675,18 @@ describe('generatePage - with openapi (i18n mode)', () => {
     projectDir: '/tmp/test',
   };
 
-  it('should import APIPage in i18n + openapi mode', () => {
+  it('在 i18n + openapi 模式下应当导入 APIPage', () => {
     const result = generatePage(openapiI18nCtx);
     expect(result).toContain("import { APIPage } from '@/components/api-page'");
   });
 
-  it('should include openapi type branch in i18n page', () => {
+  it('在 i18n 页面中应当包含 openapi 类型分支', () => {
     const result = generatePage(openapiI18nCtx);
     expect(result).toContain("page.data.type === 'openapi'");
     expect(result).toContain('<APIPage {...(page.data as any).getAPIPageProps()} />');
   });
 
-  it('should allow openapi slugs in i18n strict mode', () => {
+  it('在 i18n 严格模式下应当允许 openapi slug', () => {
     const ctx = {
       config: {
         ...openapiI18nCtx.config,
@@ -1722,7 +1722,7 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
     projectDir: '/tmp/test',
   };
 
-  it('should import openapiPlugin, openapiSource, and i18n in combined mode', () => {
+  it('在组合模式下应当导入 openapiPlugin、openapiSource 和 i18n', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain(
       "import { openapiPlugin, openapiSource } from 'fumadocs-openapi/server'"
@@ -1731,7 +1731,7 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
     expect(result).toContain("import { loader, multiple } from 'fumadocs-core/source'");
   });
 
-  it('should generate for..of loop over i18n.languages with baseDir template', () => {
+  it('应当生成带有 baseDir 模板的 i18n.languages for..of 循环', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain('for (const lang of i18n.languages)');
     expect(result).toContain('`${lang}/api`');
@@ -1739,19 +1739,19 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
     expect(result).toContain('_omOpenApiFiles.push(...result.files)');
   });
 
-  it('should include both docs and openapi in multiple() source', () => {
+  it('应当在 multiple() source 中同时包含 docs 和 openapi', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain('docs: docs.toFumadocsSource()');
     expect(result).toContain('openapi: { files: _omOpenApiFiles }');
   });
 
-  it('should include i18n and openapiPlugin in loader options', () => {
+  it('应当在 loader 选项中包含 i18n 和 openapiPlugin', () => {
     const result = generateLibSource(openapiI18nCtx);
     expect(result).toContain('i18n,');
     expect(result).toContain('plugins: [openapiPlugin()]');
   });
 
-  it('should differ from single-language openapi output (no i18n imports)', () => {
+  it('应当与单语言 openapi 输出不同（无 i18n 导入）', () => {
     const combinedResult = generateLibSource(openapiI18nCtx);
     const singleResult = generateLibSource(openapiCtx);
     // Combined has i18n import; single does not
@@ -1772,7 +1772,7 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
 // ============================================================
 
 describe('generateOpenApiLib - edge cases', () => {
-  it('should use empty string fallback when specPath is empty string', () => {
+  it('当 specPath 为空字符串时应当使用空字符串回退', () => {
     // specPath 为空字符串时，typeof 检查通过，?? '' 不触发但 join 结果为 projectDir 本身
     const ctx = {
       config: { name: 'Test', openapi: { specPath: '' } } as OpenManualConfig,
@@ -1787,7 +1787,7 @@ describe('generateOpenApiLib - edge cases', () => {
     }
   });
 
-  it('should return null when openapi exists but specPath is not a string (isOpenApiEnabled guard)', () => {
+  it('当 openapi 存在但 specPath 不是字符串时应当返回 null（isOpenApiEnabled 守卫）', () => {
     // 当 specPath 为 undefined 时，isOpenApiEnabled 返回 false
     // generateOpenApiLib 在第一行就返回 null，不会到达 ?? '' 分支
     // 这验证了防御性守卫的正确性
@@ -1809,7 +1809,7 @@ describe('generateOpenApiLib - edge cases', () => {
 // ============================================================
 
 describe('generateGlobalCss - openapi + darkMode false combined', () => {
-  it('should include openapi CSS but exclude dark block when darkMode false with openapi', () => {
+  it('当 openapi 启用且 darkMode 为 false 时应当包含 openapi CSS 但排除暗色块', () => {
     const ctx = {
       config: { ...openapiConfig, theme: { darkMode: false } },
     };
@@ -1822,7 +1822,7 @@ describe('generateGlobalCss - openapi + darkMode false combined', () => {
     expect(result).toContain("@import 'fumadocs-ui/css/preset.css'");
   });
 
-  it('should include openapi CSS with custom primaryHue when darkMode false', () => {
+  it('当 darkMode 为 false 时应当包含带自定义 primaryHue 的 openapi CSS', () => {
     const ctx = {
       config: { ...openapiConfig, theme: { primaryHue: 200, darkMode: false } },
     };
@@ -1843,7 +1843,7 @@ describe('generateLibSource - separateTab true mode', () => {
     projectDir: '/tmp/test',
   };
 
-  it('should use baseDir "openapi" when separateTab is true (single language)', () => {
+  it('当 separateTab 为 true 时应当使用 baseDir "openapi"（单语言）', () => {
     const result = generateLibSource(separateTabCtx);
     expect(result).toContain("baseDir: 'openapi'");
     // separateTab=true 时不应包含 meta 和 groupBy
@@ -1851,7 +1851,7 @@ describe('generateLibSource - separateTab true mode', () => {
     expect(result).not.toContain('groupBy:');
   });
 
-  it('should still include openapiPlugin when separateTab is true', () => {
+  it('当 separateTab 为 true 时仍然应当包含 openapiPlugin', () => {
     const result = generateLibSource(separateTabCtx);
     expect(result).toContain('plugins: [openapiPlugin()]');
     expect(result).toContain('multiple({');
@@ -1876,7 +1876,7 @@ describe('generateLibSource - i18n + separateTab true mode', () => {
     projectDir: '/tmp/test',
   };
 
-  it('should use ${lang}/openapi baseDir template when separateTab is true with i18n', () => {
+  it('当 separateTab 为 true 且启用 i18n 时应当使用 ${lang}/openapi baseDir 模板', () => {
     const result = generateLibSource(i18nSeparateTabCtx);
     expect(result).toContain('`${lang}/openapi`');
     // separateTab=true 不应包含 meta/groupBy
@@ -1884,7 +1884,7 @@ describe('generateLibSource - i18n + separateTab true mode', () => {
     expect(result).not.toContain('groupBy:');
   });
 
-  it('should include for..of loop and _omOpenApiFiles in i18n + separateTab mode', () => {
+  it('在 i18n + separateTab 模式下应当包含 for..of 循环和 _omOpenApiFiles', () => {
     const result = generateLibSource(i18nSeparateTabCtx);
     expect(result).toContain('for (const lang of i18n.languages)');
     expect(result).toContain('_omOpenApiFiles.push(...result.files)');
@@ -1896,7 +1896,7 @@ describe('generateLibSource - i18n + separateTab true mode', () => {
 // ============================================================
 
 describe('generateLibSource - groupBy variants', () => {
-  it('should use groupBy route when configured', () => {
+  it('配置后应当使用 groupBy route', () => {
     const ctx = {
       config: {
         ...openapiConfig,
@@ -1909,7 +1909,7 @@ describe('generateLibSource - groupBy variants', () => {
     expect(result).toContain('meta: true');
   });
 
-  it('should use groupBy none when configured', () => {
+  it('配置后应当使用 groupBy none', () => {
     const ctx = {
       config: {
         ...openapiConfig,
@@ -1922,7 +1922,7 @@ describe('generateLibSource - groupBy variants', () => {
     expect(result).toContain('meta: true');
   });
 
-  it('should use groupBy route in i18n mode', () => {
+  it('在 i18n 模式下应当使用 groupBy route', () => {
     const ctx: { config: OpenManualConfig; projectDir: string } = {
       config: {
         name: 'T',
@@ -1949,7 +1949,7 @@ describe('generateLibSource - groupBy variants', () => {
 // ============================================================
 
 describe('generateOpenApiLib - empty specPaths returns null', () => {
-  it('should return null when openapi has no valid spec fields', () => {
+  it('当 openapi 没有有效的 spec 字段时应当返回 null', () => {
     // 构造 isOpenApiEnabled 返回 true 但 resolveOpenApiSpecPaths 返回空数组的场景
     // 通过 specs: '' （空字符串，typeof 检查为 string 但 Zod 允许）
     // 实际上 specs 为空字符串时 isOpenApiEnabled 返回 true（specs !== undefined）
@@ -1975,7 +1975,7 @@ describe('generateOpenApiLib - empty specPaths returns null', () => {
     expect(result).toBeNull();
   });
 
-  it('should handle multi-file specs in generateOpenApiLib', () => {
+  it('应当在 generateOpenApiLib 中处理多文件 specs', () => {
     const ctx = {
       config: {
         name: 'Test',
@@ -1997,7 +1997,7 @@ describe('generateOpenApiLib - empty specPaths returns null', () => {
     }
   });
 
-  it('should handle specs as single string in generateOpenApiLib', () => {
+  it('应当在 generateOpenApiLib 中将 specs 作为单个字符串处理', () => {
     const ctx = {
       config: {
         name: 'Test',
@@ -2024,7 +2024,7 @@ describe('generateTopBarComponent', () => {
     contentDir: 'content',
   };
 
-  it('should generate component with configured height', () => {
+  it('应当生成带有配置高度的组件', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2041,7 +2041,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/console');
   });
 
-  it('should include --fd-banner-height style injection', () => {
+  it('应当包含 --fd-banner-height 样式注入', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: { height: '64px' } as any },
@@ -2053,7 +2053,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('<TopBar');
   });
 
-  it('should use default height 64px when not specified', () => {
+  it('未指定时应当使用默认高度 64px', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
@@ -2062,7 +2062,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain("height='64px'");
   });
 
-  it('should render links with target="_blank" by default', () => {
+  it('默认应当使用 target="_blank" 渲染链接', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2085,7 +2085,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('"external":false');
   });
 
-  it('should use header.logo when provided', () => {
+  it('当提供了 header.logo 时应当使用它', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2099,7 +2099,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/custom-logo.svg');
   });
 
-  it('should fallback to config.name when header.logo not provided (no navbar fallback)', () => {
+  it('当未提供 header.logo 时应回退到 config.name（无 navbar 回退）', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2114,7 +2114,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('/nav-logo.svg');
   });
 
-  it('should fallback to config.name when no logo provided anywhere', () => {
+  it('当任何地方都没有提供 logo 时应回退到 config.name', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'MyProduct', header: {} as any },
@@ -2123,7 +2123,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('MyProduct');
   });
 
-  it('should include background prop when configured', () => {
+  it('配置后应当包含 background 属性', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2135,7 +2135,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('#1a1a2e');
   });
 
-  it('should not include background prop when not configured', () => {
+  it('未配置时不应包含 background 属性', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
@@ -2144,7 +2144,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('background=');
   });
 
-  it('should handle object logo with light/dark variants', () => {
+  it('应当处理带有 light/dark 变体的对象 logo', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2161,7 +2161,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/dark.svg');
   });
 
-  it('should generate empty right nav when no links configured', () => {
+  it('当未配置链接时应当生成空的右侧导航', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
@@ -2172,7 +2172,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('navLinks = []');
   });
 
-  it('should generate link with only label (backward compatible)', () => {
+  it('应当生成仅带 label 的链接（向后兼容）', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2186,7 +2186,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('should generate link with only icon using DynamicIcon', () => {
+  it('应当使用 DynamicIcon 生成仅带图标的链接', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2205,7 +2205,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('should generate link with both icon and label', () => {
+  it('应当生成同时带有图标和标签的链接', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2223,7 +2223,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('"href":"https://github.com/test"');
   });
 
-  it('should not import DynamicIcon when no icons are used', () => {
+  it('当未使用图标时不应导入 DynamicIcon', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2241,7 +2241,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('should mix icon-only, label-only, and icon+label links', () => {
+  it('应当混合仅图标、仅标签和图标+标签链接', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2269,7 +2269,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('should not render search trigger in center when search position is not header', () => {
+  it('当搜索位置不是 header 时不应在中间渲染搜索触发器', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2283,7 +2283,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('center=');
   });
 
-  it('should render TopBarSearchTrigger in center when search position is header', () => {
+  it('当搜索位置为 header 时应当在中间渲染 TopBarSearchTrigger', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2301,7 +2301,7 @@ describe('generateTopBarComponent', () => {
     );
   });
 
-  it('should not render search trigger when search is absent', () => {
+  it('当搜索不存在时不应渲染搜索触发器', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2314,7 +2314,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('center=');
   });
 
-  it('should use top-level logo with position=header in top bar', () => {
+  it('应当在顶部栏中使用 position=header 的顶级 logo', () => {
     // 模拟 mergeDefaults 后的配置：position=header 的顶级 logo 已传播到 header.logo
     const ctx = {
       ...topBarBaseCtx,
@@ -2330,7 +2330,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/tl-dark.svg');
   });
 
-  it('should fallback to config.name when top-level logo position=sidebar', () => {
+  it('当顶级 logo 的 position=sidebar 时应回退到 config.name', () => {
     // 模拟 mergeDefaults 后的配置：position=sidebar 时 logo 不传播到 header.logo
     const ctx = {
       ...topBarBaseCtx,
