@@ -1,9 +1,10 @@
+import type { TopBarConfig } from '../config/schema.js';
 import type { GenerateContext } from './index.js';
 import { resolveNavLogoProps } from './layout.js';
 
 export function generateTopBarComponent(ctx: GenerateContext): string {
   const { config } = ctx;
-  const header = config.header!;
+  const header: Partial<TopBarConfig> = config.header ?? {};
   const height = header.height ?? '64px';
   const sticky = header.sticky ?? true;
   const bordered = header.bordered ?? true;

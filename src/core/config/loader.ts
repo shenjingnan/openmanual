@@ -74,18 +74,21 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
           ? (topLevelLogoSource ?? config.name)
           : config.name),
     },
-    header: config.header
-      ? {
-          ...config.header,
-          // 传播逻辑：有顶级 logo 且 position=header → 传播到 header.logo
-          // 否则保持原有 header.logo 不变
-          logo:
-            config.header.logo ??
-            (topLevelLogo && topLevelLogo.position === 'header'
-              ? (topLevelLogoSource ?? undefined)
-              : undefined),
-        }
-      : undefined,
+    header: {
+      ...(config.header ?? {}),
+      sticky: config.header?.sticky ?? true,
+      bordered: config.header?.bordered ?? true,
+      height: config.header?.height,
+      background: config.header?.background,
+      links: config.header?.links,
+      // 传播逻辑：有顶级 logo 且 position=header → 传播到 header.logo
+      // 否则保持原有 header.logo 不变
+      logo:
+        config.header?.logo ??
+        (topLevelLogo && topLevelLogo.position === 'header'
+          ? (topLevelLogoSource ?? undefined)
+          : undefined),
+    },
     footer: {
       ...DEFAULT_CONFIG.footer,
       ...config.footer,
