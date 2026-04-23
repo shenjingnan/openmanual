@@ -28,11 +28,11 @@
     "primaryHue": 213,
     "darkMode": true
   },
-  "search": {
-    "position": "header"
-  },
   "mdx": {
     "latex": true
+  },
+  "search": {
+    "enabled": true
   },
   "openapi": {
     "specPath": "openapi.yaml"
