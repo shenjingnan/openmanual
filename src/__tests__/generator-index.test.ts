@@ -1494,8 +1494,8 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const content = getDocsLayoutContent(calls);
 
     expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
-    expect(content).toContain('banner:');
-    expect(content).toContain('<NavLogo');
+    expect(content).toContain('nav:');
+    expect(content).toContain('title: <NavLogo');
     expect(content).toContain('/logo.svg');
     expect(content).toContain('/logo-dark.svg');
   });
@@ -1513,8 +1513,8 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    expect(content).toContain('banner:');
-    expect(content).toContain('<NavLogo');
+    expect(content).toContain('nav:');
+    expect(content).toContain('title: <NavLogo');
   });
 
   it('should NOT include sidebar banner when logo position=header', async () => {
@@ -1558,8 +1558,9 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    // 对象形式 logo 的 light/dark 相同时仍生成 type="image" banner（不经过 isImagePath 检查）
-    expect(content).toContain('banner:');
+    // 对象形式 logo 的 light/dark 相同时仍生成 type="image" nav.title（不经过 isImagePath 检查）
+    expect(content).toContain('nav:');
+    expect(content).toContain('title: <NavLogo');
   });
 });
 
@@ -1601,7 +1602,8 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     const content = getI18nDocsLayoutContent(calls);
 
     expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
-    expect(content).toContain('banner:');
+    expect(content).toContain('nav:');
+    expect(content).toContain('title: <NavLogo');
     expect(content).toContain('/logo.svg');
     expect(content).toContain('/logo-dark.svg');
   });
