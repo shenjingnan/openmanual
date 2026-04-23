@@ -43,7 +43,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 注意: scanContentDir 按 localeCompare 排序，pages 为字母序
   // ============================================================
 
-  it('should auto-generate root and directory meta.json in single-language mode', async () => {
+  it('应当在单语言模式下自动生成根级和目录级 meta.json', async () => {
     await setupContent({
       'index.md': '---\ntitle: Home\n---\n# Home',
       'getting-started.md': '---\ntitle: Getting Started\n---\n# Getting Started',
@@ -82,7 +82,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 路径 join(contentAbsDir, lang, dirName, 'meta.json') 能正确工作
   // ============================================================
 
-  it('should generate per-language meta.json in dir-parser i18n mode', async () => {
+  it('应当在 dir-parser i18n 模式下为每种语言生成 meta.json', async () => {
     // 内容文件放在 content/ 根目录和子目录（不放在 {lang} 子目录中）
     await setupContent({
       'index.md': '---\ntitle: Home\n---\n# Home',
@@ -131,7 +131,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例 1.3: 已有 meta.json 时走 enrich 路径不覆盖用户内容
   // ============================================================
 
-  it('should enrich existing meta.json without overwriting user content', async () => {
+  it('应当丰富已有 meta.json 而不覆盖用户内容', async () => {
     // 预先创建有 title 但缺少 icon/defaultOpen/pages 的 meta.json
     await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
     await writeFile(join(projectDir, 'content', 'meta.json'), JSON.stringify({ title: '开始' }));
@@ -167,7 +167,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例 1.4: computeAllSlugs 从已有 meta.json 收集 slugs
   // ============================================================
 
-  it('should compute slugs from existing meta.json files', async () => {
+  it('应当从已有 meta.json 文件计算 slugs', async () => {
     await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
     await writeFile(
       join(projectDir, 'content', 'meta.json'),
@@ -204,7 +204,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例 1.5: meta.json 已存在时 writeMetaIfNotExists 跳过写入
   // ============================================================
 
-  it('should not overwrite existing meta.json when auto-generating', async () => {
+  it('自动生成时不应覆盖已有 meta.json', async () => {
     // 预先创建自定义 meta.json
     await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
     await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
@@ -236,7 +236,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例 1.6: 无内容文件时不生成任何 meta.json
   // ============================================================
 
-  it('should not generate any meta.json when content dir has no files', async () => {
+  it('当内容目录没有文件时不应生成任何 meta.json', async () => {
     // 创建空的 content 目录
     await mkdir(join(projectDir, 'content'), { recursive: true });
 
@@ -257,7 +257,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例 1.7: enrichMetaFile catch 块 — 损坏的 meta.json 静默跳过
   // ============================================================
 
-  it('should silently skip unreadable meta.json in enrichment', async () => {
+  it('应当静默跳过不可读的 meta.json', async () => {
     await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
     // 写入非法 JSON 作为 meta.json
     await writeFile(join(projectDir, 'content', 'guide', 'meta.json'), 'not-valid-json{{{');
@@ -280,7 +280,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // pages 按 localeCompare 字母序
   // ============================================================
 
-  it('should only generate directory-level meta.json when no root files exist', async () => {
+  it('当没有根级文件时应只生成目录级 meta.json', async () => {
     await setupContent({
       'guide/intro.md': '---\ntitle: Intro\n---\n# Intro',
       'guide/advanced.md': '---\ntitle: Advanced\n---\n# Advanced',
@@ -311,7 +311,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 补充: 单文件在根级别 — 生成只有一个页面的 meta.json
   // ============================================================
 
-  it('should generate meta.json with single root file', async () => {
+  it('应当为单个根级文件生成 meta.json', async () => {
     await setupContent({
       'index.md': '---\ntitle: Home\n---\n# Home',
     });
@@ -333,7 +333,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // pages 按 localeCompare 字母序
   // ============================================================
 
-  it('should auto-generate meta.json in dot-parser i18n mode', async () => {
+  it('应当在 dot-parser i18n 模式下自动生成 meta.json', async () => {
     await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
     await writeFile(join(projectDir, 'content', 'index.mdx'), '---\ntitle: Home\n---\n# Home');
     await writeFile(
@@ -376,7 +376,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例：rootGroups Tab URL 使用文件路径导航 + urls Set 匹配全组页面
   // ============================================================
 
-  it('should use file-path URL for navigation and urls Set for group-wide matching', async () => {
+  it('应当使用文件路径 URL 进行导航，并使用 urls Set 进行全组匹配', async () => {
     // 模拟当前项目的实际结构：meta.json 只有 title 和 root，没有 pages
     // 注意：i18n 模式需要至少 2 个语言才能启用
     await setupContent({
@@ -430,7 +430,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例：rootGroups Tab URL 使用 pages[0] 作为导航目标
   // ============================================================
 
-  it('should use pages[0] as tab URL when explicitly configured in meta.json', async () => {
+  it('当 meta.json 中显式配置时应使用 pages[0] 作为 Tab URL', async () => {
     await setupContent({
       'zh/guide/meta.json': JSON.stringify({
         title: '指南',
@@ -476,7 +476,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例：rootGroups 空目录回退到 index
   // ============================================================
 
-  it('should fallback to index as tab URL when directory has no scanned files', async () => {
+  it('当目录没有扫描到的文件时应回退到 index 作为 Tab URL', async () => {
     // meta.json 有 root:true 且无 pages，目录下无任何 mdx 文件
     await setupContent({
       'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
@@ -513,7 +513,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // 用例：非 i18n 模式下 rootGroups 生成 sidebar.tabs（覆盖 index.ts:332）
   // ============================================================
 
-  it('should generate non-i18n sidebar.tabs from rootGroups in single-language mode', async () => {
+  it('应当在单语言模式下从 rootGroups 生成非 i18n 的 sidebar.tabs', async () => {
     // 单语言模式（无 i18n 配置），使用 dot-parser 扫描 meta.json
     await setupContent({
       'guide/meta.json': JSON.stringify({ title: '指南', root: true }),
@@ -571,7 +571,7 @@ describe('generateAll - openapi integration', () => {
   // 覆盖 index.ts:90-98（openapiFiles 推入和写入）
   // ============================================================
 
-  it('should generate openapi lib and component files when openapi enabled', async () => {
+  it('当 OpenAPI 启用时应生成 openapi 库和组件文件', async () => {
     // 创建有效的 OpenAPI 规范文件
     await mkdir(join(projectDir, 'content'), { recursive: true });
     await writeFile(
@@ -622,7 +622,7 @@ paths:
   // 覆盖 index.ts:65-68（不支持的扩展名检查）
   // ============================================================
 
-  it('should throw error for unsupported openapi spec format', async () => {
+  it('当 OpenAPI 规范格式不支持时应抛出错误', async () => {
     await mkdir(join(projectDir, 'content'), { recursive: true });
     // 创建 .txt 文件作为 spec（不被支持的扩展名）
     await writeFile(join(projectDir, 'spec.txt'), 'not a valid spec');
@@ -645,7 +645,7 @@ paths:
   // 覆盖 index.ts:71-78（文件存在性检查）
   // ============================================================
 
-  it('should throw error when openapi spec file does not exist', async () => {
+  it('当 OpenAPI 规范文件不存在时应抛出错误', async () => {
     await mkdir(join(projectDir, 'content'), { recursive: true });
     await writeFile(join(projectDir, 'content', 'index.md'), '---\ntitle: Home\n---\n# Home');
 
@@ -666,7 +666,7 @@ paths:
   // 覆盖 index.ts 中 i18n 分支内的 openapi 文件生成 + lib-source.ts 组合输出
   // ============================================================
 
-  it('should generate correct files for i18n + openapi combined mode', async () => {
+  it('应当在 i18n + OpenAPI 组合模式下生成正确的文件', async () => {
     // 创建有效的 OpenAPI 规范文件
     await writeFile(
       join(projectDir, 'openapi.yaml'),

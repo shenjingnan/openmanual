@@ -19,7 +19,7 @@ describe('meta-scanner', () => {
     const languages = ['zh', 'en'];
     const useDirParser = true;
 
-    it('should scan directory-level meta.json files', async () => {
+    it('应当扫描目录级 meta.json 文件', async () => {
       // Setup: content/zh/guide/meta.json
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
@@ -43,7 +43,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.pages).toEqual(['configuration', 'writing-docs']);
     });
 
-    it('should identify root-level meta.json (directly under language dir)', async () => {
+    it('应当识别根级 meta.json（直接位于语言目录下）', async () => {
       // Setup: content/zh/meta.json
       await mkdir(join(TMP_DIR, 'zh'), { recursive: true });
       await writeFile(
@@ -59,7 +59,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.title).toBe('开始');
     });
 
-    it('should scan multiple languages independently', async () => {
+    it('应当独立扫描多种语言', async () => {
       // Chinese
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
@@ -82,12 +82,12 @@ describe('meta-scanner', () => {
       expect(enGroup?.title).toBe('Guide');
     });
 
-    it('should return empty array for empty content directory', async () => {
+    it('空内容目录应返回空数组', async () => {
       const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
       expect(groups).toHaveLength(0);
     });
 
-    it('should skip meta.json without valid title', async () => {
+    it('应当跳过没有有效标题的 meta.json', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(join(TMP_DIR, 'zh', 'guide', 'meta.json'), JSON.stringify({}));
 
@@ -95,7 +95,7 @@ describe('meta-scanner', () => {
       expect(groups).toHaveLength(0);
     });
 
-    it('should handle missing optional fields gracefully', async () => {
+    it('应当优雅地处理缺失的可选字段', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -110,7 +110,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.pages).toBeUndefined();
     });
 
-    it('should skip invalid JSON files silently', async () => {
+    it('应当静默跳过无效的 JSON 文件', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(join(TMP_DIR, 'zh', 'guide', 'meta.json'), 'not-json{{{');
 
@@ -118,7 +118,7 @@ describe('meta-scanner', () => {
       expect(groups).toHaveLength(0);
     });
 
-    it('should filter non-string entries from pages array', async () => {
+    it('应当过滤掉 pages 数组中的非字符串条目', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -129,7 +129,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.pages).toEqual(['valid', 'also-valid']);
     });
 
-    it('should parse root: true from meta.json', async () => {
+    it('应当从 meta.json 解析 root: true', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -141,7 +141,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.root).toBe(true);
     });
 
-    it('should parse root: false from meta.json', async () => {
+    it('应当从 meta.json 解析 root: false', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -153,7 +153,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.root).toBe(false);
     });
 
-    it('should default root to undefined when not set', async () => {
+    it('未设置时 root 默认应为 undefined', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -165,7 +165,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.root).toBeUndefined();
     });
 
-    it('should ignore non-boolean root value', async () => {
+    it('应当忽略非布尔值的 root', async () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'zh', 'guide', 'meta.json'),
@@ -182,7 +182,7 @@ describe('meta-scanner', () => {
     const languages = ['zh'];
     const useDirParser = false;
 
-    it('should scan meta.json at directory level', async () => {
+    it('应当扫描目录级的 meta.json', async () => {
       await mkdir(join(TMP_DIR, 'guide'), { recursive: true });
       await writeFile(
         join(TMP_DIR, 'guide', 'meta.json'),
@@ -197,7 +197,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.title).toBe('指南');
     });
 
-    it('should identify root-level meta.json in dot-parser mode', async () => {
+    it('应当在 dot-parser 模式下识别根级 meta.json', async () => {
       await writeFile(
         join(TMP_DIR, 'meta.json'),
         JSON.stringify({ title: '开始', pages: ['index', 'quickstart'] })
@@ -210,7 +210,7 @@ describe('meta-scanner', () => {
       expect(groups[0]?.isRoot).toBe(true);
     });
 
-    it('should skip locale-suffixed meta files in multi-language dot-parser', async () => {
+    it('在多语言 dot-parser 模式下应当跳过带语言后缀的 meta 文件', async () => {
       const multiLang = ['zh', 'en'];
       await mkdir(join(TMP_DIR, 'guide'), { recursive: true });
       await writeFile(join(TMP_DIR, 'guide', 'meta.json'), JSON.stringify({ title: 'Guide' }));
@@ -228,7 +228,7 @@ describe('meta-scanner', () => {
   });
 
   describe('collectSlugsFromMeta', () => {
-    it('should collect slugs from root-level groups directly', () => {
+    it('应当直接从根级分组收集 slugs', () => {
       const groups: MetaGroupInfo[] = [
         {
           filePath: '/tmp/zh/meta.json',
@@ -243,7 +243,7 @@ describe('meta-scanner', () => {
       expect(slugs).toEqual(new Set(['index', 'quickstart']));
     });
 
-    it('should prefix directory path for non-root groups', () => {
+    it('应当为非根级分组添加目录路径前缀', () => {
       const groups: MetaGroupInfo[] = [
         {
           filePath: '/tmp/zh/guide/meta.json',
@@ -258,7 +258,7 @@ describe('meta-scanner', () => {
       expect(slugs).toEqual(new Set(['zh/guide/configuration', 'zh/guide/writing-docs']));
     });
 
-    it('should handle mixed root and directory groups', () => {
+    it('应当处理混合的根级和目录分组', () => {
       const groups: MetaGroupInfo[] = [
         {
           filePath: '/tmp/zh/meta.json',
@@ -292,7 +292,7 @@ describe('meta-scanner', () => {
       expect(slugs.size).toBe(5);
     });
 
-    it('should return empty set for groups without pages', () => {
+    it('没有 pages 的分组应返回空集合', () => {
       const groups: MetaGroupInfo[] = [
         {
           filePath: '/tmp/zh/guide/meta.json',
@@ -306,7 +306,7 @@ describe('meta-scanner', () => {
       expect(slugs.size).toBe(0);
     });
 
-    it('should return empty set for empty input', () => {
+    it('空输入应返回空集合', () => {
       const slugs = collectSlugsFromMeta([]);
       expect(slugs.size).toBe(0);
     });

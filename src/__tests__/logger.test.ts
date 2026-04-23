@@ -6,7 +6,7 @@ describe('logger', () => {
     vi.restoreAllMocks();
   });
 
-  it('info should call console.log with info prefix', () => {
+  it('info 应调用 console.log 并带 info 前缀', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
     logger.info('hello');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -15,7 +15,7 @@ describe('logger', () => {
     expect(msg).toContain('hello');
   });
 
-  it('success should call console.log with done prefix', () => {
+  it('success 应调用 console.log 并带 done 前缀', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
     logger.success('done!');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -24,7 +24,7 @@ describe('logger', () => {
     expect(msg).toContain('done!');
   });
 
-  it('warn should call console.warn with warn prefix', () => {
+  it('warn 应调用 console.warn 并带 warn 前缀', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     logger.warn('be careful');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -33,7 +33,7 @@ describe('logger', () => {
     expect(msg).toContain('be careful');
   });
 
-  it('error should call console.error with error prefix', () => {
+  it('error 应调用 console.error 并带 error 前缀', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     logger.error('something failed');
     expect(spy).toHaveBeenCalledTimes(1);
@@ -42,7 +42,7 @@ describe('logger', () => {
     expect(msg).toContain('something failed');
   });
 
-  it('step should call console.log with arrow prefix', () => {
+  it('step 应调用 console.log 并带箭头前缀', () => {
     const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
     logger.step('processing...');
     expect(spy).toHaveBeenCalledTimes(1);

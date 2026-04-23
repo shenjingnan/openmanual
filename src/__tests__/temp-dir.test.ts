@@ -19,21 +19,21 @@ vi.mock('node:fs/promises', () => ({
 }));
 
 describe('getTempDir', () => {
-  it('should return .cache directory under cwd', () => {
+  it('应当返回 cwd 下的 .cache 目录', () => {
     const result = getTempDir('/tmp/project');
     expect(result).toBe('/tmp/project/.cache');
   });
 });
 
 describe('getAppDir', () => {
-  it('should return app directory under temp dir', () => {
+  it('应当返回临时目录下的 app 目录', () => {
     const result = getAppDir('/tmp/project');
     expect(result).toBe('/tmp/project/.cache/app');
   });
 });
 
 describe('ensureTempDir', () => {
-  it('should clean existing dir then create temp and app/app directories', async () => {
+  it('应当先清理已有目录再创建临时目录和 app/app 目录', async () => {
     const { existsSync } = await import('node:fs');
     const { mkdir, rm } = await import('node:fs/promises');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
@@ -50,7 +50,7 @@ describe('ensureTempDir', () => {
     expect(mkdir).toHaveBeenCalledWith('/tmp/project/.cache/app/app', { recursive: true });
   });
 
-  it('should return temp dir path', async () => {
+  it('应当返回临时目录路径', async () => {
     const result = await ensureTempDir('/tmp/project');
     expect(result).toBe('/tmp/project/.cache');
   });
@@ -61,7 +61,7 @@ describe('cleanTempDir', () => {
     vi.clearAllMocks();
   });
 
-  it('should remove directory when it exists', async () => {
+  it('当目录存在时应删除该目录', async () => {
     const { existsSync } = await import('node:fs');
     const { rm } = await import('node:fs/promises');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
@@ -73,7 +73,7 @@ describe('cleanTempDir', () => {
     });
   });
 
-  it('should skip removal when directory does not exist', async () => {
+  it('当目录不存在时应跳过删除', async () => {
     const { existsSync } = await import('node:fs');
     const { rm } = await import('node:fs/promises');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
@@ -88,13 +88,13 @@ describe('createSymlink', () => {
     vi.clearAllMocks();
   });
 
-  it('should create symlink when link does not exist', async () => {
+  it('当符号链接不存在时应创建符号链接', async () => {
     const { symlink } = await import('node:fs/promises');
     await createSymlink('/target', '/link');
     expect(symlink).toHaveBeenCalledWith('/target', '/link', 'junction');
   });
 
-  it('should remove existing link before creating new one', async () => {
+  it('应当先删除已有链接再创建新链接', async () => {
     const { lstat, rm, symlink } = await import('node:fs/promises');
     (lstat as ReturnType<typeof vi.fn>).mockResolvedValue({ isFile: () => false });
 
@@ -103,7 +103,7 @@ describe('createSymlink', () => {
     expect(symlink).toHaveBeenCalledWith('/target', '/link', 'junction');
   });
 
-  it('should use junction type for symlink', async () => {
+  it('应当使用 junction 类型创建符号链接', async () => {
     const { symlink } = await import('node:fs/promises');
     await createSymlink('/target/path', '/link/path');
     expect(symlink).toHaveBeenCalledWith('/target/path', '/link/path', 'junction');

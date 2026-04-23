@@ -43,25 +43,25 @@ describe('generateAll', () => {
     vi.clearAllMocks();
   });
 
-  it('should write 18 files in dev mode', async () => {
+  it('应当在开发模式下写入 18 个文件', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...baseCtx, dev: true });
     expect(writeFile).toHaveBeenCalledTimes(18);
   });
 
-  it('should write 17 files in non-dev mode', async () => {
+  it('应当在非开发模式下写入 17 个文件', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     expect(writeFile).toHaveBeenCalledTimes(17);
   });
 
-  it('should create directories recursively', async () => {
+  it('应当递归创建目录', async () => {
     const { mkdir } = await import('node:fs/promises');
     await generateAll(baseCtx);
     expect(mkdir).toHaveBeenCalledWith(expect.any(String), { recursive: true });
   });
 
-  it('should write source.config.ts', async () => {
+  it('应当写入 source.config.ts', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -72,7 +72,7 @@ describe('generateAll', () => {
     expect((sourceCall as unknown[])[1]).toContain('defineDocs');
   });
 
-  it('should include docs layout with github link when configured', async () => {
+  it('配置时应当包含带 GitHub 链接的文档布局', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -94,7 +94,7 @@ describe('generateAll', () => {
     expect((layoutCall as unknown[])[1]).toContain('https://github.com/test/repo');
   });
 
-  it('should include nav links when configured', async () => {
+  it('配置时应当包含导航链接', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -117,7 +117,7 @@ describe('generateAll', () => {
     expect((layoutCall as unknown[])[1]).toContain('Blog');
   });
 
-  it('should include footer text with single quote escaping', async () => {
+  it('应当包含带单引号转义的页脚文本', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -138,7 +138,7 @@ describe('generateAll', () => {
     expect((layoutCall as unknown[])[1]).toContain("Test's Project");
   });
 
-  it('should not include github when not configured', async () => {
+  it('未配置时不应包含 github', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -152,7 +152,7 @@ describe('generateAll', () => {
     expect((layoutCall as unknown[])[1]).not.toContain('github:');
   });
 
-  it('should generate search route in dev mode', async () => {
+  it('应当在开发模式下生成搜索路由', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...baseCtx, dev: true });
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -165,7 +165,7 @@ describe('generateAll', () => {
     expect((searchRouteCall as unknown[])[1]).toContain('staticGET');
   });
 
-  it('should generate search route in non-dev mode', async () => {
+  it('应当在非开发模式下生成搜索路由', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -178,7 +178,7 @@ describe('generateAll', () => {
     expect((searchRouteCall as unknown[])[1]).toContain('staticGET');
   });
 
-  it('should generate raw content route only in dev mode', async () => {
+  it('应当仅在开发模式下生成原始内容路由', async () => {
     const { writeFile } = await import('node:fs/promises');
 
     // Dev mode should have raw content route
@@ -208,21 +208,21 @@ describe('generateAll', () => {
 });
 
 describe('generateOpenManualLogoSvg', () => {
-  it('should generate light variant with black text', () => {
+  it('应当生成带黑色文本的浅色变体', () => {
     const svg = generateOpenManualLogoSvg('MyProject', 'light');
     expect(svg).toContain('fill="#2B7A4B"');
     expect(svg).toContain('fill="#000000"');
     expect(svg).toContain('M</tspan><tspan fill="#000000">yProject');
   });
 
-  it('should generate dark variant with warm text', () => {
+  it('应当生成带暖色文本的深色变体', () => {
     const svg = generateOpenManualLogoSvg('MyProject', 'dark');
     expect(svg).toContain('fill="#2B7A4B"');
     expect(svg).toContain('fill="#E8E0D4"');
     expect(svg).toContain('M</tspan><tspan fill="#E8E0D4">yProject');
   });
 
-  it('should default to light variant', () => {
+  it('默认应使用浅色变体', () => {
     const svg = generateOpenManualLogoSvg('Test');
     expect(svg).toContain('fill="#000000"');
   });
@@ -233,7 +233,7 @@ describe('generateMetaFiles', () => {
     vi.clearAllMocks();
   });
 
-  it('should not generate meta.json when content dir has no existing meta.json and no content files', async () => {
+  it('当内容目录无现有 meta.json 且无内容文件时不应生成 meta.json', async () => {
     // Without sidebar config and no content files on disk, scanMetaFiles returns []
     // and autoGenerateMetaFromFS finds no files -> no meta.json written
     const { writeFile } = await import('node:fs/promises');
@@ -245,7 +245,7 @@ describe('generateMetaFiles', () => {
     expect(metaCalls).toHaveLength(0);
   });
 
-  it('should not generate meta.json when sidebar is undefined and content dir is empty', async () => {
+  it('当 sidebar 未定义且内容目录为空时不应生成 meta.json', async () => {
     // Same as above — sidebar is irrelevant now; behavior depends on FS state
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
@@ -256,7 +256,7 @@ describe('generateMetaFiles', () => {
     expect(metaCalls).toHaveLength(0);
   });
 
-  it('should enrich existing meta.json with missing fields via readFile', async () => {
+  it('应当通过 readFile 补充现有 meta.json 中缺失的字段', async () => {
     // When scanMetaFiles finds an existing meta.json, enrichMetaFile reads it
     // and adds missing fields (icon, defaultOpen, pages)
     const { readFile } = await import('node:fs/promises');
@@ -291,7 +291,7 @@ describe('generateMetaFiles', () => {
     await expect(generateAll(ctx)).resolves.toBeUndefined();
   });
 
-  it('should not write any meta.json when no content files exist regardless of sidebar config', async () => {
+  it('无论 sidebar 配置如何，无内容文件时不应写入任何 meta.json', async () => {
     // Sidebar config is ignored; only FS state matters
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
@@ -336,7 +336,7 @@ describe('generateDocsLayout - no restructureTree', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should not include restructureTree when sidebar is not configured', async () => {
+  it('sidebar 未配置时不应包含 restructureTree', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -348,7 +348,7 @@ describe('generateDocsLayout - no restructureTree', () => {
     expect(content).toContain('tree: source.getPageTree()');
   });
 
-  it('should NOT include restructureTree even when sidebar is configured', async () => {
+  it('即使配置了 sidebar 也不应包含 restructureTree', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -387,7 +387,7 @@ describe('generateDocsLayout - no restructureTree', () => {
     expect(content).toContain('tree: source.getPageTree()');
   });
 
-  it('should not contain lucide-react imports or iconMap in layout', async () => {
+  it('布局中不应包含 lucide-react 导入或 iconMap', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -427,7 +427,7 @@ describe('generateDocsLayout - description', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should embed description directly in non-i18n mode docs layout', async () => {
+  it('应当在非 i18n 模式的文档布局中直接嵌入描述', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -443,7 +443,7 @@ describe('generateDocsLayout - description', () => {
     expect(content).toContain('description: "My Site Description",');
   });
 
-  it('should escape single quotes in non-i18n description', async () => {
+  it('应当转义非 i18n 描述中的单引号', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -459,7 +459,7 @@ describe('generateDocsLayout - description', () => {
     expect(content).toContain("Test's Site");
   });
 
-  it('should not include description when not configured in non-i18n mode', async () => {
+  it('非 i18n 模式下未配置描述时不应包含 description', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -477,7 +477,7 @@ describe('generateAll - logo handling', () => {
   // Helper: filter writeFile calls that contain the OpenManual logo SVG (viewBox 0 0 190 32)
   const isLogoSvg = (content: string) => content.includes('viewBox="0 0 190 32"');
 
-  it('should generate two SVG files when logo is object with different light and dark paths', async () => {
+  it('当 logo 为对象且 light/dark 路径不同时应当生成两个 SVG 文件', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -496,7 +496,7 @@ describe('generateAll - logo handling', () => {
     expect(svgCalls).toHaveLength(2);
   });
 
-  it('should generate one file when logo object has same light and dark paths', async () => {
+  it('当 logo 对象的 light/dark 路径相同时应当生成一个文件', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -515,7 +515,7 @@ describe('generateAll - logo handling', () => {
     expect(svgCalls).toHaveLength(1);
   });
 
-  it('should not generate SVG when logo object paths are not images', async () => {
+  it('当 logo 对象路径不是图片时不应生成 SVG', async () => {
     const { writeFile } = await import('node:fs/promises');
 
     const ctx = {
@@ -533,7 +533,7 @@ describe('generateAll - logo handling', () => {
     expect(svgCalls).toHaveLength(0);
   });
 
-  it('should skip generation when user already has logo file', async () => {
+  it('当用户已有 logo 文件时应当跳过生成', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
@@ -552,7 +552,7 @@ describe('generateAll - logo handling', () => {
     expect(svgCalls).toHaveLength(0);
   });
 
-  it('should generate dark variant SVG with correct color', async () => {
+  it('应当生成带正确颜色的深色变体 SVG', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -582,7 +582,7 @@ describe('generateAll - top-level logo handling', () => {
 
   const isLogoSvg = (content: string) => content.includes('viewBox="0 0 190 32"');
 
-  it('should generate two SVG files when top-level logo has different light/dark', async () => {
+  it('当顶级 logo 的 light/dark 不同时应当生成两个 SVG 文件', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -601,7 +601,7 @@ describe('generateAll - top-level logo handling', () => {
     expect(svgCalls).toHaveLength(2);
   });
 
-  it('should generate one SVG file when top-level logo string shorthand', async () => {
+  it('当顶级 logo 为字符串简写时应当生成一个 SVG 文件', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -620,7 +620,7 @@ describe('generateAll - top-level logo handling', () => {
     expect(svgCalls).toHaveLength(1);
   });
 
-  it('should prefer top-level logo over legacy navbar.logo', async () => {
+  it('应当优先使用顶级 logo 而非旧版 navbar.logo', async () => {
     const { writeFile, access } = await import('node:fs/promises');
     (access as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('ENOENT'));
 
@@ -659,7 +659,7 @@ describe('generateAll - favicon handling', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should include Metadata export when favicon is configured', async () => {
+  it('配置 favicon 时应当包含 Metadata 导出', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -674,7 +674,7 @@ describe('generateAll - favicon handling', () => {
     expect(content).toContain("icon: '/favicon.ico'");
   });
 
-  it('should embed SVG path correctly', async () => {
+  it('应当正确嵌入 SVG 路径', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -686,7 +686,7 @@ describe('generateAll - favicon handling', () => {
     expect(content).toContain("icon: '/favicon.svg'");
   });
 
-  it('should place Metadata export before global.css import', async () => {
+  it('应当将 Metadata 导出放在 global.css 导入之前', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -700,7 +700,7 @@ describe('generateAll - favicon handling', () => {
     expect(metadataIndex).toBeLessThan(cssImportIndex);
   });
 
-  it('should not include Metadata export when favicon is not configured', async () => {
+  it('未配置 favicon 时不应包含 Metadata 导出', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -710,7 +710,7 @@ describe('generateAll - favicon handling', () => {
     expect(content).not.toContain('icon:');
   });
 
-  it('should embed subdirectory path as-is in template literal', async () => {
+  it('应当在模板字面量中原样嵌入子目录路径', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -758,7 +758,7 @@ describe('generateAll - i18n mode', () => {
 
   // --- 文件列表 ---
 
-  it('should write additional i18n files in i18n non-dev mode', async () => {
+  it('应当在 i18n 非开发模式下写入额外的 i18n 文件', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -768,7 +768,7 @@ describe('generateAll - i18n mode', () => {
     expect(calls.length).toBeGreaterThan(17);
   });
 
-  it('should write raw content route in i18n dev mode', async () => {
+  it('应当在 i18n 开发模式下写入原始内容路由', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...i18nCtx, dev: true });
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -781,7 +781,7 @@ describe('generateAll - i18n mode', () => {
     expect(rawRouteCall).toBeDefined();
   });
 
-  it('should generate lib/i18n.ts and lib/i18n-ui.ts in i18n mode', async () => {
+  it('应当在 i18n 模式下生成 lib/i18n.ts 和 lib/i18n-ui.ts', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -803,7 +803,7 @@ describe('generateAll - i18n mode', () => {
     expect((i18nUICall as unknown[])[1]).toContain('displayName: "English"');
   });
 
-  it('should generate middleware.ts with redirect logic', async () => {
+  it('应当生成带重定向逻辑的 middleware.ts', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -817,7 +817,7 @@ describe('generateAll - i18n mode', () => {
 
   // --- [lang]/ 路由结构 ---
 
-  it('should generate app/[lang]/layout.tsx with async params and lang prop', async () => {
+  it('应当生成带 async params 和 lang 属性的 app/[lang]/layout.tsx', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -829,7 +829,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain('Promise<{ lang: string }>');
   });
 
-  it('should generate app/[lang]/provider.tsx with i18nUI.provider(lang)', async () => {
+  it('应当生成带 i18nUI.provider(lang) 的 app/[lang]/provider.tsx', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -844,7 +844,7 @@ describe('generateAll - i18n mode', () => {
     expect((providerCall as unknown[])[1]).toContain('{ children, lang }');
   });
 
-  it('should generate app/[lang]/[[...slug]]/layout.tsx with DocsLayoutWrapper', async () => {
+  it('应当生成带 DocsLayoutWrapper 的 app/[lang]/[[...slug]]/layout.tsx', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -856,7 +856,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain('baseOptions(lang)');
   });
 
-  it('should generate app/[lang]/[[...slug]]/page.tsx with getPageTree(slug, lang)', async () => {
+  it('应当生成带 getPageTree(slug, lang) 的 app/[lang]/[[...slug]]/page.tsx', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -873,7 +873,7 @@ describe('generateAll - i18n mode', () => {
 
   // --- docs layout 细节 ---
 
-  it('should use getPageTree(lang) in i18n docs layout when no sidebar', async () => {
+  it('无 sidebar 时应当在 i18n 文档布局中使用 getPageTree(lang)', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(i18nCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -883,7 +883,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).not.toContain('getPageTree()');
   });
 
-  it('should use getPageTree(lang) directly when i18n + sidebar (no restructureTree)', async () => {
+  it('i18n + sidebar 时应当直接使用 getPageTree(lang)（无 restructureTree）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -908,7 +908,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain('tree: source.getPageTree(lang)');
   });
 
-  it('should not include lucide-react or iconMap in i18n layout even with sidebar icons', async () => {
+  it('i18n 布局中即使有 sidebar 图标也不应包含 lucide-react 或 iconMap', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -935,7 +935,7 @@ describe('generateAll - i18n mode', () => {
 
   // --- meta.en.json / meta.json in i18n mode ---
 
-  it('should not generate meta.en.json when content dir is empty in i18n mode', async () => {
+  it('i18n 模式下内容目录为空时不应生成 meta.en.json', async () => {
     // In i18n dot-parser mode, sidebar config is ignored; no content files -> no meta
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
@@ -962,7 +962,7 @@ describe('generateAll - i18n mode', () => {
     expect(metaEnCalls).toHaveLength(0);
   });
 
-  it('should not overwrite or write any meta files when content dir is empty in i18n mode', async () => {
+  it('i18n 模式下内容目录为空时不应覆盖或写入任何 meta 文件', async () => {
     // Even with access mocked to resolve for some paths, scanMetaFiles uses fast-glob
     // which finds nothing in the non-existent content dir
     const { access, writeFile } = await import('node:fs/promises');
@@ -997,7 +997,7 @@ describe('generateAll - i18n mode', () => {
     expect(metaEnCalls).toHaveLength(0);
   });
 
-  it('should include Metadata export in i18n root layout when favicon configured', async () => {
+  it('配置 favicon 时应当在 i18n 根布局中包含 Metadata 导出', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1014,7 +1014,7 @@ describe('generateAll - i18n mode', () => {
 
   // --- description 动态获取 ---
 
-  it('should generate dynamic description from index page frontmatter in i18n mode', async () => {
+  it('应当在 i18n 模式下从首页 frontmatter 生成动态描述', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1038,7 +1038,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain('description: siteDescription,');
   });
 
-  it('should not generate description logic when no description configured in i18n mode', async () => {
+  it('i18n 模式下未配置描述时不应生成描述逻辑', async () => {
     const { writeFile } = await import('node:fs/promises');
     // i18nCtx 默认没有 description 字段
     await generateAll(i18nCtx);
@@ -1051,7 +1051,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).not.toContain('description: siteDescription,');
   });
 
-  it('should escape single quotes in i18n description config', async () => {
+  it('应当转义 i18n 描述配置中的单引号', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1068,7 +1068,7 @@ describe('generateAll - i18n mode', () => {
     expect(content).toContain("It's awesome");
   });
 
-  it('should handle i18n + description + sidebar combination without restructureTree', async () => {
+  it('应当处理 i18n + description + sidebar 组合（无 restructureTree）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1118,7 +1118,7 @@ describe('generateMetaFiles - dir-parser mode', () => {
     vi.clearAllMocks();
   });
 
-  it('should not generate meta.json in dir-parser i18n mode when content dir is empty', async () => {
+  it('dir-parser i18n 模式下内容目录为空时不应生成 meta.json', async () => {
     // Dir-parser mode with no content files on disk -> scanMetaFiles returns []
     // -> autoGenerateMetaFromFS finds nothing -> no meta.json written
     const { writeFile } = await import('node:fs/promises');
@@ -1159,7 +1159,7 @@ describe('generateMetaFiles - dir-parser mode', () => {
     expect(metaCalls).toHaveLength(0);
   });
 
-  it('should not generate directory-level meta.json in dir-parser i18n mode when content dir is empty', async () => {
+  it('dir-parser i18n 模式下内容目录为空时不应生成目录级 meta.json', async () => {
     const { writeFile } = await import('node:fs/promises');
 
     const ctx = {
@@ -1205,7 +1205,7 @@ describe('generateMetaFiles - edge cases', () => {
     vi.clearAllMocks();
   });
 
-  it('should not generate meta.json when content dir is empty regardless of config', async () => {
+  it('无论配置如何，内容目录为空时不应生成 meta.json', async () => {
     // Empty content dir -> scanMetaFiles returns [] -> autoGenerateMetaFromFS finds nothing
     const { writeFile } = await import('node:fs/promises');
 
@@ -1231,7 +1231,7 @@ describe('generateMetaFiles - edge cases', () => {
 // ============================================================
 
 describe('generateSearchRoute - all unsupported languages', () => {
-  it('should emit {} for languages not in SUPPORTED_LOCALE_MAP', async () => {
+  it('对于不在 SUPPORTED_LOCALE_MAP 中的语言应当发出 {}', async () => {
     // 直接测试 generateSearchRoute 函数（绕过 generateAll）
     const { generateSearchRoute } = await import('../core/generator/search-route.js');
 
@@ -1289,7 +1289,7 @@ describe('generateDocsLayout - searchToggle', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should include searchToggle: { enabled: false } when search.position=header (single-language)', async () => {
+  it('当 search.position=header 时应当包含 searchToggle: { enabled: false }（单语言）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1305,7 +1305,7 @@ describe('generateDocsLayout - searchToggle', () => {
     expect(content).toContain('searchToggle: { enabled: false }');
   });
 
-  it('should NOT include searchToggle when search.position=sidebar (single-language)', async () => {
+  it('当 search.position=sidebar 时不应包含 searchToggle（单语言）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1321,7 +1321,7 @@ describe('generateDocsLayout - searchToggle', () => {
     expect(content).not.toContain('searchToggle');
   });
 
-  it('should NOT include searchToggle when search is not configured (single-language)', async () => {
+  it('未配置 search 时不应包含 searchToggle（单语言）', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -1330,7 +1330,7 @@ describe('generateDocsLayout - searchToggle', () => {
     expect(content).not.toContain('searchToggle');
   });
 
-  it('should include searchToggle: { enabled: false } when search.position=header (i18n)', async () => {
+  it('当 search.position=header 时应当包含 searchToggle: { enabled: false }（i18n）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1346,7 +1346,7 @@ describe('generateDocsLayout - searchToggle', () => {
     expect(content).toContain('searchToggle: { enabled: false }');
   });
 
-  it('should NOT include searchToggle when search.position=sidebar (i18n)', async () => {
+  it('当 search.position=sidebar 时不应包含 searchToggle（i18n）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...i18nCtx,
@@ -1372,7 +1372,7 @@ describe('generateGlobalCss - sidebar search hiding', () => {
     vi.clearAllMocks();
   });
 
-  it('should include [data-sidebar-panel] hiding rule when search.position=header', async () => {
+  it('当 search.position=header 时应当包含 [data-sidebar-panel] 隐藏规则', async () => {
     const { generateGlobalCss } = await import('../core/generator/global-css.js');
 
     const result = generateGlobalCss({
@@ -1384,7 +1384,7 @@ describe('generateGlobalCss - sidebar search hiding', () => {
     expect(result).toContain('display: none');
   });
 
-  it('should NOT include [data-sidebar-panel] rule when search.position=sidebar', async () => {
+  it('当 search.position=sidebar 时不应包含 [data-sidebar-panel] 规则', async () => {
     const { generateGlobalCss } = await import('../core/generator/global-css.js');
 
     const result = generateGlobalCss({
@@ -1394,7 +1394,7 @@ describe('generateGlobalCss - sidebar search hiding', () => {
     expect(result).not.toContain('[data-sidebar-panel]');
   });
 
-  it('should NOT include [data-sidebar-panel] rule when search is not configured', async () => {
+  it('未配置 search 时不应包含 [data-sidebar-panel] 规则', async () => {
     const { generateGlobalCss } = await import('../core/generator/global-css.js');
 
     const result = generateGlobalCss({ config: baseConfig });
@@ -1432,7 +1432,7 @@ describe('generateDocsLayout - sidebar collapsible', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should include sidebar.collapsible: false in single-language mode', async () => {
+  it('应当在单语言模式下包含 sidebar.collapsible: false', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -1441,7 +1441,7 @@ describe('generateDocsLayout - sidebar collapsible', () => {
     expect(content).toContain('collapsible: false');
   });
 
-  it('should include sidebar.collapsible: false in i18n mode', async () => {
+  it('应当在 i18n 模式下包含 sidebar.collapsible: false', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1480,7 +1480,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should include NavLogo import and banner when logo position=sidebar', async () => {
+  it('当 logo position=sidebar 时应当包含 NavLogo 导入和 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1500,7 +1500,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     expect(content).toContain('/logo-dark.svg');
   });
 
-  it('should include sidebar banner for string shorthand logo', async () => {
+  it('字符串简写 logo 应当包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1517,7 +1517,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     expect(content).toContain('title: <NavLogo');
   });
 
-  it('should NOT include sidebar banner when logo position=header', async () => {
+  it('当 logo position=header 时不应包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1535,7 +1535,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     expect(content).not.toContain('banner:');
   });
 
-  it('should NOT include sidebar banner when no logo configured', async () => {
+  it('未配置 logo 时不应包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
@@ -1545,7 +1545,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     expect(content).not.toContain('banner:');
   });
 
-  it('should include banner even when logo path looks like plain text', async () => {
+  it('即使 logo 路径看起来像纯文本也应当包含 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1580,7 +1580,7 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('should include NavLogo import and banner in i18n mode when logo position=sidebar', async () => {
+  it('i18n 模式下当 logo position=sidebar 时应当包含 NavLogo 导入和 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1608,7 +1608,7 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     expect(content).toContain('/logo-dark.svg');
   });
 
-  it('should NOT include banner in i18n mode when logo position=header', async () => {
+  it('i18n 模式下当 logo position=header 时不应包含 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,

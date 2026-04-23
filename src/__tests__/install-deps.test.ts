@@ -15,7 +15,7 @@ describe('installDeps', () => {
     vi.clearAllMocks();
   });
 
-  it('should skip install when node_modules exists', async () => {
+  it('当 node_modules 已存在时应跳过安装', async () => {
     const { existsSync } = await import('node:fs');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
 
@@ -24,7 +24,7 @@ describe('installDeps', () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  it('should resolve when ppm install succeeds', async () => {
+  it('当 pnpm 安装成功时应正常解析', async () => {
     const { existsSync } = await import('node:fs');
     const { spawn } = await import('node:child_process');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
@@ -38,7 +38,7 @@ describe('installDeps', () => {
     await expect(promise).resolves.toBeUndefined();
   });
 
-  it('should reject when pnpm install exits with non-zero code', async () => {
+  it('当 pnpm 安装以非零退出码结束时应拒绝', async () => {
     const { existsSync } = await import('node:fs');
     const { spawn } = await import('node:child_process');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
@@ -54,7 +54,7 @@ describe('installDeps', () => {
     await expect(promise).rejects.toThrow('pnpm install failed');
   });
 
-  it('should reject when spawn emits error event', async () => {
+  it('当 spawn 触发 error 事件时应拒绝', async () => {
     const { existsSync } = await import('node:fs');
     const { spawn } = await import('node:child_process');
     (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
