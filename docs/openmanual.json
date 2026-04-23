@@ -7,8 +7,6 @@
     "light": "/logo.svg",
     "dark": "/logo-dark.svg"
   },
-  "contentDir": "content",
-  "outputDir": "dist",
   "locale": "zh",
   "i18n": {
     "enabled": true,
