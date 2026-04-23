@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.16.1](https://github.com/shenjingnan/openmanual/compare/v0.16.0...v0.16.1) (2026-04-23)
+
+### Bug Fixes
+
+* **sidebar:** 修复侧边栏中搜索框显示在 logo 上方的问题 ([#134](https://github.com/shenjingnan/openmanual/issues/134)) ([c62af11](https://github.com/shenjingnan/openmanual/commit/c62af118f889c136387e7d4d75455992046d8a75))
+
 ## [0.16.0](https://github.com/shenjingnan/openmanual/compare/v0.15.3...v0.16.0) (2026-04-23)
 
 ### Features
