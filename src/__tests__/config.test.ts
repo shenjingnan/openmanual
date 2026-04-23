@@ -9,8 +9,10 @@ import {
   isI18nEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
+  normalizeTopLevelLogo,
   type OpenManualConfig,
   OpenManualConfigSchema,
+  resolveEffectiveLogo,
   resolveOpenApiSpecPaths,
 } from '../core/config/schema.js';
 import { getContentTree, scanContentDir } from '../core/content/scanner.js';
@@ -1444,5 +1446,215 @@ describe('isHeaderEnabled', () => {
         },
       })
     ).toBe(true);
+  });
+});
+
+describe('TopLevelLogoSchema', () => {
+  it('should accept string shorthand', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: '/logo.svg',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept object with light and dark', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should accept object with position', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject invalid position value', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: { light: '/l.svg', dark: '/d.svg', position: 'invalid' },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject object missing light field', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: { dark: '/dark.svg' },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject object missing dark field', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'Test',
+      logo: { light: '/light.svg' },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('normalizeTopLevelLogo', () => {
+  it('should normalize string shorthand to object with sidebar position', () => {
+    const result = normalizeTopLevelLogo('/logo.svg');
+    expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg', position: 'sidebar' });
+  });
+
+  it('should normalize object without position to default sidebar', () => {
+    const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg' });
+    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'sidebar' });
+  });
+
+  it('should preserve explicit position', () => {
+    const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg', position: 'header' });
+    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'header' });
+  });
+});
+
+describe('resolveEffectiveLogo', () => {
+  it('should return top-level logo as highest priority', () => {
+    const config = {
+      name: 'Test',
+      logo: { light: '/top-light.svg', dark: '/top-dark.svg' },
+      navbar: { logo: '/nav-logo.svg' },
+      header: { logo: '/header-logo.svg' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toEqual({ light: '/top-light.svg', dark: '/top-dark.svg' });
+    expect(result.position).toBe('sidebar');
+  });
+
+  it('should return top-level logo with header position', () => {
+    const config = {
+      name: 'Test',
+      logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toEqual({ light: '/l.svg', dark: '/d.svg' });
+    expect(result.position).toBe('header');
+  });
+
+  it('should fallback to navbar.logo when no top-level logo', () => {
+    const config = {
+      name: 'Test',
+      navbar: { logo: '/nav.svg' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toBe('/nav.svg');
+    expect(result.position).toBe('sidebar');
+  });
+
+  it('should fallback to header.logo when no top-level or navbar logo', () => {
+    const config = {
+      name: 'Test',
+      header: { logo: '/hdr.svg', height: '64px' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toBe('/hdr.svg');
+    expect(result.position).toBe('header');
+  });
+
+  it('should return undefined when no logo configured anywhere', () => {
+    const config = { name: 'Test' } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toBeUndefined();
+    expect(result.position).toBe('sidebar');
+  });
+
+  it('should handle string shorthand top-level logo', () => {
+    const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    // 字符串简写被 normalizeTopLevelLogo 标准化为 { light, dark } 对象
+    expect(result.source).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
+    expect(result.position).toBe('sidebar');
+  });
+});
+
+describe('loadConfig - top-level logo propagation', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-logo');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should propagate top-level logo with position=sidebar to navbar.logo', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'sidebar' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.navbar?.logo).toEqual({ light: '/l.svg', dark: '/d.svg' });
+    expect(config.header?.logo).toBeUndefined();
+  });
+
+  it('should propagate top-level logo with position=header to header.logo', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+        header: { height: '56px' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.header?.logo).toEqual({ light: '/l.svg', dark: '/d.svg' });
+    // navbar should fallback to config.name (not the top-level logo)
+    expect(config.navbar?.logo).toBe('MyApp');
+  });
+
+  it('should propagate string shorthand top-level logo to navbar.logo by default', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', logo: '/logo.svg' })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.navbar?.logo).toBe('/logo.svg');
+  });
+
+  it('should preserve legacy navbar.logo when no top-level logo', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', navbar: { logo: '/legacy-nav.svg' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.navbar?.logo).toBe('/legacy-nav.svg');
+  });
+
+  it('should preserve legacy header.logo when no top-level logo', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        header: { logo: '/legacy-hdr.svg', height: '56px' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.header?.logo).toBe('/legacy-hdr.svg');
+  });
+
+  it('should normalize position default in merged config', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', logo: { light: '/l.svg', dark: '/d.svg' } })
+    );
+    const config = await loadConfig(tmpDir);
+    // position 应该被标准化为 'sidebar'
+    if (typeof config.logo === 'object' && !Array.isArray(config.logo)) {
+      expect((config.logo as Record<string, unknown>).position).toBe('sidebar');
+    }
   });
 });

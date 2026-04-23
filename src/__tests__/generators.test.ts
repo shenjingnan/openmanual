@@ -2313,4 +2313,35 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('TopBarSearchTrigger');
     expect(result).not.toContain('center=');
   });
+
+  it('should use top-level logo with position=header in top bar', () => {
+    // 模拟 mergeDefaults 后的配置：position=header 的顶级 logo 已传播到 header.logo
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        logo: { light: '/tl-light.svg', dark: '/tl-dark.svg', position: 'header' },
+        // mergeDefaults 会将顶级 logo 传播到这里
+        header: { height: '56px', logo: { light: '/tl-light.svg', dark: '/tl-dark.svg' } } as any,
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('/tl-light.svg');
+    expect(result).toContain('/tl-dark.svg');
+  });
+
+  it('should fallback to config.name when top-level logo position=sidebar', () => {
+    // 模拟 mergeDefaults 后的配置：position=sidebar 时 logo 不传播到 header.logo
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'Test',
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'sidebar' },
+        // mergeDefaults 不会将 sidebar logo 传播到 header
+        header: { height: '56px' } as any,
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('type="text" text="Test"');
+  });
 });

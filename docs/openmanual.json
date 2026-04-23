@@ -3,6 +3,10 @@
   "description": "AI 친화적인 오픈소스 문서 시스템 프레임워크",
   "favicon": "/favicon.svg",
   "siteUrl": "https://openmanual.shenjingnan.com",
+  "logo": {
+    "light": "/logo.svg",
+    "dark": "/logo-dark.svg"
+  },
   "contentDir": "content",
   "outputDir": "dist",
   "locale": "zh",
@@ -15,23 +19,6 @@
       { "code": "en", "name": "English" },
       { "code": "ja", "name": "日本語" },
       { "code": "ko", "name": "한국어" }
-    ]
-  },
-  "header": {
-    "height": "56px",
-    "logo": {
-      "light": "/logo.svg",
-      "dark": "/logo-dark.svg"
-    },
-    "links": [
-      { "icon": "bot", "href": "https://github.com/shenjingnan/openmanual" },
-      { "icon": "/icons/github-fill.svg", "href": "https://github.com/shenjingnan/openmanual" },
-      {
-        "icon": "/icons/github-fill.svg",
-        "label": "GitHub",
-        "href": "https://github.com/shenjingnan/openmanual"
-      },
-      { "label": "GitHub", "href": "https://github.com/shenjingnan/openmanual" }
     ]
   },
   "navbar": {

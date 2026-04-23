@@ -2,9 +2,27 @@ import { z } from 'zod';
 
 export const LogoSchema = z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]);
 
+/** Logo 显示位置 */
+export const LogoPositionSchema = z.enum(['sidebar', 'header']);
+
+/**
+ * 顶级 Logo 配置（支持字符串简写和对象形式）
+ * - 字符串简写: "/logo.svg" → { light, dark: 同值, position: 'sidebar' }
+ * - 对象形式: { light, dark, position? }
+ */
+export const TopLevelLogoSchema = z.union([
+  z.string(),
+  z.object({
+    light: z.string(),
+    dark: z.string(),
+    position: LogoPositionSchema.optional(),
+  }),
+]);
+
 export const FaviconSchema = z.string();
 
 export const NavbarSchema = z.object({
+  /** @deprecated 使用顶级 `logo` 字段代替 */
   logo: LogoSchema.optional(),
   github: z.url().optional(),
   links: z
@@ -128,7 +146,7 @@ export const TopBarLinkSchema = z
 export const TopBarSchema = z.object({
   /** 高度，默认 '64px' */
   height: z.string().optional(),
-  /** Logo 配置（独立于 navbar.logo） */
+  /** @deprecated 使用顶级 `logo` 字段并设置 `position: "header"` 代替 */
   logo: LogoSchema.optional(),
   /** 右侧导航链接 */
   links: z.array(TopBarLinkSchema).optional(),
@@ -149,6 +167,8 @@ export const OpenManualConfigSchema = z.object({
   locale: z.string().optional(),
   contentPolicy: z.enum(['strict', 'all']).optional(),
   favicon: FaviconSchema.optional(),
+  /** 顶级 Logo 配置（替代 navbar.logo / header.logo） */
+  logo: TopLevelLogoSchema.optional(),
   navbar: NavbarSchema.optional(),
   header: TopBarSchema.optional(),
   footer: FooterSchema.optional(),
@@ -175,6 +195,8 @@ export type I18nConfig = z.infer<typeof I18nConfigSchema>;
 export type OpenApiConfig = z.infer<typeof OpenApiSchema>;
 export type TopBarConfig = z.infer<typeof TopBarSchema>;
 export type TopBarLink = z.infer<typeof TopBarLinkSchema>;
+export type TopLevelLogoConfig = z.infer<typeof TopLevelLogoSchema>;
+export type LogoPosition = z.infer<typeof LogoPositionSchema>;
 
 // @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
@@ -245,4 +267,55 @@ export function isSeparateTabMode(config: OpenManualConfig): boolean {
  */
 export function isHeaderEnabled(config: OpenManualConfig): boolean {
   return config.header !== undefined;
+}
+
+/**
+ * 将顶级 logo 配置标准化为 { light, dark } 形式
+ */
+export function normalizeTopLevelLogo(logo: TopLevelLogoConfig): {
+  light: string;
+  dark: string;
+  position: 'sidebar' | 'header';
+} {
+  if (typeof logo === 'string') {
+    return { light: logo, dark: logo, position: 'sidebar' };
+  }
+  return {
+    light: logo.light,
+    dark: logo.dark,
+    position: logo.position ?? 'sidebar',
+  };
+}
+
+/**
+ * 解析有效的 Logo 配置（统一优先级链）
+ *
+ * 优先级：
+ * 1. config.logo（新顶级配置）
+ * 2. config.navbar.logo（旧 sidebar logo）
+ * 3. config.header.logo（旧 header logo）
+ * 4. undefined（调用方回退到 config.name）
+ */
+export function resolveEffectiveLogo(config: OpenManualConfig): {
+  source: LogoConfig | undefined;
+  position: 'sidebar' | 'header';
+} {
+  // 新顶级 logo 最高优先级
+  if (config.logo) {
+    const normalized = normalizeTopLevelLogo(config.logo);
+    const { position, ...source } = normalized;
+    return { source: source as LogoConfig, position };
+  }
+
+  // 旧 navbar.logo → sidebar
+  if (config.navbar?.logo) {
+    return { source: config.navbar.logo, position: 'sidebar' };
+  }
+
+  // 旧 header.logo → header
+  if (config.header?.logo) {
+    return { source: config.header.logo, position: 'header' };
+  }
+
+  return { source: undefined, position: 'sidebar' };
 }
