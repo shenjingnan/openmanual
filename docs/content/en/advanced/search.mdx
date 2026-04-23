@@ -7,19 +7,21 @@ description: Learn how to configure and use OpenManual's built-in full-text sear
 
 OpenManual includes built-in full-text search, enabled by default.
 
-## Enable/Disable Search
+## Search Position Configuration
+
+Search is enabled by default, no configuration required. To customize the search entry position:
 
 ```json
 {
   "search": {
-    "enabled": true
+    "position": "header"
   }
 }
 ```
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `search.enabled` | boolean | `true` | Whether search is enabled |
+| `search.position` | string | `'sidebar'` | Search entry position: `'sidebar'` (top of sidebar) or `'header'` (center of navbar) |
 
 ## Search Behavior
 

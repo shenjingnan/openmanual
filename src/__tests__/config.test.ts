@@ -181,7 +181,7 @@ describe('loadConfig', () => {
     expect(config.contentPolicy).toBe('strict');
     expect(config.navbar?.logo).toBe('TestProject');
     expect(config.theme?.primaryHue).toBe(213);
-    expect(config.search).toBeUndefined();
+    expect(config.search).toEqual({ position: 'sidebar' });
   });
 
   it('当提供 contentPolicy 时应保留其值', async () => {
@@ -1773,7 +1773,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
     const config = await loadConfig(tmpDir);
-    expect(config.search).toBeUndefined();
+    expect(config.search).toEqual({ position: 'sidebar' });
   });
 
   it('当顶层 logo position=sidebar 时应当保留已有的 header.logo', async () => {

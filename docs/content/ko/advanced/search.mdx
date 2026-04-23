@@ -7,19 +7,21 @@ description: OpenManual의 내장 전문 검색 기능을 구성하고 사용하
 
 OpenManual은 전문 검색 기능을 내장하고 있으며, 기본적으로 활성화되어 있습니다.
 
-## 검색 활성화/비활성화
+## 검색 입력 위치 설정
+
+검색 기능은 기본적으로 활성화되어 있으며, 별도 설정이 필요하지 않습니다. 검색 입력 위치를 변경하려면:
 
 ```json
 {
   "search": {
-    "enabled": true
+    "position": "header"
   }
 }
 ```
 
 | 필드 | 타입 | 기본값 | 설명 |
 |------|------|--------|------|
-| `search.enabled` | boolean | `true` | 검색 활성화 여부 |
+| `search.position` | string | `'sidebar'` | 검색 입력 위치: `'sidebar'`(사이드바 상단) 또는 `'header'`(네비게이션 바 중앙) |
 
 ## 검색 동작
 
