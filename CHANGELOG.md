@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.15.3](https://github.com/shenjingnan/openmanual/compare/v0.15.2...v0.15.3) (2026-04-23)
+
+### Bug Fixes
+
+* 修复根路径 / 静态导出时返回 404 的问题 ([#131](https://github.com/shenjingnan/openmanual/issues/131)) ([d209563](https://github.com/shenjingnan/openmanual/commit/d209563c7fd2fbd181d2e89441f5c1257c0b57f9))
+
 ## [0.15.2](https://github.com/shenjingnan/openmanual/compare/v0.15.1...v0.15.2) (2026-04-22)
 
 ### Bug Fixes
