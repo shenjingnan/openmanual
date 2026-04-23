@@ -5,9 +5,18 @@
   "siteUrl": "https://openmanual.shenjingnan.com",
   "logo": {
     "light": "/logo.svg",
-    "dark": "/logo-dark.svg"
+    "dark": "/logo-dark.svg",
+    "position": "header"
   },
   "locale": "zh",
+  "header": {
+    "links": [
+      {
+        "icon": "/icons/github-fill.svg",
+        "href": "https://github.com/shenjingnan/openmanual"
+      }
+    ]
+  },
   "i18n": {
     "enabled": true,
     "defaultLanguage": "zh",
@@ -21,6 +30,9 @@
   },
   "navbar": {
     "github": "https://github.com/shenjingnan/openmanual"
+  },
+  "search": {
+    "position": "header"
   },
   "openapi": {
     "specPath": "openapi.yaml"
