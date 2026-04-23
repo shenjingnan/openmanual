@@ -54,11 +54,6 @@ export const SidebarGroupSchema = z.object({
   pages: z.array(SidebarPageSchema),
 });
 
-export const ThemeSchema = z.object({
-  primaryHue: z.number().min(0).max(360).optional(),
-  darkMode: z.boolean().optional(),
-});
-
 export const SearchSchema = z.object({
   /**
    * 搜索入口位置
@@ -174,7 +169,6 @@ export const OpenManualConfigSchema = z.object({
   footer: FooterSchema.optional(),
   // @deprecated Use meta.json files in content directories instead
   sidebar: z.array(SidebarGroupSchema).optional(),
-  theme: ThemeSchema.optional(),
   search: SearchSchema.optional(),
   mdx: MdxSchema.optional(),
   pageActions: PageActionsSchema.optional(),
@@ -187,7 +181,6 @@ export type NavbarConfig = z.infer<typeof NavbarSchema>;
 export type FooterConfig = z.infer<typeof FooterSchema>;
 export type SidebarGroup = z.infer<typeof SidebarGroupSchema>;
 export type SidebarPage = z.infer<typeof SidebarPageSchema>;
-export type ThemeConfig = z.infer<typeof ThemeSchema>;
 export type LogoConfig = z.infer<typeof LogoSchema>;
 export type FaviconConfig = z.infer<typeof FaviconSchema>;
 export type I18nLocale = z.infer<typeof I18nLocaleSchema>;

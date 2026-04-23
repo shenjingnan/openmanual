@@ -3,15 +3,10 @@ import { isOpenApiEnabled } from '../config/schema.js';
 
 export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
-  const primaryHue = config.theme?.primaryHue ?? 213;
-  const darkMode = config.theme?.darkMode ?? true;
   const isOApi = isOpenApiEnabled(config);
 
-  const darkBlock = darkMode
-    ? `
+  const darkBlock = `
 .dark {
-  --primary-hue: ${primaryHue};
-
   /* 温暖的深色皮革背景 */
   --color-fd-background: hsl(30, 18%, 10%);
   --color-fd-foreground: hsl(35, 15%, 90%);
@@ -59,8 +54,7 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 .dark body {
   background: linear-gradient(hsla(30, 30%, 15%, 0.4), transparent 20rem, transparent);
 }
-`
-    : '';
+`;
 
   const openapiCssImport = isOApi ? "\n@import 'fumadocs-openapi/css/preset.css';" : '';
 
@@ -81,8 +75,6 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 }
 
 :root {
-  --primary-hue: ${primaryHue};
-
   /* 护眼暖色阅读背景 */
   --color-fd-background: hsl(40, 22%, 96.5%);     /* #faf9f6 纸张白 */
   --color-fd-foreground: hsl(0, 0%, 17.3%);        /* #2c2c2c 柔黑 */

@@ -57,7 +57,6 @@ describe('OpenManualConfigSchema', () => {
           ],
         },
       ],
-      theme: { primaryHue: 220, darkMode: true },
       search: { enabled: true },
       mdx: { latex: true },
     };
@@ -69,14 +68,6 @@ describe('OpenManualConfigSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       navbar: { github: 'not-a-url' },
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('应当拒绝超出范围的 primaryHue', () => {
-    const result = OpenManualConfigSchema.safeParse({
-      name: 'Test',
-      theme: { primaryHue: 400 },
     });
     expect(result.success).toBe(false);
   });
@@ -180,7 +171,6 @@ describe('loadConfig', () => {
     expect(config.locale).toBe('zh');
     expect(config.contentPolicy).toBe('strict');
     expect(config.navbar?.logo).toBe('TestProject');
-    expect(config.theme?.primaryHue).toBe(213);
     expect(config.search).toEqual({ position: 'sidebar' });
   });
 
