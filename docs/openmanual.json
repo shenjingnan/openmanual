@@ -26,9 +26,6 @@
     "primaryHue": 213,
     "darkMode": true
   },
-  "mdx": {
-    "latex": true
-  },
   "search": {
     "enabled": true
   },
