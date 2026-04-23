@@ -28,9 +28,6 @@
   "search": {
     "position": "header"
   },
-  "navbar": {
-    "github": "https://github.com/shenjingnan/openmanual"
-  },
   "openapi": {
     "specPath": "openapi.yaml"
   }

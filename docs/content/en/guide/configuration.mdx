@@ -65,8 +65,24 @@ Create `openmanual.json` in your project root to configure your documentation si
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `navbar.logo` | `string \| { light, dark }` | No | — | Logo config. String form: image path or text; Object form: separate light/dark mode image paths |
-| `navbar.github` | string | No | — | GitHub repository URL |
+| ~~`navbar.github`~~ | string | No | — | ~~GitHub repository URL~~ (**Deprecated**, use `header.links` instead) |
 | `navbar.links` | array | No | — | Navbar links list |
+
+:::note[Migration Guide]
+
+If you previously used `navbar.github` to configure a GitHub link, please migrate to `header.links`:
+
+```jsonc
+// Old (deprecated)
+{ "navbar": { "github": "https://github.com/user/repo" } }
+
+// New (recommended)
+{ "header": { "links": [{ "icon": "Github", "href": "https://github.com/user/repo" }] } }
+```
+
+Three icon formats are supported: lucide icon name (e.g. `"Github"`), custom SVG path (e.g. `"/icons/github-fill.svg"`), or text label.
+
+:::
 
 `navbar.logo` supports two forms:
 

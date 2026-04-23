@@ -72,7 +72,7 @@ describe('generateAll', () => {
     expect((sourceCall as unknown[])[1]).toContain('defineDocs');
   });
 
-  it('配置时应当包含带 GitHub 链接的文档布局', async () => {
+  it('配置时 navbar.github 不应再注入到文档布局（已废弃）', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -90,8 +90,8 @@ describe('generateAll', () => {
         (c[0] as string).endsWith('layout.tsx')
     );
     expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).toContain('github');
-    expect((layoutCall as unknown[])[1]).toContain('https://github.com/test/repo');
+    // navbar.github 已废弃，不再注入到 DocsLayout 的 github prop
+    expect((layoutCall as unknown[])[1]).not.toContain("github: 'https://github.com/test/repo'");
   });
 
   it('配置时应当包含导航链接', async () => {
