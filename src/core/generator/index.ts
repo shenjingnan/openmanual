@@ -383,10 +383,10 @@ function generateDocsLayout(ctx: GenerateContext): string {
     ? "\nimport { NavLogo } from 'openmanual/components/nav-layout';"
     : '';
   const sidebarLogoProps = hasSidebarLogo ? resolveNavLogoProps(logoSource!, config.name) : null;
-  // sidebar.banner 只在有图片 logo 时添加（文本 logo 通过 nav.title 处理）
-  const sidebarBannerLine =
+  // nav.title 只在有图片 logo 时添加（通过 navTitle slot 渲染，在 searchTrigger 之前）
+  const navTitleLine =
     hasSidebarLogo && sidebarLogoProps && !sidebarLogoProps.includes('type="text"')
-      ? `\n    banner: <NavLogo ${sidebarLogoProps} />,`
+      ? `\n    title: <NavLogo ${sidebarLogoProps} />,`
       : '';
 
   const linksArray = navLinks.map((l) => ({
@@ -471,7 +471,8 @@ ${
     ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
     }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
-    sidebar: { collapsible: false,${sidebarBannerLine}
+    nav: {${navTitleLine} },
+    sidebar: { collapsible: false
     },
   };
 
@@ -500,7 +501,8 @@ const docsOptions = {
   ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}${
     isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
   }
-  sidebar: { collapsible: false,${sidebarBannerLine}
+  nav: {${navTitleLine} },
+  sidebar: { collapsible: false
   },
 };
 
