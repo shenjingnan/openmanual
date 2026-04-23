@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.16.0](https://github.com/shenjingnan/openmanual/compare/v0.15.3...v0.16.0) (2026-04-23)
+
+### Features
+
+* **config:** 将 logo 提升为一级配置并支持 position 字段 ([#132](https://github.com/shenjingnan/openmanual/issues/132)) ([9d65da4](https://github.com/shenjingnan/openmanual/commit/9d65da477bc2cb82369e288ed1d229774abb9f9f)), closes [#nd-sidebar](https://github.com/shenjingnan/openmanual/issues/nd-sidebar)
+
+### Bug Fixes
+
+* **security:** 升级 pnpm overrides 修复 6 个依赖安全漏洞 ([#133](https://github.com/shenjingnan/openmanual/issues/133)) ([3a1e9c6](https://github.com/shenjingnan/openmanual/commit/3a1e9c6fd5353ee35a22ef1aef19d20240d61ab4))
+
 ## [0.15.3](https://github.com/shenjingnan/openmanual/compare/v0.15.2...v0.15.3) (2026-04-23)
 
 ### Bug Fixes
