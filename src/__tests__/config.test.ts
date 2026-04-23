@@ -1658,3 +1658,138 @@ describe('loadConfig - top-level logo propagation', () => {
     }
   });
 });
+
+describe('resolveEffectiveLogo - full priority chain coverage', () => {
+  it('should prioritize top-level logo over both navbar and header logos', () => {
+    const config = {
+      name: 'Test',
+      logo: { light: '/top.svg', dark: '/top-dark.svg' },
+      navbar: { logo: '/nav.svg' },
+      header: { logo: '/hdr.svg', height: '64px' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
+    expect(result.position).toBe('sidebar');
+  });
+
+  it('should return header position when only header.logo exists (no top-level or navbar)', () => {
+    const config = {
+      name: 'Test',
+      header: { logo: '/hdr.svg', height: '64px' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toBe('/hdr.svg');
+    expect(result.position).toBe('header');
+  });
+
+  it('should return sidebar position for navbar.logo even without top-level logo', () => {
+    const config = {
+      name: 'Test',
+      navbar: { logo: '/nav.svg' },
+    } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result.source).toBe('/nav.svg');
+    expect(result.position).toBe('sidebar');
+  });
+
+  it('should handle top-level string shorthand with explicit object comparison', () => {
+    const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    // String shorthand normalized to { light, dark: same }
+    expect(result.source).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
+    expect(result.position).toBe('sidebar');
+  });
+});
+
+describe('loadConfig - mergeDefaults branch coverage', () => {
+  const tmpDir = join(process.cwd(), '.test-tmp-branch');
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('should default search.position to sidebar when search is configured without position', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp', search: {} }));
+    const config = await loadConfig(tmpDir);
+    expect(config.search?.position).toBe('sidebar');
+  });
+
+  it('should default i18n.languages to empty array when i18n enabled without languages', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', i18n: { enabled: true } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.enabled).toBe(true);
+    expect(config.i18n?.languages).toEqual([]);
+  });
+
+  it('should use provided i18n.languages when explicitly set', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.i18n?.languages).toEqual([{ code: 'zh', name: '中文' }]);
+  });
+
+  it('should default openapi.groupBy to tag when not specified', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', openapi: { specPath: 'openapi.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.groupBy).toBe('tag');
+  });
+
+  it('should default openapi.separateTab to false when not specified', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', openapi: { specPath: 'openapi.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.separateTab).toBe(false);
+  });
+
+  it('should default openapi.label to 接口文档 when not specified', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', openapi: { specPath: 'openapi.yaml' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.openapi?.label).toBe('接口文档');
+  });
+
+  it('should not set search when search field is absent', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.search).toBeUndefined();
+  });
+
+  it('should preserve existing header.logo when top-level logo position=sidebar', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        logo: { light: '/top.svg', dark: '/top-dark.svg', position: 'sidebar' },
+        header: { height: '56px', logo: '/existing-hdr.svg' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    // header.logo should be preserved (not overwritten by sidebar-positioned top-level logo)
+    expect(config.header?.logo).toBe('/existing-hdr.svg');
+    // top-level logo should propagate to navbar instead
+    expect(config.navbar?.logo).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
+  });
+});
