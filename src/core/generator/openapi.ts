@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import { isOpenApiEnabled, resolveOpenApiSpecPaths } from '../config/schema.js';
+import { jsLiteral } from './code-utils.js';
 
 /**
  * 生成 lib/openapi.ts — OpenAPI 实例定义
@@ -20,7 +21,7 @@ export function generateOpenApiLib(ctx: {
 
   // 使用绝对路径确保在 .cache/app/ 下构建时能正确找到 spec 文件
   const absolutePaths = specPaths.map((p) => join(ctx.projectDir, p));
-  const inputArray = absolutePaths.map((p) => `'${p}'`).join(', ');
+  const inputArray = absolutePaths.map((p) => jsLiteral(p)).join(', ');
 
   return `import { createOpenAPI } from 'fumadocs-openapi/server';
 

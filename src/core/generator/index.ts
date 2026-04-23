@@ -18,6 +18,7 @@ import {
 import { type ContentFile, scanContentDir } from '../content/scanner.js';
 import { formatTitle } from '../content/tree.js';
 import { generateCalloutComponent } from './callout-component.js';
+import { jsLiteral } from './code-utils.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
@@ -399,17 +400,11 @@ function generateDocsLayout(ctx: GenerateContext): string {
 
   const linksLine = linksArray.length > 0 ? `\n    links: ${JSON.stringify(linksArray)},` : '';
 
-  const footerLine = footerText
-    ? `\n  footer: { children: '${footerText.replace(/'/g, "\\'")}' },`
-    : '';
+  const footerLine = footerText ? `\n  footer: { children: ${jsLiteral(footerText)} },` : '';
 
   // description：i18n 模式下从当前语言首页 frontmatter 动态获取，单语言模式使用配置值
   const configDesc = config.description ?? '';
-  const descLine = configDesc
-    ? isI18n
-      ? ''
-      : `description: '${configDesc.replace(/'/g, "\\'")}',`
-    : '';
+  const descLine = configDesc ? (isI18n ? '' : `description: ${jsLiteral(configDesc)},`) : '';
 
   // Fumadocs reads title/icon/defaultOpen/pages from meta.json and icon from frontmatter natively.
   // No need for restructureTree() — use getPageTree() directly.
@@ -437,7 +432,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   // i18n 模式下的组件签名和 baseOptions 调用
   if (isI18n) {
     const configDescSnippet = configDesc
-      ? `\nconst configDescription = '${configDesc.replace(/'/g, "\\'")}' as const;\n`
+      ? `\nconst configDescription = ${jsLiteral(configDesc)} as const;\n`
       : '';
 
     return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
@@ -533,14 +528,13 @@ function generateI18nSidebarTabs(
     urls: g.urls,
   }));
   const entriesJson = JSON.stringify(entries);
-  const nameEscaped = config.name.replace(/'/g, "\\'");
 
   const openapiTabLine = openapiTab
-    ? `,\n        { title: '${(openapiTab.title as string).replace(/'/g, "\\'")}', url: _omApiUrl, urls: new Set<string>() }`
+    ? `,\n        { title: ${jsLiteral(openapiTab.title)}, url: _omApiUrl, urls: new Set<string>() }`
     : '';
 
   // Build the generated code string piece by piece to keep each template literal shallow
-  const homeTab = `{ title: '${nameEscaped}', url: \`/\${lang}\` }`;
+  const homeTab = `{ title: ${jsLiteral(config.name)}, url: \`/\${lang}\` }`;
   const mapExpr = `(${entriesJson} as Array<{title:string;dirPath:string;url:string;urls:string[]}>).filter(g => g.dirPath.startsWith(\`\${lang}/\`)).map(g => ({ title: g.title, url: g.url, urls: new Set<string>(g.urls) }))`;
 
   return `\n    sidebar: {\n      tabs: [\n        ${homeTab},\n        ...${mapExpr}${openapiTabLine}\n      ],\n    },`;
@@ -555,20 +549,18 @@ function generateSingleSidebarTabs(
   rootGroups: GenerateContext['rootGroups'],
   openapiTab: { title: string; url: string; urls: Set<string> } | null
 ): string {
-  const nameEscaped = config.name.replace(/'/g, "\\'");
   const groupEntries = (rootGroups ?? [])
     .map((g) => {
-      const title = g.title.replace(/'/g, "\\'");
       const urlsArr = JSON.stringify(g.urls);
-      return `{ title: '${title}', url: '${g.url}', urls: new Set(${urlsArr}) }`;
+      return `{ title: ${jsLiteral(g.title)}, url: ${jsLiteral(g.url)}, urls: new Set(${urlsArr}) }`;
     })
     .join(',\n        ');
 
   const openapiTabLine = openapiTab
-    ? `,\n        { title: '${(openapiTab.title as string).replace(/'/g, "\\'")}', url: _omApiUrl, urls: new Set<string>() }`
+    ? `,\n        { title: ${jsLiteral(openapiTab.title)}, url: _omApiUrl, urls: new Set<string>() }`
     : '';
 
-  return `\n    sidebar: {\n      tabs: [\n        { title: '${nameEscaped}', url: '/' },${groupEntries ? '\n        ' + groupEntries : ''}${openapiTabLine}\n      ],\n    },`;
+  return `\n    sidebar: {\n      tabs: [\n        { title: ${jsLiteral(config.name)}, url: '/' },${groupEntries ? `\n        ${groupEntries}` : ''}${openapiTabLine}\n      ],\n    },`;
 }
 
 export function generateOpenManualLogoSvg(

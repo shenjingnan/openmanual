@@ -534,9 +534,9 @@ describe('generateAll - meta auto-generation (real FS)', () => {
 
     // 非i18n模式：tabs 为模板字面量生成的数组（不含 ${lang} 模板字面量）
     expect(layoutContent).toContain("url: '/'");
-    expect(layoutContent).toContain("'指南'");
+    expect(layoutContent).toContain('"指南"');
     // URL 使用文件路径导航（取自扫描到的第一个文件）
-    expect(layoutContent).toContain("url: '/guide/configuration'");
+    expect(layoutContent).toContain('url: "/guide/configuration"');
     // 非 i18n 分支使用 new Set(...) 保持正确的 Set 类型
     expect(layoutContent).toContain('new Set(');
     // 不应包含 i18n 特有的模板语法

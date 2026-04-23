@@ -1,4 +1,5 @@
 import type { OpenManualConfig } from '../config/schema.js';
+import { jsLiteral } from './code-utils.js';
 
 /**
  * 生成 lib/i18n-ui.ts
@@ -13,8 +14,8 @@ export function generateI18nUI(_ctx: { config: OpenManualConfig }): string {
 
   const langEntries = i18nCfg.languages
     .map(
-      (lang) => `    '${lang.code}': {
-      displayName: '${lang.name}',
+      (lang) => `    ${jsLiteral(lang.code)}: {
+      displayName: ${jsLiteral(lang.name)},
     }`
     )
     .join(',\n');
