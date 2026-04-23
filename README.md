@@ -120,10 +120,6 @@ openmanual dev
       ]
     }
   ],
-  "theme": {
-    "primaryHue": 240,
-    "darkMode": true
-  },
   "search": {
     "enabled": true
   },
@@ -153,8 +149,6 @@ openmanual dev
 | `sidebar[].pages[].slug` | string | 是 | — | 页面 slug（对应文件路径） |
 | `sidebar[].pages[].title` | string | 是 | — | 页面标题 |
 | `sidebar[].pages[].icon` | string | 否 | — | 页面图标 |
-| `theme.primaryHue` | number | 否 | — | 主色调色相值（0-360） |
-| `theme.darkMode` | boolean | 否 | `true` | 是否启用暗色模式 |
 | `search.enabled` | boolean | 否 | `true` | 是否启用搜索 |
 | `mdx.latex` | boolean | 否 | `false` | 是否启用 LaTeX 支持 |
 

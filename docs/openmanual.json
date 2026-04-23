@@ -22,10 +22,6 @@
   "navbar": {
     "github": "https://github.com/shenjingnan/openmanual"
   },
-  "theme": {
-    "primaryHue": 213,
-    "darkMode": true
-  },
   "openapi": {
     "specPath": "openapi.yaml"
   }

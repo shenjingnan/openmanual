@@ -8,10 +8,6 @@ const DEFAULT_CONFIG: Partial<OpenManualConfig> = {
   locale: 'zh',
   navbar: {},
   footer: {},
-  theme: {
-    primaryHue: 213,
-    darkMode: true,
-  },
   mdx: {},
   pageActions: { enabled: true },
 };
@@ -94,10 +90,6 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       ...DEFAULT_CONFIG.footer,
       ...config.footer,
       text: config.footer?.text ?? `MIT ${new Date().getFullYear()} © ${config.name}.`,
-    },
-    theme: {
-      ...DEFAULT_CONFIG.theme,
-      ...config.theme,
     },
     // 搜索默认启用，用户可通过 position 控制搜索入口位置
     search: { position: config.search?.position ?? 'sidebar' },

@@ -57,17 +57,6 @@ const i18nCtx = { config: i18nConfig, projectDir: '/tmp/test' };
 const i18nCtxDir = { config: i18nConfigDirParser, projectDir: '/tmp/test' };
 
 describe('generateGlobalCss', () => {
-  it('当未设置主题时应当使用默认的 primaryHue 213', () => {
-    const result = generateGlobalCss(baseCtx);
-    expect(result).toContain('--primary-hue: 213');
-  });
-
-  it('当提供了自定义 primaryHue 时应当使用它', () => {
-    const ctx = { config: { ...baseConfig, theme: { primaryHue: 180 } } };
-    const result = generateGlobalCss(ctx);
-    expect(result).toContain('--primary-hue: 180');
-  });
-
   it('应当包含 tailwindcss 和 fumadocs 导入（拆分以避免重复 @import tailwindcss）', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain("@import 'tailwindcss'");
@@ -94,23 +83,11 @@ describe('generateGlobalCss', () => {
 });
 
 describe('generateGlobalCss - 暗色主题', () => {
-  it('当未设置 darkMode 时默认应当生成 .dark 块', () => {
+  it('应当始终生成 .dark 块', () => {
     const result = generateGlobalCss(baseCtx);
     expect(result).toContain('.dark {');
     expect(result).toContain('--color-fd-background: hsl(30, 18%, 10%)');
     expect(result).toContain('--color-fd-foreground: hsl(35, 15%, 90%)');
-  });
-
-  it('当 darkMode 为 true 时应当生成 .dark 块', () => {
-    const ctx = { config: { ...baseConfig, theme: { darkMode: true } } };
-    const result = generateGlobalCss(ctx);
-    expect(result).toContain('.dark {');
-  });
-
-  it('当 darkMode 为 false 时不应生成 .dark 块', () => {
-    const ctx = { config: { ...baseConfig, theme: { darkMode: false } } };
-    const result = generateGlobalCss(ctx);
-    expect(result).not.toContain('.dark {');
   });
 
   const darkVariables = [
@@ -148,15 +125,6 @@ describe('generateGlobalCss - 暗色主题', () => {
     expect(result).toContain('.dark body {');
     expect(result).toContain('linear-gradient');
     expect(result).toContain('hsla(30, 30%, 15%, 0.4)');
-  });
-
-  it('应当同时应用 primaryHue 和 darkMode', () => {
-    const ctx = {
-      config: { ...baseConfig, theme: { primaryHue: 180, darkMode: true } },
-    };
-    const result = generateGlobalCss(ctx);
-    expect(result).toContain('--primary-hue: 180');
-    expect(result).toContain('.dark {');
   });
 });
 
@@ -1801,35 +1769,6 @@ describe('generateOpenApiLib - edge cases', () => {
     expect(isOpenApiEnabled(ctx.config)).toBe(false);
     const result = generateOpenApiLib(ctx);
     expect(result).toBeNull();
-  });
-});
-
-// ============================================================
-// generateGlobalCss — openapi + darkMode false 组合
-// ============================================================
-
-describe('generateGlobalCss - openapi + darkMode false combined', () => {
-  it('当 openapi 启用且 darkMode 为 false 时应当包含 openapi CSS 但排除暗色块', () => {
-    const ctx = {
-      config: { ...openapiConfig, theme: { darkMode: false } },
-    };
-    const result = generateGlobalCss(ctx);
-    expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
-    expect(result).not.toContain('.dark {');
-    expect(result).toContain("@import 'tailwindcss'");
-    // 使用拆分后的子模块导入，而非 style.css
-    expect(result).toContain("@import 'fumadocs-ui/css/neutral.css'");
-    expect(result).toContain("@import 'fumadocs-ui/css/preset.css'");
-  });
-
-  it('当 darkMode 为 false 时应当包含带自定义 primaryHue 的 openapi CSS', () => {
-    const ctx = {
-      config: { ...openapiConfig, theme: { primaryHue: 200, darkMode: false } },
-    };
-    const result = generateGlobalCss(ctx);
-    expect(result).toContain('--primary-hue: 200');
-    expect(result).toContain("@import 'fumadocs-openapi/css/preset.css'");
-    expect(result).not.toContain('.dark {');
   });
 });
 
