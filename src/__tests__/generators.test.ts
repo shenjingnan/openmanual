@@ -295,7 +295,7 @@ describe('resolveNavLogoProps', () => {
 describe('generateLibSource', () => {
   it('should import from collections/server and use loader', () => {
     const result = generateLibSource(baseCtx);
-    expect(result).toContain("from 'collections/server'");
+    expect(result).toContain("from '@/.source/server'");
     expect(result).toContain("from 'fumadocs-core/source'");
   });
 
@@ -352,29 +352,28 @@ describe('generateNextConfig', () => {
     expect(result).not.toContain('rewrites');
   });
 
-  it('should include turbopack resolveAlias for collections/* path alias', () => {
+  it('should not include turbopack resolveAlias by default', () => {
     const result = generateNextConfig(baseCtx);
-    expect(result).toContain('turbopack:');
-    expect(result).toContain('resolveAlias:');
-    expect(result).toContain("'collections/*': './.source/*'");
+    expect(result).not.toContain('turbopack:');
+    expect(result).not.toContain('resolveAlias:');
   });
 
-  it('should include turbopack resolveAlias in dev mode', () => {
+  it('should not include turbopack resolveAlias in dev mode', () => {
     const result = generateNextConfig({ ...baseCtx, dev: true });
-    expect(result).toContain("'collections/*': './.source/*'");
+    expect(result).not.toContain("'collections/*': './.source/*'");
   });
 
-  it('should include turbopack resolveAlias with output export mode', () => {
+  it('should not include turbopack resolveAlias with output export mode', () => {
     const result = generateNextConfig({
       config: { ...baseConfig, siteUrl: 'https://example.com' },
     });
-    expect(result).toContain("'collections/*': './.source/*'");
+    expect(result).not.toContain("'collections/*': './.source/*'");
     expect(result).toContain("output: 'export'");
   });
 
-  it('should include turbopack resolveAlias in openapi mode', () => {
+  it('should not include turbopack resolveAlias in openapi mode', () => {
     const result = generateNextConfig(openapiCtx);
-    expect(result).toContain("'collections/*': './.source/*'");
+    expect(result).not.toContain("'collections/*': './.source/*'");
   });
 });
 
@@ -493,7 +492,7 @@ describe('generatePage', () => {
     const result = generatePage(baseCtx);
     expect(result).toContain('p.slug.length === 0');
     expect(result).toContain('params.unshift');
-    expect(result).toContain('...params[0]');
+    expect(result).toContain('homepage ?? params[0]');
   });
 
   it('should include allowedSlugs filter in strict mode', () => {

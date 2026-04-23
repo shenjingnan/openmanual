@@ -15,10 +15,7 @@ export function generateNextConfig(ctx: { config: OpenManualConfig; dev?: boolea
 
   // serverExternalPackages：mermaid 始终需要；openapi 启用时额外加入 shiki
   const externalsArray = isOApi ? "['mermaid', 'shiki']" : "['mermaid']";
-  // Turbopack 在 output: 'export' 模式下不读取 tsconfig.json 的 paths，
-  // 需要显式配置 resolveAlias 让 collections/* 映射到 .source/*。
-  // 这与 tsconfig.ts 中的 "collections/*": ["./.source/*"] 保持一致。
-  const turbopackBlock = `\n  turbopack: {\n    resolveAlias: {\n      'collections/*': './.source/*',\n    },\n  },`;
+  const turbopackBlock = '';
 
   return `import { createMDX } from 'fumadocs-mdx/next';
 

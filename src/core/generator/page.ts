@@ -48,7 +48,8 @@ export function generateStaticParams() {
   let params = source.generateParams();
   params = params.filter((p: { slug: string[] }) => isAllowed(p.slug));
   if (!params.some((p: { slug: string[] }) => p.slug.length === 0)) {
-    params.unshift({ ...params[0], slug: [] });
+    const homepage = params.find((p: { slug: string[] }) => p.slug.length === 1 && p.slug[0] === 'index');
+    params.unshift({ ...(homepage ?? params[0]), slug: [] });
   }
   return params;
 }`
@@ -56,7 +57,8 @@ export function generateStaticParams() {
 export function generateStaticParams() {
   const params = source.generateParams();
   if (!params.some((p: { slug: string[] }) => p.slug.length === 0)) {
-    params.unshift({ ...params[0], slug: [] });
+    const homepage = params.find((p: { slug: string[] }) => p.slug.length === 1 && p.slug[0] === 'index');
+    params.unshift({ ...(homepage ?? params[0]), slug: [] });
   }
   return params;
 }`;
@@ -112,7 +114,13 @@ import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout'
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
-  const page = source.getPage(slug);
+  let page = source.getPage(slug);
+  // Fallback: when slug is empty (root path /) and getPage returns undefined,
+  // try ['index'] — fumadocs-core's slugsPlugin may assign ["index"] to index.mdx
+  // due to slug de-duplication conflict, causing getPage([]) to miss it.
+  if (!page && (!slug || slug.length === 0)) {
+    page = source.getPage(['index']);
+  }
 ${filterInPage}
   if (!page) {
     notFound();
@@ -170,9 +178,10 @@ export function generateStaticParams() {
   const languages = [...new Set(params.map((p: { lang: string }) => p.lang))];
   for (const lang of languages) {
     if (!params.some((p: { slug: string[]; lang: string }) => p.slug.length === 0 && p.lang === lang)) {
-      const firstForLang = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
-      if (firstForLang) {
-        params.unshift({ ...firstForLang, slug: [] });
+      const homepage = params.find((p: { slug: string[]; lang: string }) => p.slug.length === 1 && p.slug[0] === 'index' && p.lang === lang);
+      const fallback = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
+      if (homepage || fallback) {
+        params.unshift({ ...(homepage ?? fallback!), slug: [], lang });
       }
     }
   }
@@ -185,9 +194,10 @@ export function generateStaticParams() {
   const languages = [...new Set(params.map((p: { lang: string }) => p.lang))];
   for (const lang of languages) {
     if (!params.some((p: { slug: string[]; lang: string }) => p.slug.length === 0 && p.lang === lang)) {
-      const firstForLang = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
-      if (firstForLang) {
-        params.unshift({ ...firstForLang, slug: [] });
+      const homepage = params.find((p: { slug: string[]; lang: string }) => p.slug.length === 1 && p.slug[0] === 'index' && p.lang === lang);
+      const fallback = params.find((p: { slug: string[]; lang: string }) => p.lang === lang);
+      if (homepage || fallback) {
+        params.unshift({ ...(homepage ?? fallback!), slug: [], lang });
       }
     }
   }
@@ -245,7 +255,13 @@ import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout'
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[]; lang: string }> }) {
   const { slug, lang } = await params;
-  const page = source.getPage(slug, lang);
+  let page = source.getPage(slug, lang);
+  // Fallback: when slug is empty (root path /) and getPage returns undefined,
+  // try ['index'] — fumadocs-core's slugsPlugin may assign ["index"] to index.mdx
+  // due to slug de-duplication conflict, causing getPage([], lang) to miss it.
+  if (!page && (!slug || slug.length === 0)) {
+    page = source.getPage(['index'], lang);
+  }
 ${filterInPage}
   if (!page) {
     notFound();
