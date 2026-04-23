@@ -7,6 +7,7 @@ import {
   isI18nEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
+  resolveEffectiveLogo,
   resolveOpenApiSpecPaths,
 } from '../config/schema.js';
 import {
@@ -20,7 +21,7 @@ import { generateCalloutComponent } from './callout-component.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
-import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
+import { generateLayout, isImagePath, resolveLogoPaths, resolveNavLogoProps } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
 import { generateMiddleware } from './middleware.js';
@@ -253,11 +254,18 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   }
 
   // Generate logo SVG in public/ when logo is an image path
-  const logo = ctx.config.navbar?.logo;
-  if (logo && typeof logo === 'string' && isImagePath(logo)) {
-    await ensureLogoFile(ctx, logo, 'light');
-  } else if (logo && typeof logo === 'object') {
-    const { light, dark } = resolveLogoPaths(logo);
+  // Resolution priority: config.logo > navbar.logo (legacy)
+  const rawLogo =
+    ctx.config.logo != null
+      ? typeof ctx.config.logo === 'string'
+        ? ctx.config.logo
+        : { light: ctx.config.logo.light, dark: ctx.config.logo.dark }
+      : ctx.config.navbar?.logo;
+
+  if (rawLogo && typeof rawLogo === 'string' && isImagePath(rawLogo)) {
+    await ensureLogoFile(ctx, rawLogo, 'light');
+  } else if (rawLogo && typeof rawLogo === 'object') {
+    const { light, dark } = resolveLogoPaths(rawLogo);
     if (isImagePath(light)) {
       await ensureLogoFile(ctx, light, 'light');
     }
@@ -368,6 +376,19 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const rootGroups = ctx.rootGroups;
   const isHeaderSearch = config.search?.position === 'header';
 
+  // 解析有效 logo：判断是否需要在侧边栏显示
+  const { source: logoSource, position: logoPosition } = resolveEffectiveLogo(config);
+  const hasSidebarLogo = logoSource !== undefined && logoPosition === 'sidebar';
+  const sidebarLogoImport = hasSidebarLogo
+    ? "\nimport { NavLogo } from 'openmanual/components/nav-layout';"
+    : '';
+  const sidebarLogoProps = hasSidebarLogo ? resolveNavLogoProps(logoSource!, config.name) : null;
+  // sidebar.banner 只在有图片 logo 时添加（文本 logo 通过 nav.title 处理）
+  const sidebarBannerLine =
+    hasSidebarLogo && sidebarLogoProps && !sidebarLogoProps.includes('type="text"')
+      ? `\n    banner: <NavLogo ${sidebarLogoProps} />,`
+      : '';
+
   const linksArray = navLinks.map((l) => ({
     text: l.label,
     url: l.href,
@@ -422,7 +443,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
     return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${configDescSnippet}
+import type { ReactNode } from 'react';${sidebarLogoImport}${configDescSnippet}
 export default async function DocsLayoutWrapper({
   params,
   children,
@@ -450,7 +471,8 @@ ${
     ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
     }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
-    sidebar: { collapsible: false },
+    sidebar: { collapsible: false,${sidebarBannerLine}
+    },
   };
 
   return (
@@ -465,7 +487,7 @@ ${
   return `import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { baseOptions } from '@/lib/layout';
 import { source } from '@/lib/source';
-import type { ReactNode } from 'react';${
+import type { ReactNode } from 'react';${sidebarLogoImport}${
     isOApi && separateTab
       ? `
 const _omFirstApi = source.getPages()?.find((p: any) => p.data?.type === 'openapi');
@@ -478,7 +500,8 @@ const docsOptions = {
   ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}${
     isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
   }
-  sidebar: { collapsible: false },
+  sidebar: { collapsible: false,${sidebarBannerLine}
+  },
 };
 
 export default function DocsLayoutWrapper({ children }: { children: ReactNode }) {

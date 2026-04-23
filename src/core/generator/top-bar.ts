@@ -9,7 +9,10 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   const bordered = header.bordered ?? true;
   const background = header.background ?? '';
 
-  // 处理 Logo — 仅使用 header.logo 或回退到项目名称（不回退到 navbar.logo 避免双 logo）
+  // Logo 解析优先级（由 mergeDefaults + resolveEffectiveLogo 处理）：
+  // 1. config.logo 且 position='header' → 已传播到 header.logo
+  // 2. header.logo（旧配置）
+  // 3. 回退到 config.name（文本 logo）
   const logoSource = header.logo ?? config.name;
   const logoProps = resolveNavLogoProps(logoSource, config.name);
 
