@@ -257,10 +257,10 @@ export function isSeparateTabMode(config: OpenManualConfig): boolean {
 }
 
 /**
- * 判断是否启用了顶部横条（配置了 header 即启用）
+ * 判断是否启用了顶部横条（默认始终启用）
  */
-export function isHeaderEnabled(config: OpenManualConfig): boolean {
-  return config.header !== undefined;
+export function isHeaderEnabled(_config: OpenManualConfig): boolean {
+  return true;
 }
 
 /**

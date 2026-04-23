@@ -1397,8 +1397,8 @@ describe('TopBarSchema', () => {
 });
 
 describe('isHeaderEnabled', () => {
-  it('当 header 为 undefined 时应当返回 false', () => {
-    expect(isHeaderEnabled({ name: 'T' })).toBe(false);
+  it('当 header 为 undefined 时应当返回 true（默认启用）', () => {
+    expect(isHeaderEnabled({ name: 'T' })).toBe(true);
   });
 
   it('当 header 存在时（即使配置最小）应当返回 true', () => {
@@ -1781,5 +1781,27 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.header?.logo).toBe('/existing-hdr.svg');
     // top-level logo should propagate to navbar instead
     expect(config.navbar?.logo).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
+  });
+
+  it('当未配置 header 时应提供默认 header（sticky=true, bordered=true）', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.header).toBeDefined();
+    expect(config.header?.sticky).toBe(true);
+    expect(config.header?.bordered).toBe(true);
+    expect(config.header?.logo).toBeUndefined();
+  });
+
+  it('当配置了 header 时应保留用户的自定义值', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'MyApp', header: { sticky: false, height: '56px' } })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.header?.sticky).toBe(false);
+    expect(config.header?.height).toBe('56px');
+    expect(config.header?.bordered).toBe(true);
   });
 });
