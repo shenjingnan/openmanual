@@ -369,7 +369,6 @@ export default async function RootLayout({
 
 function generateDocsLayout(ctx: GenerateContext): string {
   const { config } = ctx;
-  const githubLink = config.navbar?.github ?? '';
   const navLinks = config.navbar?.links ?? [];
   const footerText = config.footer?.text ?? '';
   const isI18n = isI18nEnabled(config);
@@ -395,8 +394,6 @@ function generateDocsLayout(ctx: GenerateContext): string {
     url: l.href,
     external: true,
   }));
-
-  const githubLine = githubLink ? `\n    github: '${githubLink}',` : '';
 
   const linksLine = linksArray.length > 0 ? `\n    links: ${JSON.stringify(linksArray)},` : '';
 
@@ -463,7 +460,7 @@ ${
 
   const docsOptions = {
     ...baseOptions(lang),
-    ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${
+    ${treeLine}${sidebarTabsLine}${linksLine}${footerLine}${
       configDesc ? '\n    description: siteDescription,' : ''
     }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
     nav: {${navTitleLine} },
@@ -493,7 +490,7 @@ const _omApiUrl = _omFirstApi?.url ?? '/openapi';
   }
 const docsOptions = {
   ...baseOptions(),
-  ${treeLine}${sidebarTabsLine}${githubLine}${linksLine}${footerLine}${descLine}${
+  ${treeLine}${sidebarTabsLine}${linksLine}${footerLine}${descLine}${
     isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
   }
   nav: {${navTitleLine} },

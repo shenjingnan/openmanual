@@ -24,6 +24,7 @@ export const FaviconSchema = z.string();
 export const NavbarSchema = z.object({
   /** @deprecated 使用顶级 `logo` 字段代替 */
   logo: LogoSchema.optional(),
+  /** @deprecated 使用 header.links 配置替代，例如 { "icon": "Github", "href": "https://github.com/..." } */
   github: z.url().optional(),
   links: z
     .array(

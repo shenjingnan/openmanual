@@ -44,7 +44,7 @@ describe('OpenManualConfigSchema', () => {
       locale: 'en',
       navbar: {
         logo: 'MyProject',
-        github: 'https://github.com/test/test',
+        // github: 'https://github.com/test/test', // 已废弃，请使用 header.links
         links: [{ label: 'Blog', href: 'https://blog.example.com' }],
       },
       footer: { text: 'MIT 2025' },
