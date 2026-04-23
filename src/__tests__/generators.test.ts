@@ -1072,10 +1072,10 @@ describe('generateI18nUI', () => {
   it('should generate defineI18nUI with multiple language displayNames', () => {
     const result = generateI18nUI(i18nCtx);
     expect(result).toContain("import { defineI18nUI } from 'fumadocs-ui/i18n'");
-    expect(result).toContain("'zh': {");
-    expect(result).toContain("displayName: '中文'");
-    expect(result).toContain("'en': {");
-    expect(result).toContain("displayName: 'English'");
+    expect(result).toContain('"zh": {');
+    expect(result).toContain('displayName: "中文"');
+    expect(result).toContain('"en": {');
+    expect(result).toContain('displayName: "English"');
   });
 
   it('should work with single language', () => {
@@ -1083,8 +1083,8 @@ describe('generateI18nUI', () => {
       config: { name: 'T', i18n: { languages: [{ code: 'ja', name: '日本語' }] } },
     };
     const result = generateI18nUI(ctx);
-    expect(result).toContain("'ja': {");
-    expect(result).toContain("displayName: '日本語'");
+    expect(result).toContain('"ja": {');
+    expect(result).toContain('displayName: "日本語"');
   });
 
   it('should correctly map three languages', () => {
@@ -1101,9 +1101,9 @@ describe('generateI18nUI', () => {
       },
     };
     const result = generateI18nUI(ctx);
-    expect(result).toContain("'zh': {");
-    expect(result).toContain("'en': {");
-    expect(result).toContain("'ja': {");
+    expect(result).toContain('"zh": {');
+    expect(result).toContain('"en": {');
+    expect(result).toContain('"ja": {');
   });
 
   it('should throw when languages array is empty', () => {
@@ -1492,14 +1492,14 @@ describe('generateOpenApiLib', () => {
   it('should resolve specPath as absolute path', () => {
     const result = generateOpenApiLib(openapiCtx);
     if (result) {
-      expect(result).toContain("'/tmp/test/openapi.yaml'");
+      expect(result).toContain('"/tmp/test/openapi.yaml"');
     }
   });
 
   it('should handle nested specPath correctly with absolute path', () => {
     const result = generateOpenApiLib(openapiCtxCustomLabel);
     if (result) {
-      expect(result).toContain("'/tmp/test/docs/openapi.json'");
+      expect(result).toContain('"/tmp/test/docs/openapi.json"');
     }
   });
 });
@@ -1572,7 +1572,7 @@ describe('generateLibSource - with openapi', () => {
     expect(result).toContain('openapiSource(openapi,');
     expect(result).toContain("baseDir: 'api'");
     expect(result).toContain('meta: true');
-    expect(result).toContain("groupBy: 'tag'");
+    expect(result).toContain('groupBy: "tag"');
     expect(result).toContain('plugins: [openapiPlugin()]');
   });
 
@@ -1783,7 +1783,7 @@ describe('generateOpenApiLib - edge cases', () => {
     expect(result).not.toBeNull();
     if (result) {
       // join('/tmp/project', '') = '/tmp/project'
-      expect(result).toContain("input: ['/tmp/project']");
+      expect(result).toContain('input: ["/tmp/project"]');
     }
   });
 
@@ -1905,7 +1905,7 @@ describe('generateLibSource - groupBy variants', () => {
       projectDir: '/tmp/test',
     };
     const result = generateLibSource(ctx);
-    expect(result).toContain("groupBy: 'route'");
+    expect(result).toContain('groupBy: "route"');
     expect(result).toContain('meta: true');
   });
 
@@ -1918,7 +1918,7 @@ describe('generateLibSource - groupBy variants', () => {
       projectDir: '/tmp/test',
     };
     const result = generateLibSource(ctx);
-    expect(result).toContain("groupBy: 'none'");
+    expect(result).toContain('groupBy: "none"');
     expect(result).toContain('meta: true');
   });
 
@@ -1939,7 +1939,7 @@ describe('generateLibSource - groupBy variants', () => {
       projectDir: '/tmp/test',
     };
     const result = generateLibSource(ctx);
-    expect(result).toContain("groupBy: 'route'");
+    expect(result).toContain('groupBy: "route"');
     expect(result).toContain('meta: true');
   });
 });
@@ -1992,7 +1992,7 @@ describe('generateOpenApiLib - empty specPaths returns null', () => {
     expect(result).not.toBeNull();
     if (result) {
       expect(result).toContain(
-        "input: ['/tmp/myproject/core-api.yaml', '/tmp/myproject/admin-api.yaml']"
+        'input: ["/tmp/myproject/core-api.yaml", "/tmp/myproject/admin-api.yaml"]'
       );
     }
   });
@@ -2008,7 +2008,7 @@ describe('generateOpenApiLib - empty specPaths returns null', () => {
     const result = generateOpenApiLib(ctx);
     expect(result).not.toBeNull();
     if (result) {
-      expect(result).toContain("input: ['/tmp/myproject/single-spec.yaml']");
+      expect(result).toContain('input: ["/tmp/myproject/single-spec.yaml"]');
     }
   });
 });

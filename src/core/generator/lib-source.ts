@@ -1,5 +1,6 @@
 import type { OpenManualConfig } from '../config/schema.js';
 import { isI18nEnabled, isOpenApiEnabled, isSeparateTabMode } from '../config/schema.js';
+import { jsLiteral } from './code-utils.js';
 
 export function generateLibSource(ctx: { config: OpenManualConfig }): string {
   const isI18n = isI18nEnabled(ctx.config);
@@ -26,7 +27,7 @@ const _omOpenApiFiles = [];
 for (const lang of i18n.languages) {
   const result = await openapiSource(openapi, {
     baseDir: \`\${lang}/${baseDirStr}\`,
-${!separateTab ? `    meta: true,\n    groupBy: '${groupBy}',` : ''}
+${!separateTab ? `    meta: true,\n    groupBy: ${jsLiteral(groupBy)},` : ''}
   });
   _omOpenApiFiles.push(...result.files);
 }
@@ -58,7 +59,7 @@ export const source = loader(
     docs: docs.toFumadocsSource(),
     openapi: await openapiSource(openapi, {
       baseDir: '${baseDir}',
-${!separateTab ? `      meta: true,\n      groupBy: '${groupBy}',` : ''}
+${!separateTab ? `      meta: true,\n      groupBy: ${jsLiteral(groupBy)},` : ''}
     }),
   }),
   {

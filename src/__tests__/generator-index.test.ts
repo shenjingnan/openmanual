@@ -135,7 +135,7 @@ describe('generateAll', () => {
         (c[0] as string).endsWith('layout.tsx')
     );
     expect(layoutCall).toBeDefined();
-    expect((layoutCall as unknown[])[1]).toContain("Test\\'s Project");
+    expect((layoutCall as unknown[])[1]).toContain("Test's Project");
   });
 
   it('should not include github when not configured', async () => {
@@ -440,7 +440,7 @@ describe('generateDocsLayout - description', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    expect(content).toContain("description: 'My Site Description',");
+    expect(content).toContain('description: "My Site Description",');
   });
 
   it('should escape single quotes in non-i18n description', async () => {
@@ -456,7 +456,7 @@ describe('generateDocsLayout - description', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    expect(content).toContain("Test\\'s Site");
+    expect(content).toContain("Test's Site");
   });
 
   it('should not include description when not configured in non-i18n mode', async () => {
@@ -799,8 +799,8 @@ describe('generateAll - i18n mode', () => {
     );
     expect(i18nUICall).toBeDefined();
     expect((i18nUICall as unknown[])[1]).toContain('defineI18nUI');
-    expect((i18nUICall as unknown[])[1]).toContain("displayName: '中文'");
-    expect((i18nUICall as unknown[])[1]).toContain("displayName: 'English'");
+    expect((i18nUICall as unknown[])[1]).toContain('displayName: "中文"');
+    expect((i18nUICall as unknown[])[1]).toContain('displayName: "English"');
   });
 
   it('should generate middleware.ts with redirect logic', async () => {
@@ -1064,8 +1064,8 @@ describe('generateAll - i18n mode', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getI18nDocsLayoutContent(calls);
 
-    // 单引号应被转义为 \'
-    expect(content).toContain("It\\'s awesome");
+    // JSON.stringify 使用双引号，内部单引号无需转义
+    expect(content).toContain("It's awesome");
   });
 
   it('should handle i18n + description + sidebar combination without restructureTree', async () => {
