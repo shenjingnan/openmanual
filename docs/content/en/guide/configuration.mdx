@@ -112,9 +112,11 @@ Create `openmanual.json` in your project root to configure your documentation si
 
 ### Search
 
+Search is enabled by default, no configuration required. Use `search.position` to control the search entry position:
+
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
-| `search.enabled` | boolean | No | `true` | Whether search is enabled |
+| `search.position` | string | No | `'sidebar'` | Search entry position: `'sidebar'` (top of sidebar) or `'header'` (center of navbar) |
 
 ### MDX
 

@@ -607,10 +607,10 @@ describe('generateProvider', () => {
     expect(result).toContain("'use client'");
   });
 
-  it('should disable search when search config is absent (配置即启用)', () => {
-    // baseConfig 没有 search 字段 → 搜索不启用
+  it('搜索功能默认启用（无需配置 search 字段）', () => {
+    // 搜索始终启用，即使没有 search 字段
     const result = generateProvider(baseCtx);
-    expect(result).toContain('enabled: false');
+    expect(result).toContain('enabled: true');
   });
 
   it('should enable search when search config exists (配置即启用)', () => {
@@ -1410,10 +1410,10 @@ describe('generateProvider - i18n mode', () => {
     expect(result).toContain("import { i18nUI } from '@/lib/i18n-ui'");
   });
 
-  it('should disable search when search config is absent in i18n mode (配置即启用)', () => {
-    // i18nConfig 没有 search 字段 → 搜索不启用
+  it('i18n 模式下搜索功能默认启用（无需配置 search 字段）', () => {
+    // i18n 模式下搜索也始终启用
     const result = generateProvider(i18nCtx);
-    expect(result).toContain('enabled: false');
+    expect(result).toContain('enabled: true');
   });
 
   it('在 i18n 模式下当存在搜索配置时应当启用搜索', () => {

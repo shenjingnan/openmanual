@@ -99,8 +99,8 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       ...DEFAULT_CONFIG.theme,
       ...config.theme,
     },
-    // 「配置即启用」：用户不配 search 字段则保持 undefined（不启用搜索）
-    search: config.search ? { position: config.search.position ?? 'sidebar' } : undefined,
+    // 搜索默认启用，用户可通过 position 控制搜索入口位置
+    search: { position: config.search?.position ?? 'sidebar' },
     mdx: {
       ...DEFAULT_CONFIG.mdx,
       ...config.mdx,
