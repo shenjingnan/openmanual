@@ -57,22 +57,18 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
     contentDir: config.contentDir ?? DEFAULT_CONFIG.contentDir ?? 'content',
     outputDir: config.outputDir ?? DEFAULT_CONFIG.outputDir ?? 'dist',
     locale: config.locale ?? DEFAULT_CONFIG.locale ?? 'zh',
-    // 标准化顶级 logo 的 position 默认值
+    // 标准化顶级 logo（剥离 position 字段）
     logo: topLevelLogo
       ? typeof config.logo === 'string'
         ? config.logo
-        : { light: topLevelLogo.light, dark: topLevelLogo.dark, position: topLevelLogo.position }
+        : { light: topLevelLogo.light, dark: topLevelLogo.dark }
       : undefined,
     navbar: {
       ...DEFAULT_CONFIG.navbar,
       ...config.navbar,
-      // 传播逻辑：有顶级 logo 且 position=sidebar → 传播到 navbar.logo
-      // 否则保持原有 navbar.logo ?? config.name 逻辑
-      logo:
-        config.navbar?.logo ??
-        (topLevelLogo && topLevelLogo.position === 'sidebar'
-          ? (topLevelLogoSource ?? config.name)
-          : config.name),
+      // navbar.logo 始终回退到 config.name（文本形式）
+      // 不再从顶级 logo 传播图片到 navbar（logo 始终在 header 中）
+      logo: config.navbar?.logo ?? config.name,
     },
     header: {
       ...(config.header ?? {}),
@@ -81,13 +77,8 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       height: config.header?.height,
       background: config.header?.background,
       links: config.header?.links,
-      // 传播逻辑：有顶级 logo 且 position=header → 传播到 header.logo
-      // 否则保持原有 header.logo 不变
-      logo:
-        config.header?.logo ??
-        (topLevelLogo && topLevelLogo.position === 'header'
-          ? (topLevelLogoSource ?? undefined)
-          : undefined),
+      // 顶级 logo 始终传播到 header.logo（不再按 position 分流）
+      logo: config.header?.logo ?? topLevelLogoSource ?? undefined,
     },
     footer: {
       ...DEFAULT_CONFIG.footer,

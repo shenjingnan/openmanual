@@ -10,8 +10,8 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   const bordered = header.bordered ?? true;
   const background = header.background ?? '';
 
-  // Logo 解析优先级（由 mergeDefaults + resolveEffectiveLogo 处理）：
-  // 1. config.logo 且 position='header' → 已传播到 header.logo
+  // Logo 解析优先级（由 mergeDefaults 处理）：
+  // 1. config.logo → 已传播到 header.logo
   // 2. header.logo（旧配置）
   // 3. 回退到 config.name（文本 logo）
   const logoSource = header.logo ?? config.name;
