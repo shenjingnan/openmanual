@@ -1465,7 +1465,7 @@ describe('generateDocsLayout - sidebar collapsible', () => {
   });
 });
 
-describe('generateDocsLayout - sidebar logo (banner)', () => {
+describe('generateDocsLayout - logo always in header', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -1480,7 +1480,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('当 logo position=sidebar 时应当包含 NavLogo 导入和 banner', async () => {
+  it('配置了图片 logo 时不应包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1493,14 +1493,12 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
-    expect(content).toContain('nav:');
-    expect(content).toContain('title: <NavLogo');
-    expect(content).toContain('/logo.svg');
-    expect(content).toContain('/logo-dark.svg');
+    // logo 在 header 中，不在 sidebar
+    expect(content).not.toContain('import { NavLogo }');
+    expect(content).not.toContain('title: <NavLogo');
   });
 
-  it('字符串简写 logo 应当包含侧边栏 banner', async () => {
+  it('字符串简写 logo 也不应在侧边栏显示', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1513,26 +1511,8 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    expect(content).toContain('nav:');
-    expect(content).toContain('title: <NavLogo');
-  });
-
-  it('当 logo position=header 时不应包含侧边栏 banner', async () => {
-    const { writeFile } = await import('node:fs/promises');
-    const ctx = {
-      ...baseCtx,
-      config: {
-        ...baseConfig,
-        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
-        header: { height: '56px' },
-      } as any,
-    };
-    await generateAll(ctx);
-    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
-    const content = getDocsLayoutContent(calls);
-
-    // position=header 时 logo 应该在 TopBar 中，不在 sidebar banner
-    expect(content).not.toContain('banner:');
+    expect(content).not.toContain('import { NavLogo }');
+    expect(content).not.toContain('title: <NavLogo');
   });
 
   it('未配置 logo 时不应包含侧边栏 banner', async () => {
@@ -1545,7 +1525,7 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     expect(content).not.toContain('banner:');
   });
 
-  it('即使 logo 路径看起来像纯文本也应当包含 banner', async () => {
+  it('即使 logo 路径看起来像纯文本也不应在侧边栏显示', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1558,13 +1538,13 @@ describe('generateDocsLayout - sidebar logo (banner)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getDocsLayoutContent(calls);
 
-    // 对象形式 logo 的 light/dark 相同时仍生成 type="image" nav.title（不经过 isImagePath 检查）
-    expect(content).toContain('nav:');
-    expect(content).toContain('title: <NavLogo');
+    // logo 始终在 header，sidebar 不渲染任何 logo
+    expect(content).not.toContain('import { NavLogo }');
+    expect(content).not.toContain('title: <NavLogo');
   });
 });
 
-describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
+describe('generateDocsLayout - logo always in header (i18n mode)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -1580,7 +1560,7 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     return (layoutCall as unknown[])?.[1] as string;
   }
 
-  it('i18n 模式下当 logo position=sidebar 时应当包含 NavLogo 导入和 banner', async () => {
+  it('i18n 模式下配置了 logo 时不应包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
@@ -1601,21 +1581,17 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getI18nDocsLayoutContent(calls);
 
-    expect(content).toContain("import { NavLogo } from 'openmanual/components/nav-layout'");
-    expect(content).toContain('nav:');
-    expect(content).toContain('title: <NavLogo');
-    expect(content).toContain('/logo.svg');
-    expect(content).toContain('/logo-dark.svg');
+    // logo 在 header 中，不在 sidebar
+    expect(content).not.toContain('import { NavLogo }');
+    expect(content).not.toContain('title: <NavLogo');
   });
 
-  it('i18n 模式下当 logo position=header 时不应包含 banner', async () => {
+  it('i18n 模式下未配置 logo 时不应包含侧边栏 banner', async () => {
     const { writeFile } = await import('node:fs/promises');
     const ctx = {
       ...baseCtx,
       config: {
         ...baseConfig,
-        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
-        header: { height: '56px' },
         i18n: {
           enabled: true,
           defaultLanguage: 'zh',
@@ -1627,7 +1603,6 @@ describe('generateDocsLayout - sidebar logo (i18n mode)', () => {
     const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
     const content = getI18nDocsLayoutContent(calls);
 
-    // i18n 模式下布局可能生成，也可能因测试环境限制不生成
     if (content) {
       expect(content).not.toContain('banner:');
     }

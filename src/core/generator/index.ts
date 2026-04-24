@@ -7,7 +7,6 @@ import {
   isI18nEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
-  resolveEffectiveLogo,
   resolveOpenApiSpecPaths,
 } from '../config/schema.js';
 import {
@@ -22,7 +21,7 @@ import { jsLiteral } from './code-utils.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
-import { generateLayout, isImagePath, resolveLogoPaths, resolveNavLogoProps } from './layout.js';
+import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
 import { generateMiddleware } from './middleware.js';
@@ -255,13 +254,15 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
   }
 
   // Generate logo SVG in public/ when logo is an image path
-  // Resolution priority: config.logo > navbar.logo (legacy)
+  // 优先使用已合并的 header.logo（mergeDefaults 已将顶级 logo传播至此）
+  // 回退到原始 config.logo / navbar.logo（兼容未经 mergeDefaults 的测试场景）
   const rawLogo =
-    ctx.config.logo != null
+    ctx.config.header?.logo ??
+    (ctx.config.logo != null
       ? typeof ctx.config.logo === 'string'
         ? ctx.config.logo
         : { light: ctx.config.logo.light, dark: ctx.config.logo.dark }
-      : ctx.config.navbar?.logo;
+      : ctx.config.navbar?.logo);
 
   if (rawLogo && typeof rawLogo === 'string' && isImagePath(rawLogo)) {
     await ensureLogoFile(ctx, rawLogo, 'light');
@@ -376,18 +377,9 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const rootGroups = ctx.rootGroups;
   const isHeaderSearch = config.search?.position === 'header';
 
-  // 解析有效 logo：判断是否需要在侧边栏显示
-  const { source: logoSource, position: logoPosition } = resolveEffectiveLogo(config);
-  const hasSidebarLogo = logoSource !== undefined && logoPosition === 'sidebar';
-  const sidebarLogoImport = hasSidebarLogo
-    ? "\nimport { NavLogo } from 'openmanual/components/nav-layout';"
-    : '';
-  const sidebarLogoProps = hasSidebarLogo ? resolveNavLogoProps(logoSource!, config.name) : null;
-  // nav.title 只在有图片 logo 时添加（通过 navTitle slot 渲染，在 searchTrigger 之前）
-  const navTitleLine =
-    hasSidebarLogo && sidebarLogoProps && !sidebarLogoProps.includes('type="text"')
-      ? `\n    title: <NavLogo ${sidebarLogoProps} />,`
-      : '';
+  // Logo 始终在 header (TopBar) 中展示，侧边栏不再渲染 logo
+  const sidebarLogoImport = '';
+  const navTitleLine = '';
 
   const linksArray = navLinks.map((l) => ({
     text: l.label,

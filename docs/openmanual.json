@@ -5,8 +5,7 @@
   "siteUrl": "https://openmanual.shenjingnan.com",
   "logo": {
     "light": "/logo.svg",
-    "dark": "/logo-dark.svg",
-    "position": "header"
+    "dark": "/logo-dark.svg"
   },
   "locale": "zh",
   "header": {

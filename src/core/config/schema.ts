@@ -2,21 +2,22 @@ import { z } from 'zod';
 
 export const LogoSchema = z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]);
 
-/** Logo 显示位置 */
-export const LogoPositionSchema = z.enum(['sidebar', 'header']);
-
 /**
  * 顶级 Logo 配置（支持字符串简写和对象形式）
- * - 字符串简写: "/logo.svg" → { light, dark: 同值, position: 'sidebar' }
- * - 对象形式: { light, dark, position? }
+ * - 字符串简写: "/logo.svg" → { light, dark: 同值 }
+ * - 对象形式: { light, dark }
+ *
+ * 注意：logo 始终展示在 header (TopBar) 中，不再支持 sidebar 位置。
+ * 使用 .passthrough() 向后兼容：用户配置中的 position 字段会被忽略而不报错。
  */
 export const TopLevelLogoSchema = z.union([
   z.string(),
-  z.object({
-    light: z.string(),
-    dark: z.string(),
-    position: LogoPositionSchema.optional(),
-  }),
+  z
+    .object({
+      light: z.string(),
+      dark: z.string(),
+    })
+    .passthrough(),
 ]);
 
 export const FaviconSchema = z.string();
@@ -142,7 +143,7 @@ export const TopBarLinkSchema = z
 export const TopBarSchema = z.object({
   /** 高度，默认 '64px' */
   height: z.string().optional(),
-  /** @deprecated 使用顶级 `logo` 字段并设置 `position: "header"` 代替 */
+  /** @deprecated 使用顶级 `logo` 字段代替（logo 始终显示在 header 中） */
   logo: LogoSchema.optional(),
   /** 右侧导航链接 */
   links: z.array(TopBarLinkSchema).optional(),
@@ -190,7 +191,6 @@ export type OpenApiConfig = z.infer<typeof OpenApiSchema>;
 export type TopBarConfig = z.infer<typeof TopBarSchema>;
 export type TopBarLink = z.infer<typeof TopBarLinkSchema>;
 export type TopLevelLogoConfig = z.infer<typeof TopLevelLogoSchema>;
-export type LogoPosition = z.infer<typeof LogoPositionSchema>;
 
 // @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
@@ -269,47 +269,38 @@ export function isHeaderEnabled(_config: OpenManualConfig): boolean {
 export function normalizeTopLevelLogo(logo: TopLevelLogoConfig): {
   light: string;
   dark: string;
-  position: 'sidebar' | 'header';
 } {
   if (typeof logo === 'string') {
-    return { light: logo, dark: logo, position: 'sidebar' };
+    return { light: logo, dark: logo };
   }
   return {
     light: logo.light,
     dark: logo.dark,
-    position: logo.position ?? 'sidebar',
   };
 }
 
 /**
- * 解析有效的 Logo 配置（统一优先级链）
+ * 解析有效的 Logo 配置源（统一优先级链）
  *
  * 优先级：
  * 1. config.logo（新顶级配置）
- * 2. config.navbar.logo（旧 sidebar logo）
- * 3. config.header.logo（旧 header logo）
- * 4. undefined（调用方回退到 config.name）
+ * 2. config.header.logo（旧 header logo）
+ * 3. undefined（调用方回退到 config.name）
+ *
+ * 注意：logo 始终展示在 header 中，不再区分 position。
  */
-export function resolveEffectiveLogo(config: OpenManualConfig): {
-  source: LogoConfig | undefined;
-  position: 'sidebar' | 'header';
-} {
+export function resolveEffectiveLogo(config: OpenManualConfig): LogoConfig | undefined {
   // 新顶级 logo 最高优先级
   if (config.logo) {
     const normalized = normalizeTopLevelLogo(config.logo);
-    const { position, ...source } = normalized;
-    return { source: source as LogoConfig, position };
+    const { light, dark } = normalized;
+    return light === dark ? light : ({ light, dark } as LogoConfig);
   }
 
-  // 旧 navbar.logo → sidebar
-  if (config.navbar?.logo) {
-    return { source: config.navbar.logo, position: 'sidebar' };
-  }
-
-  // 旧 header.logo → header
+  // 旧 header.logo
   if (config.header?.logo) {
-    return { source: config.header.logo, position: 'header' };
+    return config.header.logo;
   }
 
-  return { source: undefined, position: 'sidebar' };
+  return undefined;
 }
