@@ -31,20 +31,11 @@ openmanual preview
 openmanual preview -p 3000 -d ./out
 ```
 
-## siteUrl 설정 (필수)
+## 정적 내보내기
 
-배포 전 **반드시** `openmanual.json`에서 `siteUrl`을 구성해야 합니다. `siteUrl`을 구성해야만 OpenManual이 Next.js의 정적 내보내기 모드(`output: 'export'`)를 활성화하여 배포 가능한 정적 파일을 생성합니다.
+OpenManual은 기본적으로 **SSG(정적 사이트 생성)** 모드를 사용합니다. 추가 설정 없이 `openmanual build`를 실행하기만 하면 배포 가능한 정적 파일이 생성됩니다.
 
-**`siteUrl`을 구성하지 않으면 `openmanual build`는 `out/` 디렉토리를 생성하지 않으며, 배포 산출물이 비어있습니다.**
-
-```json
-{
-  "name": "My Docs",
-  "siteUrl": "https://docs.example.com"
-}
-```
-
-`siteUrl`은 올바른 sitemap과 canonical URL 생성에도 사용됩니다. 커스텀 도메인을 사용하는 경우 최종 도메인으로 설정하세요.
+빌드 완료 후, 출력물은 `outputDir`에서 지정한 디렉토리(기본값 `dist`)에 기록됩니다. 이 디렉토리를 모든 정적 호스팅 플랫폼에 배포할 수 있습니다.
 
 ## Vercel에 배포
 
@@ -181,15 +172,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-이 workflow를 사용할 때 `siteUrl`은 다음과 같이 구성해야 합니다:
-
-```json
-{
-  "siteUrl": "https://<username>.github.io/<repo-name>"
-}
-```
-
-커스텀 도메인을 사용하는 경우 해당 도메인으로 대체하세요.
+커스텀 도메인을 사용하는 경우 호스팅 플랫폼에서 해당 DNS 해결 및 도메인 설정을 구성하세요.
 
 ### 방법 2: 수동 배포
 
@@ -213,16 +196,6 @@ git push -f origin gh-pages
 
 ## 자주 묻는 질문
 
-### 빌드 산출물이 비어있음
-
-`openmanual.json`에 `siteUrl`이 구성되었는지 확인하세요. `siteUrl`이 없으면 OpenManual은 정적 내보내기 모드를 활성화하지 않으며, 빌드 시 정적 파일이 생성되지 않습니다.
-
-```json
-{
-  "siteUrl": "https://docs.example.com"
-}
-```
-
 ### Node.js 버전 불일치
 
 OpenManual은 Node.js >= 24.0.0을 요구합니다. 빌드 실패 시 구문 오류 또는 모듈을 찾을 수 없다는 메시지가 나타나면 Node.js 버전을 확인하세요:
@@ -244,9 +217,4 @@ node -v
 커스텀 도메인을 사용할 경우 다음이 필요합니다:
 
 1. DNS 공급자에서 CNAME 레코드를 추가하여 호스팅 플랫폼을 가리킴
-2. `openmanual.json`의 `siteUrl`을 커스텀 도메인으로 설정
-3. 호스팅 플랫폼에서 도메인 구성 (Vercel/Netlify는 프로젝트 설정에서 추가, GitHub Pages는 저장소 설정에서 추가)
-
-### 배포 후 스타일 또는 리소스 로드 실패
-
-`siteUrl` 설정이 올바른지 확인하세요. 사이트의 base path가 루트 경로가 아닌 경우(예: GitHub Pages의 `/<repo-name>/`), `siteUrl`에 전체 경로를 포함해야 합니다.
+2. 호스팅 플랫폼에서 도메인 구성 (Vercel/Netlify는 프로젝트 설정에서 추가, GitHub Pages는 저장소 설정에서 추가)

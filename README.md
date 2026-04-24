@@ -89,7 +89,6 @@ openmanual dev
   "description": "项目文档",
   "contentDir": "content",
   "outputDir": "dist",
-  "siteUrl": "https://docs.example.com",
   "locale": "zh",
   "navbar": {
     "logo": "/logo.svg",
@@ -137,7 +136,6 @@ openmanual dev
 | `description` | string | 否 | — | 站点描述 |
 | `contentDir` | string | 否 | `content` | 文档内容目录 |
 | `outputDir` | string | 否 | `dist` | 构建产物输出目录 |
-| `siteUrl` | string | 否 | — | 站点 URL |
 | `locale` | string | 否 | — | 站点语言 |
 | `navbar.logo` | string | 否 | — | Logo 图片路径 |
 | `navbar.github` | string | 否 | — | GitHub 仓库链接 |

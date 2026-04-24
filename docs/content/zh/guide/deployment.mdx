@@ -31,20 +31,11 @@ openmanual preview
 openmanual preview -p 3000 -d ./out
 ```
 
-## 配置 siteUrl（必须）
+## 静态导出
 
-部署前 **必须** 在 `openmanual.json` 中配置 `siteUrl`。只有配置了 `siteUrl`，OpenManual 才会启用 Next.js 的静态导出模式（`output: 'export'`），生成可部署的静态文件。
+OpenManual 默认使用 **SSG（静态站点生成）** 模式，无需额外配置即可生成可部署的静态文件。
 
-**如果没有配置 `siteUrl`，`openmanual build` 将不会生成 `out/` 目录，部署产物为空。**
-
-```json
-{
-  "name": "My Docs",
-  "siteUrl": "https://docs.example.com"
-}
-```
-
-`siteUrl` 同时用于生成正确的 sitemap 和 canonical URL。如果你使用自定义域名，请将其设置为最终域名。
+运行 `openmanual build` 后，构建产物会输出到 `outputDir` 指定的目录（默认为 `dist`）。你可以将此目录部署到任何支持静态文件的托管平台。
 
 ## 部署到 Vercel
 
@@ -181,15 +172,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-使用此 workflow 时，`siteUrl` 应配置为：
-
-```json
-{
-  "siteUrl": "https://<username>.github.io/<repo-name>"
-}
-```
-
-如果是自定义域名，则替换为你的域名。
+如果是自定义域名，则需要在托管平台配置对应的 DNS 解析和域名设置。
 
 ### 方式二：手动部署
 
@@ -213,16 +196,6 @@ git push -f origin gh-pages
 
 ## 常见问题
 
-### 构建产物为空
-
-检查是否在 `openmanual.json` 中配置了 `siteUrl`。没有 `siteUrl` 时，OpenManual 不会启用静态导出模式，构建不会生成静态文件。
-
-```json
-{
-  "siteUrl": "https://docs.example.com"
-}
-```
-
 ### Node.js 版本不匹配
 
 OpenManual 要求 Node.js >= 24.0.0。如果构建失败并出现语法错误或找不到模块，请检查 Node.js 版本：
@@ -244,9 +217,4 @@ node -v
 使用自定义域名时，需要：
 
 1. 在 DNS 服务商处添加 CNAME 记录指向托管平台
-2. 将 `openmanual.json` 中的 `siteUrl` 设置为自定义域名
-3. 在托管平台配置域名（Vercel/Netlify 在项目设置中添加，GitHub Pages 在仓库设置中添加）
-
-### 部署后样式或资源加载失败
-
-确认 `siteUrl` 配置正确。如果站点的 base path 非根路径（如 GitHub Pages 的 `/<repo-name>/`），`siteUrl` 需要包含完整路径。
+2. 在托管平台配置域名（Vercel/Netlify 在项目设置中添加，GitHub Pages 在仓库设置中添加）

@@ -151,7 +151,6 @@ export const OpenManualConfigSchema = z.object({
   description: z.string().optional(),
   contentDir: z.string().optional(),
   outputDir: z.string().optional(),
-  siteUrl: z.url().optional(),
   locale: z.string().optional(),
   contentPolicy: z.enum(['strict', 'all']).optional(),
   favicon: FaviconSchema.optional(),

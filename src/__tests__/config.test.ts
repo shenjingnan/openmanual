@@ -39,7 +39,6 @@ describe('OpenManualConfigSchema', () => {
       description: 'A test project',
       contentDir: 'docs',
       outputDir: 'out',
-      siteUrl: 'https://example.com',
       locale: 'en',
       navbar: {
         logo: 'MyProject',
@@ -179,6 +178,15 @@ describe('loadConfig', () => {
     );
     const config = await loadConfig(tmpDir);
     expect(config.contentPolicy).toBe('all');
+  });
+
+  it('当配置包含无效字段时应抛出验证错误（含字段路径）', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'Test', navbar: { github: 'not-a-valid-url' } })
+    );
+    await expect(loadConfig(tmpDir)).rejects.toThrow('navbar.github');
   });
 });
 
@@ -562,23 +570,6 @@ describe('generateSourceConfigContent', () => {
     expect(result).toContain("dir: 'docs'");
     expect(result).toContain('defineDocs');
     expect(result).toContain('defineConfig');
-  });
-});
-
-describe('loadConfig validation errors', () => {
-  const tmpDir = join(process.cwd(), '.test-tmp-validation');
-
-  afterEach(async () => {
-    await rm(tmpDir, { recursive: true, force: true });
-  });
-
-  it('验证错误消息中应当包含字段路径', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(
-      join(tmpDir, 'openmanual.json'),
-      JSON.stringify({ name: 'Test', siteUrl: 'not-a-url' })
-    );
-    await expect(loadConfig(tmpDir)).rejects.toThrow('siteUrl');
   });
 });
 

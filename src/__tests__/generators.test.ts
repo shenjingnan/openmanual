@@ -267,25 +267,13 @@ describe('generateLibSource', () => {
 });
 
 describe('generateNextConfig', () => {
-  it('当设置了 siteUrl 且非开发模式时应当包含 output export', () => {
-    const ctx = {
-      config: { ...baseConfig, siteUrl: 'https://example.com' },
-    };
-    const result = generateNextConfig(ctx);
+  it('非开发模式下应当包含 output export（默认 SSG）', () => {
+    const result = generateNextConfig(baseCtx);
     expect(result).toContain("output: 'export'");
   });
 
-  it('当未设置 siteUrl 时不应包含 output', () => {
-    const result = generateNextConfig(baseCtx);
-    expect(result).not.toContain("output: 'export'");
-  });
-
-  it('当设置了 siteUrl 但开发模式为 true 时不应包含 output', () => {
-    const ctx = {
-      config: { ...baseConfig, siteUrl: 'https://example.com' },
-      dev: true,
-    };
-    const result = generateNextConfig(ctx);
+  it('开发模式下不应包含 output export', () => {
+    const result = generateNextConfig({ ...baseCtx, dev: true });
     expect(result).not.toContain("output: 'export'");
   });
 
@@ -324,9 +312,7 @@ describe('generateNextConfig', () => {
   });
 
   it('在 output export 模式下不应包含 turbopack resolveAlias', () => {
-    const result = generateNextConfig({
-      config: { ...baseConfig, siteUrl: 'https://example.com' },
-    });
+    const result = generateNextConfig(baseCtx);
     expect(result).not.toContain("'collections/*': './.source/*'");
     expect(result).toContain("output: 'export'");
   });
@@ -1542,6 +1528,15 @@ describe('generateNextConfig - with openapi', () => {
     const result = generateNextConfig(baseCtx);
     expect(result).toContain("['mermaid']");
     expect(result).not.toContain('shiki');
+  });
+
+  it('非开发模式下启用 openapi 应同时包含 output export 和 shiki（默认 SSG）', () => {
+    const result = generateNextConfig(openapiCtx);
+    // SSG 默认启用：非 dev 模式应包含 output: 'export'
+    expect(result).toContain("output: 'export'");
+    // OpenAPI 启用：应额外包含 shiki
+    expect(result).toContain("'shiki'");
+    expect(result).toContain("'mermaid'");
   });
 });
 
