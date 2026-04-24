@@ -847,6 +847,7 @@ describe('generateSearchRoute', () => {
   it('应当使用 i18n 配置生成 localeMap（zh + en）', () => {
     const result = generateSearchRoute({
       config: {
+        name: 'Test',
         i18n: {
           enabled: true,
           defaultLanguage: 'zh',
@@ -872,6 +873,7 @@ describe('generateSearchRoute', () => {
   it('在 i18n 模式下应当正确映射所有支持的语言', () => {
     const result = generateSearchRoute({
       config: {
+        name: 'Test',
         i18n: {
           enabled: true,
           defaultLanguage: 'en',
@@ -955,7 +957,7 @@ describe('generateI18nConfig', () => {
     expect(result).toContain("languages: ['zh', 'en']");
   });
 
-  it('应当将 defaultLanguage 回退到 config.locale', () => {
+  it('应使用 config.locale 值作为 defaultLanguage', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -967,7 +969,7 @@ describe('generateI18nConfig', () => {
     expect(result).toContain("defaultLanguage: 'ja'");
   });
 
-  it('当两者都未设置时应当将 defaultLanguage 回退到 zh', () => {
+  it('当 locale 未设置时应将 defaultLanguage 回退到 zh', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1075,12 +1077,12 @@ describe('generateI18nUI', () => {
 });
 
 describe('generateMiddleware', () => {
-  it('应当使用 i18n.defaultLanguage 作为 defaultLanguage', () => {
+  it('应当使用 config.locale 作为 defaultLanguage', () => {
     const result = generateMiddleware(i18nCtx);
     expect(result).toContain("const defaultLanguage = 'zh'");
   });
 
-  it('当未设置 defaultLanguage 时应回退到 config.locale', () => {
+  it('当 locale 为非默认值时应使用 locale 值', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1092,7 +1094,7 @@ describe('generateMiddleware', () => {
     expect(result).toContain("const defaultLanguage = 'en'");
   });
 
-  it('当 defaultLanguage 和 locale 都未设置时应回退到 zh', () => {
+  it('当 locale 未设置时应回退到 zh', () => {
     const ctx = {
       config: {
         ...i18nConfig,
@@ -1189,8 +1191,8 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  // 覆盖 raw-content-route.ts 行10/45: defaultLanguage 和 locale 都未定义时回退到 'zh'
-  it('当 defaultLanguage 和 locale 都未设置时 dir 解析器应将 defaultLang 回退到 zh', () => {
+  // 覆盖 raw-content-route.ts: locale 未定义时回退到 'zh'
+  it('当 locale 未设置时 dir 解析器应将 defaultLang 回退到 zh', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',
@@ -1209,7 +1211,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  it('当 defaultLanguage 和 locale 都未设置时 dot 解析器应将 defaultLang 回退到 zh', () => {
+  it('当 locale 未设置时 dot 解析器应将 defaultLang 回退到 zh', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',
@@ -1226,8 +1228,8 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
-  // 覆盖 raw-content-route.ts 行10/45: 使用 locale 作为 defaultLang 回退
-  it('当缺少 defaultLanguage 时 dir 解析器应使用 locale 作为 defaultLang 回退', () => {
+  // 覆盖 raw-content-route.ts: 使用 locale 作为 defaultLang
+  it('dir 解析器应使用 locale 值作为 defaultLang', () => {
     const result = generateRawContentRoute({
       config: {
         name: 'Test',

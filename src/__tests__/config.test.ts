@@ -876,12 +876,12 @@ describe('loadConfig - mergeDefaults i18n', () => {
     const config = await loadConfig(tmpDir);
     expect(config.i18n).toBeDefined();
     expect(config.i18n?.enabled).toBe(true);
-    expect(config.i18n?.defaultLanguage).toBe('zh'); // fallback to locale
+    expect(config.i18n?.defaultLanguage).toBe('zh'); // derived from locale
     expect(config.i18n?.parser).toBe('dot'); // fallback default
     expect(config.i18n?.languages).toHaveLength(2);
   });
 
-  it('应当优先使用提供的 i18n.defaultLanguage 而非回退值', async () => {
+  it('i18n.defaultLanguage 应被忽略，始终以 locale 为准', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -890,13 +890,14 @@ describe('loadConfig - mergeDefaults i18n', () => {
         locale: 'ja',
         i18n: {
           enabled: true,
-          defaultLanguage: 'en',
+          defaultLanguage: 'en', // 废弃字段，应被忽略
           languages: [{ code: 'en', name: 'English' }],
         },
       })
     );
     const config = await loadConfig(tmpDir);
-    expect(config.i18n?.defaultLanguage).toBe('en');
+    // 即使配置了 i18n.defaultLanguage: 'en'，也应以 locale: 'ja' 为准
+    expect(config.i18n?.defaultLanguage).toBe('ja');
   });
 
   it('应当优先使用提供的 i18n.parser 而非回退值', async () => {
@@ -946,8 +947,8 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.enabled).toBe(false);
   });
 
-  // 覆盖 loader.ts 行87 第一级 ??: defaultLanguage undefined → fallback 到 locale
-  it('当未提供时 i18n.defaultLanguage 应回退到 locale', async () => {
+  // 覆盖 loader.ts：defaultLanguage 从 locale 派生
+  it('i18n.defaultLanguage 应从顶层 locale 派生', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -965,8 +966,8 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.defaultLanguage).toBe('ja');
   });
 
-  // 覆盖 loader.ts 行87 第二级 ??: locale 也 undefined → fallback 到 'zh'
-  it('当两者都未提供时 i18n.defaultLanguage 应回退到 zh', async () => {
+  // 覆盖 loader.ts：locale 未设置时回退到 'zh'
+  it('当 locale 未设置时 i18n.defaultLanguage 应回退到 zh', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),

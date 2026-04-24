@@ -85,7 +85,8 @@ export const buildCommand = new Command('build').description('构建静态站点
 
     // i18n 模式下生成根目录 index.html，重定向到默认语言路径
     if (config.i18n?.enabled) {
-      const defaultLang = config.i18n.defaultLanguage ?? config.locale ?? 'zh';
+      // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
+      const defaultLang = config.locale ?? 'zh';
       const redirectHtml = `<!DOCTYPE html>
 <html>
 <head>

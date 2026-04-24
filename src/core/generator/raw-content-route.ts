@@ -7,7 +7,8 @@ export function generateRawContentRoute(ctx: { config: OpenManualConfig }): stri
 
   if (isI18n && useDirParser) {
     // === Dir parser 模式：文件在 content/{lang}/{slug}.ext ===
-    const defaultLang = ctx.config.i18n?.defaultLanguage ?? ctx.config.locale ?? 'zh';
+    // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
+    const defaultLang = ctx.config.locale ?? 'zh';
     return `import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { NextResponse } from 'next/server';
@@ -42,7 +43,8 @@ export async function GET(
 
   if (isI18n) {
     // === Dot parser 模式：文件在 content/{slug}.{lang}.ext ===
-    const defaultLang = ctx.config.i18n?.defaultLanguage ?? ctx.config.locale ?? 'zh';
+    // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
+    const defaultLang = ctx.config.locale ?? 'zh';
     return `import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { NextResponse } from 'next/server';

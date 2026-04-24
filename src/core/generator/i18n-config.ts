@@ -11,7 +11,8 @@ export function generateI18nConfig(_ctx: { config: OpenManualConfig }): string {
     throw new Error('generateI18nConfig called but i18n is not properly configured');
   }
 
-  const defaultLang = i18nCfg.defaultLanguage ?? _ctx.config.locale ?? 'zh';
+  // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
+  const defaultLang = _ctx.config.locale ?? 'zh';
   const languageCodes = i18nCfg.languages.map((l) => `'${l.code}'`).join(', ');
   const parserLine = i18nCfg.parser === 'dir' ? `\n  parser: 'dir',` : '';
 

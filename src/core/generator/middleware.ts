@@ -12,7 +12,8 @@ import type { OpenManualConfig } from '../config/schema.js';
  * 因此使用自定义实现避免 createI18nMiddleware 拦截静态资源导致 404。
  */
 export function generateMiddleware(_ctx: { config: OpenManualConfig }): string {
-  const defaultLang = _ctx.config.i18n?.defaultLanguage ?? _ctx.config.locale ?? 'zh';
+  // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
+  const defaultLang = _ctx.config.locale ?? 'zh';
 
   return `import { NextResponse } from 'next/server';
 
