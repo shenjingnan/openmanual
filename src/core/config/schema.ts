@@ -69,12 +69,17 @@ export const I18nLocaleSchema = z.object({
   name: z.string().min(1),
 });
 
-export const I18nConfigSchema = z.object({
-  enabled: z.boolean().optional(),
-  defaultLanguage: z.string().optional(),
-  languages: z.array(I18nLocaleSchema).optional(),
-  parser: z.enum(['dot', 'dir']).optional(),
-});
+/**
+ * i18n 配置（defaultLanguage 已废弃，统一使用顶层 locale 字段）
+ * 使用 .passthrough() 向后兼容：用户配置中的 defaultLanguage 字段会被忽略而不报错
+ */
+export const I18nConfigSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    languages: z.array(I18nLocaleSchema).optional(),
+    parser: z.enum(['dot', 'dir']).optional(),
+  })
+  .passthrough();
 
 export const OpenApiSpecSchema = z.object({
   /** OpenAPI 规范文件路径，相对于项目根目录 */
