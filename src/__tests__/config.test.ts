@@ -231,6 +231,52 @@ describe('content scanner', () => {
   });
 });
 
+// ============================================================
+// getContentTree — 覆盖 scanner.ts:63-82
+// ============================================================
+
+describe('getContentTree', () => {
+  it('空文件列表应返回空树', () => {
+    const tree = getContentTree([]);
+    expect(tree.name).toBe('');
+    expect(tree.files).toHaveLength(0);
+    expect(tree.children).toHaveLength(0);
+  });
+
+  it('根级文件应直接放入 root.files', () => {
+    const files = [
+      {
+        filePath: '/test/index.mdx',
+        slug: 'index',
+        name: 'index',
+        frontmatter: { title: 'Home' },
+        content: '',
+        segments: ['index'],
+      },
+    ];
+    const tree = getContentTree(files);
+    expect(tree.files).toHaveLength(1);
+    expect(tree.children).toHaveLength(0);
+  });
+
+  it('嵌套目录应正确构建子节点', () => {
+    const files = [
+      {
+        filePath: '/test/guide/intro.mdx',
+        slug: 'guide/intro',
+        name: 'intro',
+        frontmatter: { title: 'Intro' },
+        content: '',
+        segments: ['guide', 'intro'],
+      },
+    ];
+    const tree = getContentTree(files);
+    expect(tree.children).toHaveLength(1);
+    expect(tree.children[0]?.name).toBe('guide');
+    expect(tree.children[0]?.files).toHaveLength(1);
+  });
+});
+
 describe('page tree builder', () => {
   it('应当从文件系统结构构建', () => {
     const files = [
@@ -1668,5 +1714,54 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.header?.sticky).toBe(false);
     expect(config.header?.height).toBe('56px');
     expect(config.header?.bordered).toBe(true);
+  });
+
+  // 覆盖 loader.ts 行57: contentDir ?? DEFAULT_CONFIG.contentDir ?? 'content'
+  // 注意：?? 只在 null/undefined 时回退，空字符串 "" 会透传
+  it('当 contentDir 为空字符串时应保留空字符串（?? 不回退空串）', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T', contentDir: '' }));
+    const config = await loadConfig(tmpDir);
+    // ?? 不处理空字符串，"" ?? 'content' 返回 ""
+    expect(config.contentDir).toBe('');
+  });
+
+  // 覆盖 loader.ts 行59: locale ?? DEFAULT_CONFIG.locale ?? 'zh'
+  it('当 locale 为空字符串时应保留空字符串（?? 不回退空串）', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'T', locale: '' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.locale).toBe('');
+  });
+
+  // 覆盖 loader.ts 行48-52: topLevelLogoSource 为 null（无 logo 配置）
+  it('当没有配置 logo 时 logo 和 header.logo 应为 undefined', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'NoLogo' }));
+    const config = await loadConfig(tmpDir);
+    expect(config.logo).toBeUndefined();
+    expect(config.header?.logo).toBeUndefined();
+  });
+
+  // 覆盖 loader.ts 行99: i18n 内部 defaultLanguage 的 locale fallback
+  // 空字符串 locale 会透传到 defaultLanguage
+  it('当 i18n 配置且 locale 为空字符串时 defaultLanguage 应为空字符串', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'T',
+        locale: '',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    // "" ?? 'zh' 返回 ""（?? 不回退空串）
+    expect(config.i18n?.defaultLanguage).toBe('');
   });
 });

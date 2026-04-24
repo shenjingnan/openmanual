@@ -922,6 +922,31 @@ describe('generateSearchRoute', () => {
     expect(result).toContain('localeMap');
     expect(result).toContain('_localeMap');
   });
+
+  // 覆盖 search-route.ts: 混合支持/不支持语言的所有 map 分支
+  it('应当正确处理混合支持和不支持的语言（4种语言）', () => {
+    const result = generateSearchRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'de', name: 'Deutsch' }, // supported → 'german'
+            { code: 'zh', name: '中文' }, // unsupported → {}
+            { code: 'es', name: 'Espanol' }, // supported → 'spanish'
+            { code: 'ko', name: '한국어' }, // unsupported → {}
+          ],
+        },
+      } as OpenManualConfig,
+    });
+
+    expect(result).toContain("de: 'german'");
+    expect(result).toContain('zh: {}');
+    expect(result).toContain("es: 'spanish'");
+    expect(result).toContain('ko: {}');
+    expect(result).toContain('localeMap');
+    expect(result).toContain('_localeMap');
+  });
 });
 
 // ============================================================
@@ -1488,6 +1513,21 @@ describe('generateLibSource - with openapi', () => {
     expect(result).not.toContain('multiple');
     expect(result).not.toContain('openapiPlugin');
     expect(result).toContain('source: docs.toFumadocsSource()');
+  });
+
+  // 覆盖 lib-source.ts 行12: groupBy ?? 'tag' 默认值分支
+  it('当未设置 groupBy 时应默认为 tag（覆盖 ?? fallback）', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        openapi: { specPath: 'openapi.yaml', separateTab: false },
+        // 注意：没有 groupBy 字段
+      } as OpenManualConfig,
+      projectDir: '/tmp/test',
+    };
+    const result = generateLibSource(ctx);
+    expect(result).toContain('groupBy: "tag"');
+    expect(result).toContain('meta: true');
   });
 });
 

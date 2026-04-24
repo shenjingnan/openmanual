@@ -493,6 +493,72 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     expect(layoutContent).toContain('sidebar:');
     expect(layoutContent).toContain('tabs:');
   });
+
+  // ============================================================
+  // 用例：i18n 模式下 root group 无扫描文件时 urls 为空数组
+  // 覆盖 index.ts 行642: (cached ?? []).map(...) 当 cached 为空时
+  // ============================================================
+
+  it('当 root group 目录无实际文件时 urls 应为空数组（cached 为空）', async () => {
+    await setupContent({
+      'zh/guide/meta.json': JSON.stringify({ title: '指南', root: true }),
+      // zh/guide/ 下没有 .mdx 文件 → scannedDirCache.get 返回空数组
+      'zh/index.mdx': '---\ntitle: 首页\n---\n# Home',
+    });
+
+    await generateAll({
+      config: baseConfig({
+        i18n: {
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    const layoutContent = await readFile(
+      join(appDir, 'app/[lang]/[[...slug]]/layout.tsx'),
+      'utf-8'
+    );
+
+    // URL 应回退到 pages[0] 或 'index'（因为 cached 为空）
+    expect(layoutContent).toContain('"url":"/zh/guide/index"');
+    // 应包含 new Set<string> 构造（urls 可能是空 Set）
+    expect(layoutContent).toContain('new Set<string>');
+  });
+
+  // ============================================================
+  // 用例：i18n 配置但只有 1 种语言时回退到单语言模式
+  // 覆盖 index.ts 行660: isI18n=false 时 languages 为空数组的分支
+  // ============================================================
+
+  it('i18n 配置但只有 1 种语言时应生成单语言输出（无 [lang] 路由）', async () => {
+    await setupContent({
+      'index.md': '---\ntitle: Home\n---\n# Home',
+      'guide/intro.md': '---\ntitle: Intro\n---\n# Intro',
+    });
+
+    // 只有 1 种语言 → isI18nEnabled 返回 false → 单语言模式
+    await generateAll({
+      config: baseConfig({
+        i18n: { languages: [{ code: 'zh', name: '中文' }] },
+      }),
+      projectDir,
+      appDir,
+      contentDir: 'content',
+    });
+
+    // 单语言模式：layout 在 app/[[...slug]]/ 下（非 app/[lang]/）
+    const layoutContent = await readFile(join(appDir, 'app/[[...slug]]/layout.tsx'), 'utf-8');
+    expect(layoutContent).toContain('DocsLayoutWrapper');
+    // 不应包含 i18n 特有的 ${lang} 模板
+    expect(layoutContent).not.toContain('${lang}');
+  });
 });
 
 // ============================================================
