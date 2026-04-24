@@ -16,31 +16,19 @@ export interface MetaGroupInfo {
   icon?: string;
   /** Whether the folder is expanded by default (inverted from "collapsed") */
   defaultOpen?: boolean;
-  /** Ordered list of page filenames within this group */
+  /** Ordered list of page filenames within the group */
   pages?: string[];
 }
 
-// Scan all meta.json files in the content directory and return structured info.
-// Supports dir-parser (content/{lang}/**/meta.json) and dot-parser modes.
+// Scan all meta.json files in the content directory.
+// - i18n mode:     content/{lang}/**/meta.json
+// - single-lang:   content/**/meta.json
 export async function scanMetaFiles(
   contentAbsDir: string,
-  languages: string[],
-  useDirParser: boolean
+  languages: string[]
 ): Promise<MetaGroupInfo[]> {
-  let patterns: string[];
-
-  if (useDirParser) {
-    // Dir-parser: each language has its own subdirectory with meta.json files
-    patterns = languages.map((lang) => `${lang}/**/meta.json`);
-  } else {
-    // Dot-parser: meta.json at directory level + locale-suffixed variants
-    patterns = ['**/meta.json'];
-    if (languages.length > 1) {
-      for (const lang of languages) {
-        patterns.push(`**/meta.${lang}.json`);
-      }
-    }
-  }
+  const patterns =
+    languages.length > 0 ? languages.map((lang) => `${lang}/**/meta.json`) : ['**/meta.json'];
 
   const entries = await fg(patterns, {
     cwd: contentAbsDir,
@@ -51,7 +39,7 @@ export async function scanMetaFiles(
   const groups: MetaGroupInfo[] = [];
 
   for (const filePath of entries) {
-    const group = await parseMetaFile(filePath, contentAbsDir, languages, useDirParser);
+    const group = await parseMetaFile(filePath, contentAbsDir, languages);
     if (group) {
       groups.push(group);
     }
@@ -63,8 +51,7 @@ export async function scanMetaFiles(
 async function parseMetaFile(
   filePath: string,
   contentAbsDir: string,
-  languages: string[],
-  useDirParser: boolean
+  languages: string[]
 ): Promise<MetaGroupInfo | null> {
   try {
     const raw = await readFile(filePath, 'utf-8');
@@ -75,22 +62,13 @@ async function parseMetaFile(
     }
 
     const relPath = filePath.replace(contentAbsDir, '').replace(/^\/+/, '');
-    const dirPath = relPath.replace(/\/?meta(\.[^/]+)?\.json$/, '');
+    const dirPath = relPath.replace(/\/?meta\.json$/, '');
 
-    // Determine if this is a root-level meta.json
-    // In dir-parser mode: content/{lang}/meta.json → isRoot when dirPath equals language code
-    // In dot-parser mode: content/meta.json → isRoot when dirPath is empty
+    // Dir-parser mode: root when dirPath equals language code (i18n)
+    // Single-language mode: root when dirPath is empty (meta.json at content root)
     let isRoot = false;
-    if (useDirParser) {
-      isRoot = languages.includes(dirPath);
-    } else {
-      // For dot-parser, skip locale-suffixed meta files for non-default languages
-      const isLocaleSuffixed = /meta\.\w{2}(-\w{2})?\.json$/.test(relPath);
-      if (isLocaleSuffixed && languages.length > 1) {
-        return null; // Skip locale variants - only process base meta.json
-      }
-      // Root only when meta.json is at the content root (empty dirPath)
-      isRoot = dirPath === '';
+    if (languages.length > 0 ? languages.includes(dirPath) : dirPath === '') {
+      isRoot = true;
     }
 
     const group: MetaGroupInfo = {

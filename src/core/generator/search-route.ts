@@ -1,4 +1,4 @@
-import type { OpenManualConfig } from '../config/schema.js';
+import { isI18nEnabled, type OpenManualConfig } from '../config/schema.js';
 
 /**
  * Orama/FlexSearch 支持的语言映射（来自 fumadocs-core/dist/search/server.js STEMMERS）
@@ -51,8 +51,8 @@ function resolveLanguageName(localeCode: string): string | undefined {
 }
 
 export function generateSearchRoute(ctx?: { config: OpenManualConfig }): string {
+  const isI18n = ctx ? isI18nEnabled(ctx.config) : false;
   const i18nCfg = ctx?.config.i18n;
-  const isI18n = i18nCfg?.enabled === true && i18nCfg.languages && i18nCfg.languages.length >= 2;
 
   // i18n 模式下需要显式配置 localeMap：
   // - 支持的语言映射到对应的 language 名称（如 en → 'english'）

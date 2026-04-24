@@ -38,23 +38,15 @@ const baseCtx = { config: baseConfig, projectDir: '/tmp/test' };
 const i18nConfig: OpenManualConfig = {
   name: 'TestI18n',
   i18n: {
-    enabled: true,
     defaultLanguage: 'zh',
     languages: [
       { code: 'zh', name: '中文' },
       { code: 'en', name: 'English' },
     ],
-    parser: 'dot',
   },
 };
 
-const i18nConfigDirParser: OpenManualConfig = {
-  ...i18nConfig,
-  i18n: { ...(i18nConfig.i18n ?? {}), parser: 'dir' },
-};
-
 const i18nCtx = { config: i18nConfig, projectDir: '/tmp/test' };
-const i18nCtxDir = { config: i18nConfigDirParser, projectDir: '/tmp/test' };
 
 describe('generateGlobalCss', () => {
   it('应当包含 tailwindcss 和 fumadocs 导入（拆分以避免重复 @import tailwindcss）', () => {
@@ -699,7 +691,7 @@ describe('generateSourceConfig', () => {
     const results = [
       generateSourceConfig(baseCtx),
       generateSourceConfig({ config: { ...baseConfig, ...i18nConfig } }),
-      generateSourceConfig({ config: { ...baseConfig, ...i18nConfigDirParser } }),
+      generateSourceConfig({ config: { ...baseConfig, ...i18nConfig } }),
     ];
     // All should produce the same simplified output structure
     for (const result of results) {
@@ -849,9 +841,7 @@ describe('generateSearchRoute', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
-          parser: 'dir',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -875,7 +865,6 @@ describe('generateSearchRoute', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           defaultLanguage: 'en',
           languages: [
             { code: 'en', name: 'English' },
@@ -897,7 +886,6 @@ describe('generateSearchRoute', () => {
     const result = generateSearchRoute({
       config: {
         i18n: {
-          enabled: true,
           languages: [{ code: 'zh', name: '中文' }],
         },
       } as OpenManualConfig,
@@ -913,7 +901,6 @@ describe('generateSearchRoute', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
@@ -935,6 +922,31 @@ describe('generateSearchRoute', () => {
     expect(result).toContain('localeMap');
     expect(result).toContain('_localeMap');
   });
+
+  // 覆盖 search-route.ts: 混合支持/不支持语言的所有 map 分支
+  it('应当正确处理混合支持和不支持的语言（4种语言）', () => {
+    const result = generateSearchRoute({
+      config: {
+        name: 'Test',
+        i18n: {
+          defaultLanguage: 'zh',
+          languages: [
+            { code: 'de', name: 'Deutsch' }, // supported → 'german'
+            { code: 'zh', name: '中文' }, // unsupported → {}
+            { code: 'es', name: 'Espanol' }, // supported → 'spanish'
+            { code: 'ko', name: '한국어' }, // unsupported → {}
+          ],
+        },
+      } as OpenManualConfig,
+    });
+
+    expect(result).toContain("de: 'german'");
+    expect(result).toContain('zh: {}');
+    expect(result).toContain("es: 'spanish'");
+    expect(result).toContain('ko: {}');
+    expect(result).toContain('localeMap');
+    expect(result).toContain('_localeMap');
+  });
 });
 
 // ============================================================
@@ -942,19 +954,12 @@ describe('generateSearchRoute', () => {
 // ============================================================
 
 describe('generateI18nConfig', () => {
-  it('应当使用 dot 解析器生成 defineI18n 配置（无 parser 字段）', () => {
+  it('应当始终生成包含 parser: dir 的 defineI18n 配置', () => {
     const result = generateI18nConfig(i18nCtx);
     expect(result).toContain("import { defineI18n } from 'fumadocs-core/i18n'");
     expect(result).toContain("defaultLanguage: 'zh'");
     expect(result).toContain("languages: ['zh', 'en']");
-    expect(result).not.toContain("parser: 'dir'");
-  });
-
-  it('当 parser 为 dir 时应当包含 parser: dir', () => {
-    const result = generateI18nConfig(i18nCtxDir);
     expect(result).toContain("parser: 'dir'");
-    expect(result).toContain("defaultLanguage: 'zh'");
-    expect(result).toContain("languages: ['zh', 'en']");
   });
 
   it('应使用 config.locale 值作为 defaultLanguage', () => {
@@ -980,16 +985,12 @@ describe('generateI18nConfig', () => {
     expect(result).toContain("defaultLanguage: 'zh'");
   });
 
-  it('当 i18n.enabled 为 false 时应抛出错误', () => {
+  it('当 languages 不足 2 种时应抛出错误', () => {
     const ctx = {
       config: {
         name: 'T',
         i18n: {
-          enabled: false,
-          languages: [
-            { code: 'a', name: 'A' },
-            { code: 'b', name: 'B' },
-          ],
+          languages: [{ code: 'a', name: 'A' }],
         },
       },
     };
@@ -1000,7 +1001,7 @@ describe('generateI18nConfig', () => {
 
   it('当只配置了 1 种语言时应抛出错误', () => {
     const ctx = {
-      config: { name: 'T', i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] } },
+      config: { name: 'T', i18n: { languages: [{ code: 'zh', name: '中文' }] } },
     };
     expect(() => generateI18nConfig(ctx)).toThrow(
       /generateI18nConfig called but i18n is not properly configured/
@@ -1008,7 +1009,7 @@ describe('generateI18nConfig', () => {
   });
 
   it('should throw when languages array is empty', () => {
-    const ctx = { config: { name: 'T', i18n: { enabled: true, languages: [] } } };
+    const ctx = { config: { name: 'T', i18n: { languages: [] } } };
     expect(() => generateI18nConfig(ctx)).toThrow(
       /generateI18nConfig called but i18n is not properly configured/
     );
@@ -1066,7 +1067,7 @@ describe('generateI18nUI', () => {
   });
 
   it('当 languages 为未定义时应抛出错误', () => {
-    const ctx = { config: { name: 'T', i18n: { enabled: true } } };
+    const ctx = { config: { name: 'T', i18n: {} } };
     expect(() => generateI18nUI(ctx)).toThrow(/generateI18nUI called but no languages configured/);
   });
 
@@ -1116,7 +1117,7 @@ describe('generateMiddleware', () => {
 
 describe('generateRawContentRoute - i18n modes', () => {
   it('应当生成带有正确参数类型的 dir 解析器路由（params 中不含 lang）', () => {
-    const result = generateRawContentRoute(i18nCtxDir);
+    const result = generateRawContentRoute(i18nCtx);
     // dir parser: params 中只有 path，不含 lang（因为路由路径是 app/api/raw/[...path]/route.ts）
     expect(result).toContain('{ path: string[] }');
     expect(result).not.toContain('{ path: string[]; lang: string }');
@@ -1133,25 +1134,7 @@ describe('generateRawContentRoute - i18n modes', () => {
     expect(result).toContain('status: 404');
   });
 
-  it('应当生成带有回退逻辑和来自查询参数的 lang 的 dot 解析器路由', () => {
-    const result = generateRawContentRoute(i18nCtx);
-    // dot parser: params 中只有 path，不含 lang
-    expect(result).toContain('{ path: string[] }');
-    expect(result).not.toContain('{ path: string[]; lang: string }');
-    // 从 request.url 的 searchParams 获取 lang
-    expect(result).toContain("searchParams.get('lang')");
-    // dot parser: suffix logic for non-default language
-    expect(result).toContain('suffix = lang !== _defaultLang');
-    // dot parser: try with suffix first
-    expect(result).toContain(`\${slug}\${suffix}\${ext}`);
-    // dot parser: fallback without suffix
-    expect(result).toContain(`\${slug}\${ext}`);
-    // dot parser: 404 handling
-    expect(result).toContain("'Not found'");
-    expect(result).toContain('status: 404');
-  });
-
-  it('dot 解析器应当按顺序尝试 .mdx 和 .md 扩展名', () => {
+  it('dir 解析器应当按顺序尝试 .mdx 和 .md 扩展名', () => {
     const result = generateRawContentRoute(i18nCtx);
     const mdxIndex = result.indexOf("'.mdx'");
     const mdIndex = result.indexOf("'.md'");
@@ -1160,12 +1143,12 @@ describe('generateRawContentRoute - i18n modes', () => {
   });
 
   it('dir 解析器应当使用正确的文件路径模式', () => {
-    const result = generateRawContentRoute(i18nCtxDir);
+    const result = generateRawContentRoute(i18nCtx);
     // dir parser path: join(cwd(), 'content', lang, `${slug}.ext`)
     expect(result).toContain("'content', lang,");
   });
 
-  it('dot 解析器应当在所有扩展名耗尽后处理 404', () => {
+  it('dir 解析器应当在所有扩展名耗尽后处理 404', () => {
     const result = generateRawContentRoute(i18nCtx);
     // 404 should be outside both extension loops
     const last404 = result.lastIndexOf("'Not found'");
@@ -1174,7 +1157,7 @@ describe('generateRawContentRoute - i18n modes', () => {
   });
 
   it('dir 解析器应当在所有扩展名耗尽后处理 404', () => {
-    const result = generateRawContentRoute(i18nCtxDir);
+    const result = generateRawContentRoute(i18nCtx);
     expect(result).toContain("'Not found'");
     expect(result).toContain('status: 404');
   });
@@ -1182,7 +1165,7 @@ describe('generateRawContentRoute - i18n modes', () => {
   // --- 显式断言确保分支覆盖 ---
 
   it('dir 解析器路由应当嵌入带有解析值的 _defaultLang 常量', () => {
-    const result = generateRawContentRoute(i18nCtxDir);
+    const result = generateRawContentRoute(i18nCtx);
     expect(result).toContain("_defaultLang = 'zh'");
   });
 
@@ -1197,12 +1180,10 @@ describe('generateRawContentRoute - i18n modes', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       } as OpenManualConfig,
     });
@@ -1216,7 +1197,6 @@ describe('generateRawContentRoute - i18n modes', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -1235,12 +1215,10 @@ describe('generateRawContentRoute - i18n modes', () => {
         name: 'Test',
         locale: 'ja',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'ja', name: '日本語' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       } as OpenManualConfig,
     });
@@ -1536,6 +1514,21 @@ describe('generateLibSource - with openapi', () => {
     expect(result).not.toContain('openapiPlugin');
     expect(result).toContain('source: docs.toFumadocsSource()');
   });
+
+  // 覆盖 lib-source.ts 行12: groupBy ?? 'tag' 默认值分支
+  it('当未设置 groupBy 时应默认为 tag（覆盖 ?? fallback）', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        openapi: { specPath: 'openapi.yaml', separateTab: false },
+        // 注意：没有 groupBy 字段
+      } as OpenManualConfig,
+      projectDir: '/tmp/test',
+    };
+    const result = generateLibSource(ctx);
+    expect(result).toContain('groupBy: "tag"');
+    expect(result).toContain('meta: true');
+  });
 });
 
 describe('generateNextConfig - with openapi', () => {
@@ -1616,7 +1609,6 @@ describe('generatePage - with openapi (i18n mode)', () => {
           { code: 'zh', name: '中文' },
           { code: 'en', name: 'English' },
         ],
-        parser: 'dot',
       },
       openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
@@ -1663,7 +1655,6 @@ describe('generateLibSource - i18n + openapi combined mode', () => {
           { code: 'zh', name: '中文' },
           { code: 'en', name: 'English' },
         ],
-        parser: 'dot',
       },
       openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
     },
@@ -1788,7 +1779,6 @@ describe('generateLibSource - i18n + separateTab true mode', () => {
           { code: 'zh', name: '中文' },
           { code: 'en', name: 'English' },
         ],
-        parser: 'dot',
       },
       openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: true },
     },
@@ -1846,12 +1836,10 @@ describe('generateLibSource - groupBy variants', () => {
       config: {
         name: 'T',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中' },
             { code: 'en', name: 'En' },
           ],
-          parser: 'dot',
         },
         openapi: { specPath: 'a.yaml', groupBy: 'route', separateTab: false },
       },

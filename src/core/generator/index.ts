@@ -2,7 +2,6 @@ import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { OpenManualConfig } from '../config/schema.js';
 import {
-  isDirParser,
   isHeaderEnabled,
   isI18nEnabled,
   isOpenApiEnabled,
@@ -406,7 +405,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const openapiTab = separateTab
     ? {
         title: config.openapi?.label ?? '接口文档',
-        url: isI18n ? '/${lang}/openapi' : '/openapi',
+        url: isI18n ? `/\${lang}/openapi` : '/openapi',
         urls: new Set<string>(),
       }
     : null;
@@ -598,22 +597,19 @@ async function ensureLogoFile(
 async function computeAllSlugs(ctx: GenerateContext): Promise<void> {
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
   const isI18n = isI18nEnabled(ctx.config);
-  const useDirParser = isDirParser(ctx.config);
   const languages = isI18n ? (ctx.config.i18n?.languages ?? []).map((l) => l.code) : [];
 
   // Priority 1: Collect from meta.json files
-  const metaGroups = await scanMetaFiles(contentAbsDir, languages, useDirParser);
+  const metaGroups = await scanMetaFiles(contentAbsDir, languages);
   if (metaGroups.length > 0) {
     ctx.allSlugs = collectSlugsFromMeta(metaGroups);
     // Also collect root-level file slugs (e.g. index.mdx, quickstart.mdx under {lang}/)
     // which are not covered by any meta.json pages field
     const allFiles = await scanContentDir(contentAbsDir);
     for (const file of allFiles) {
-      // Root-level files: directly under {lang}/ (dir-parser: segments length == 2)
-      // or directly under content/ (dot-parser: segments length == 1)
-      const isRootLevel = useDirParser
-        ? file.segments.length === 2 && languages.includes(file.segments[0]!)
-        : file.segments.length === 1;
+      // Root-level files: directly under {lang}/ (dir-parser mode)
+      const isRootLevel =
+        isI18n && file.segments.length === 2 && languages.includes(file.segments[0] ?? '');
       if (isRootLevel) {
         ctx.allSlugs.add(file.slug);
       }
@@ -661,11 +657,10 @@ async function computeAllSlugs(ctx: GenerateContext): Promise<void> {
 async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
   const contentAbsDir = join(ctx.projectDir, ctx.contentDir);
   const isI18n = isI18nEnabled(ctx.config);
-  const useDirParser = isDirParser(ctx.config);
   const languages = isI18n ? (ctx.config.i18n?.languages ?? []).map((l) => l.code) : [];
 
   // Scan existing meta.json files
-  const metaGroups = await scanMetaFiles(contentAbsDir, languages, useDirParser);
+  const metaGroups = await scanMetaFiles(contentAbsDir, languages);
 
   // Enrich existing meta.json files
   if (metaGroups.length > 0) {
@@ -676,7 +671,7 @@ async function generateMetaFiles(ctx: GenerateContext): Promise<void> {
   }
 
   // Auto-generate from file system structure
-  await autoGenerateMetaFromFS(ctx, contentAbsDir, languages, useDirParser);
+  await autoGenerateMetaFromFS(ctx, contentAbsDir, languages);
 }
 
 /**
@@ -699,8 +694,7 @@ async function enrichMetaFile(_group: MetaGroupInfo): Promise<void> {
 async function autoGenerateMetaFromFS(
   _ctx: GenerateContext,
   contentAbsDir: string,
-  languages: string[],
-  useDirParser: boolean
+  languages: string[]
 ): Promise<void> {
   const files = await scanContentDir(contentAbsDir);
 
@@ -727,24 +721,25 @@ async function autoGenerateMetaFromFS(
       title: 'Getting Started',
       pages: rootFiles.map((f) => f.name),
     };
-
-    if (useDirParser) {
+    if (isI18nEnabled(_ctx.config)) {
+      // Dir-parser mode: generate per-language meta.json
       for (const lang of languages) {
         await writeMetaIfNotExists(join(contentAbsDir, lang, 'meta.json'), rootMeta);
       }
     } else {
+      // Single-language mode: generate content/meta.json
       await writeMetaIfNotExists(join(contentAbsDir, 'meta.json'), rootMeta);
     }
   }
 
-  // Generate meta.json for each directory group
+  // Generate meta.json for each directory group (dir-parser mode)
   for (const [dirName, dirFiles] of dirGroups) {
     const dirMeta: Record<string, unknown> = {
       title: formatTitle(dirName),
       pages: dirFiles.map((f) => f.segments.slice(1).join('/')),
     };
 
-    if (useDirParser) {
+    if (isI18nEnabled(_ctx.config)) {
       for (const lang of languages) {
         await writeMetaIfNotExists(join(contentAbsDir, lang, dirName, 'meta.json'), dirMeta);
       }

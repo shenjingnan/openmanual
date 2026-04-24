@@ -1,4 +1,4 @@
-import type { OpenManualConfig } from '../config/schema.js';
+import { isI18nEnabled, type OpenManualConfig } from '../config/schema.js';
 
 /**
  * 生成 app/provider.tsx（或 app/[lang]/provider.tsx）
@@ -10,7 +10,7 @@ import type { OpenManualConfig } from '../config/schema.js';
 export function generateProvider(ctx: { config: OpenManualConfig }): string {
   // 搜索始终启用
   const searchEnabled = true;
-  const isI18n = ctx.config.i18n?.enabled === true;
+  const isI18n = isI18nEnabled(ctx.config);
 
   if (isI18n) {
     return `'use client';

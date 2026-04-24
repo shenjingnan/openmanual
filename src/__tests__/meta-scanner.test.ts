@@ -17,7 +17,6 @@ describe('meta-scanner', () => {
 
   describe('scanMetaFiles - dir-parser mode', () => {
     const languages = ['zh', 'en'];
-    const useDirParser = true;
 
     it('应当扫描目录级 meta.json 文件', async () => {
       // Setup: content/zh/guide/meta.json
@@ -32,7 +31,7 @@ describe('meta-scanner', () => {
         })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
 
       expect(groups).toHaveLength(1);
       expect(groups[0]?.dirPath).toBe('zh/guide');
@@ -51,7 +50,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: '开始', pages: ['index', 'quickstart'] })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
 
       expect(groups).toHaveLength(1);
       expect(groups[0]?.dirPath).toBe('zh');
@@ -73,7 +72,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide', pages: ['configuration'] })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
 
       expect(groups).toHaveLength(2);
       const zhGroup = groups.find((g) => g.dirPath === 'zh/guide');
@@ -83,7 +82,7 @@ describe('meta-scanner', () => {
     });
 
     it('空内容目录应返回空数组', async () => {
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(0);
     });
 
@@ -91,7 +90,7 @@ describe('meta-scanner', () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(join(TMP_DIR, 'zh', 'guide', 'meta.json'), JSON.stringify({}));
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(0);
     });
 
@@ -102,7 +101,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide' })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
 
       expect(groups).toHaveLength(1);
       expect(groups[0]?.icon).toBeUndefined();
@@ -114,7 +113,7 @@ describe('meta-scanner', () => {
       await mkdir(join(TMP_DIR, 'zh', 'guide'), { recursive: true });
       await writeFile(join(TMP_DIR, 'zh', 'guide', 'meta.json'), 'not-json{{{');
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(0);
     });
 
@@ -125,7 +124,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide', pages: ['valid', 123, null, 'also-valid', {}] })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups[0]?.pages).toEqual(['valid', 'also-valid']);
     });
 
@@ -136,7 +135,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide', root: true })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(1);
       expect(groups[0]?.root).toBe(true);
     });
@@ -148,7 +147,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide', root: false })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(1);
       expect(groups[0]?.root).toBe(false);
     });
@@ -160,7 +159,7 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide' })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(1);
       expect(groups[0]?.root).toBeUndefined();
     });
@@ -172,58 +171,53 @@ describe('meta-scanner', () => {
         JSON.stringify({ title: 'Guide', root: 'yes' })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
+      const groups = await scanMetaFiles(TMP_DIR, languages);
       expect(groups).toHaveLength(1);
       expect(groups[0]?.root).toBeUndefined();
     });
   });
 
-  describe('scanMetaFiles - dot-parser mode (single language)', () => {
-    const languages = ['zh'];
-    const useDirParser = false;
-
-    it('应当扫描目录级的 meta.json', async () => {
-      await mkdir(join(TMP_DIR, 'guide'), { recursive: true });
-      await writeFile(
-        join(TMP_DIR, 'guide', 'meta.json'),
-        JSON.stringify({ title: '指南', pages: ['configuration'] })
-      );
-
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
-
-      expect(groups).toHaveLength(1);
-      expect(groups[0]?.dirPath).toBe('guide');
-      expect(groups[0]?.isRoot).toBe(false);
-      expect(groups[0]?.title).toBe('指南');
-    });
-
-    it('应当在 dot-parser 模式下识别根级 meta.json', async () => {
+  describe('scanMetaFiles - single-language mode (empty languages array)', () => {
+    // 覆盖 meta-scanner.ts 行70: dirPath === '' 分支（单语言模式的 isRoot 判断）
+    it('单语言模式下根级 meta.json（content/meta.json）的 isRoot 应为 true', async () => {
+      await mkdir(TMP_DIR, { recursive: true });
       await writeFile(
         join(TMP_DIR, 'meta.json'),
-        JSON.stringify({ title: '开始', pages: ['index', 'quickstart'] })
+        JSON.stringify({ title: '开始', pages: ['index'] })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, languages, useDirParser);
-
+      const groups = await scanMetaFiles(TMP_DIR, []);
       expect(groups).toHaveLength(1);
       expect(groups[0]?.dirPath).toBe('');
       expect(groups[0]?.isRoot).toBe(true);
+      expect(groups[0]?.title).toBe('开始');
     });
 
-    it('在多语言 dot-parser 模式下应当跳过带语言后缀的 meta 文件', async () => {
-      const multiLang = ['zh', 'en'];
+    // 覆盖 meta-scanner.ts 行70: 单语言模式下目录级 isRoot 为 false
+    it('单语言模式下目录级 meta.json 的 isRoot 应为 false', async () => {
       await mkdir(join(TMP_DIR, 'guide'), { recursive: true });
-      await writeFile(join(TMP_DIR, 'guide', 'meta.json'), JSON.stringify({ title: 'Guide' }));
       await writeFile(
-        join(TMP_DIR, 'guide', 'meta.en.json'),
-        JSON.stringify({ title: 'Guide EN' })
+        join(TMP_DIR, 'guide', 'meta.json'),
+        JSON.stringify({ title: '指南', pages: ['intro'] })
       );
 
-      const groups = await scanMetaFiles(TMP_DIR, multiLang, false);
-
-      // Should only return the base meta.json, not the locale-suffixed one
+      const groups = await scanMetaFiles(TMP_DIR, []);
       expect(groups).toHaveLength(1);
-      expect(groups[0]?.title).toBe('Guide');
+      expect(groups[0]?.dirPath).toBe('guide');
+      expect(groups[0]?.isRoot).toBe(false);
+    });
+
+    it('单语言模式下应同时扫描根级和目录级 meta.json', async () => {
+      await mkdir(join(TMP_DIR, 'guide'), { recursive: true });
+      await writeFile(join(TMP_DIR, 'meta.json'), JSON.stringify({ title: '开始' }));
+      await writeFile(join(TMP_DIR, 'guide', 'meta.json'), JSON.stringify({ title: '指南' }));
+
+      const groups = await scanMetaFiles(TMP_DIR, []);
+      expect(groups).toHaveLength(2);
+      const rootGroup = groups.find((g) => g.dirPath === '');
+      const guideGroup = groups.find((g) => g.dirPath === 'guide');
+      expect(rootGroup?.isRoot).toBe(true);
+      expect(guideGroup?.isRoot).toBe(false);
     });
   });
 
@@ -310,6 +304,51 @@ describe('meta-scanner', () => {
       const slugs = collectSlugsFromMeta([]);
       expect(slugs.size).toBe(0);
     });
+  });
+});
+
+// ============================================================
+// check-code-langs — 覆盖 check-code-langs.ts 行32-37
+// ============================================================
+
+describe('checkCodeLangs', () => {
+  const checkTmpDir = join(process.env.TMPDIR ?? '/tmp', 'om-test-check-lang');
+
+  afterEach(async () => {
+    await rm(checkTmpDir, { recursive: true, force: true });
+  });
+
+  // 覆盖 check-code-langs.ts 行32-37: 不支持的语言触发 results.push
+  it('应当检测到代码块中使用 shiki 不支持的语言', async () => {
+    await mkdir(join(checkTmpDir, 'guide'), { recursive: true });
+    await writeFile(
+      join(checkTmpDir, 'guide', 'test.md'),
+      '# Test\n\n```totally-fake-lang\nconsole.log("hi");\n```\n\n```python\nprint("ok");\n```\n'
+    );
+
+    const { checkCodeLangs } = await import('../utils/check-code-langs.js');
+    const results = await checkCodeLangs(checkTmpDir);
+
+    // 应检测到伪造语言
+    const fakeLangResult = results.find((r) => r.lang === 'totally-fake-lang');
+    expect(fakeLangResult).toBeDefined();
+    expect(fakeLangResult?.file).toBe('guide/test.md');
+    expect(fakeLangResult?.line).toBe(3);
+
+    // Python 是 shiki 支持的语言，不应被报告
+    expect(results.find((r) => r.lang === 'python')).toBeUndefined();
+  });
+
+  it('当所有代码块语言都支持时应返回空数组', async () => {
+    await mkdir(checkTmpDir, { recursive: true });
+    await writeFile(
+      join(checkTmpDir, 'index.md'),
+      '# Hello\n\n```typescript\nconst x = 1;\n```\n\n```javascript\nconst y = 2;\n```\n'
+    );
+
+    const { checkCodeLangs } = await import('../utils/check-code-langs.js');
+    const results = await checkCodeLangs(checkTmpDir);
+    expect(results).toHaveLength(0);
   });
 });
 

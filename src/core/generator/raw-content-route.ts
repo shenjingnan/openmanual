@@ -1,12 +1,10 @@
-import type { OpenManualConfig } from '../config/schema.js';
-import { isDirParser } from '../config/schema.js';
+import { isI18nEnabled, type OpenManualConfig } from '../config/schema.js';
 
 export function generateRawContentRoute(ctx: { config: OpenManualConfig }): string {
-  const isI18n = ctx.config.i18n?.enabled === true;
-  const useDirParser = isDirParser(ctx.config);
+  const isI18n = isI18nEnabled(ctx.config);
 
-  if (isI18n && useDirParser) {
-    // === Dir parser 模式：文件在 content/{lang}/{slug}.ext ===
+  if (isI18n) {
+    // === Dir parser 模式（唯一模式）：文件在 content/{lang}/{slug}.ext ===
     // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
     const defaultLang = ctx.config.locale ?? 'zh';
     return `import { readFile } from 'node:fs/promises';
@@ -28,56 +26,6 @@ export async function GET(
   for (const ext of ['.mdx', '.md']) {
     try {
       const filePath = join(process.cwd(), 'content', lang, \`\${slug}\${ext}\`);
-      const content = await readFile(filePath, 'utf-8');
-      return new NextResponse(content, {
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-      });
-    } catch {
-      /* try next extension */
-    }
-  }
-  return new NextResponse('Not found', { status: 404 });
-}
-`;
-  }
-
-  if (isI18n) {
-    // === Dot parser 模式：文件在 content/{slug}.{lang}.ext ===
-    // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
-    const defaultLang = ctx.config.locale ?? 'zh';
-    return `import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { NextResponse } from 'next/server';
-
-const _defaultLang = '${defaultLang}';
-
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ path: string[] }> },
-) {
-  const { path: segments } = await params;
-  const slug = segments.join('/');
-  // 从查询参数获取语言，回退到默认语言（API 路由不在 [lang] 路径段下）
-  const { searchParams } = new URL(request.url);
-  const lang = searchParams.get('lang') ?? _defaultLang;
-  // 尝试带语言后缀的文件，再回退到默认语言文件
-  const suffix = lang !== _defaultLang ? \`.\${lang}\` : '';
-  for (const ext of ['.mdx', '.md']) {
-    // 先尝试带后缀
-    if (suffix) {
-      try {
-        const filePath = join(process.cwd(), 'content', \`\${slug}\${suffix}\${ext}\`);
-        const content = await readFile(filePath, 'utf-8');
-        return new NextResponse(content, {
-          headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-        });
-      } catch {
-        /* 回退 */
-      }
-    }
-    // 再尝试不带后缀（默认语言或 fallback）
-    try {
-      const filePath = join(process.cwd(), 'content', \`\${slug}\${ext}\`);
       const content = await readFile(filePath, 'utf-8');
       return new NextResponse(content, {
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
