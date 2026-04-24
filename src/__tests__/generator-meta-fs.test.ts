@@ -93,13 +93,11 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     await generateAll({
       config: baseConfig({
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       }),
       projectDir,
@@ -329,50 +327,6 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   });
 
   // ============================================================
-  // 补充: dot-parser i18n 模式（非 dir）的 meta 生成
-  // pages 按 localeCompare 字母序
-  // ============================================================
-
-  it('应当在 dot-parser i18n 模式下自动生成 meta.json', async () => {
-    await mkdir(join(projectDir, 'content', 'guide'), { recursive: true });
-    await writeFile(join(projectDir, 'content', 'index.mdx'), '---\ntitle: Home\n---\n# Home');
-    await writeFile(
-      join(projectDir, 'content', 'getting-started.mdx'),
-      '---\ntitle: Quick Start\n---\n# Start'
-    );
-    await writeFile(
-      join(projectDir, 'content', 'guide', 'config.mdx'),
-      '---\ntitle: Config\n---\n# Config'
-    );
-
-    await generateAll({
-      config: baseConfig({
-        i18n: {
-          enabled: true,
-          defaultLanguage: 'zh',
-          languages: [
-            { code: 'zh', name: '中文' },
-            { code: 'en', name: 'English' },
-          ],
-          parser: 'dot',
-        },
-      }),
-      projectDir,
-      appDir,
-      contentDir: 'content',
-    });
-
-    // dot-parser 模式下应生成 content/meta.json（不是 per-language）
-    const rootMeta = (await readMeta('meta.json')) as Record<string, unknown>;
-    expect(rootMeta.title).toBe('Getting Started');
-    expect(rootMeta.pages).toEqual(['getting-started', 'index']);
-
-    const guideMeta = (await readMeta('guide/meta.json')) as Record<string, unknown>;
-    expect(guideMeta.title).toBe('Guide');
-    expect(guideMeta.pages).toEqual(['config']);
-  });
-
-  // ============================================================
   // 用例：rootGroups Tab URL 使用文件路径导航 + urls Set 匹配全组页面
   // ============================================================
 
@@ -391,13 +345,11 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     await generateAll({
       config: baseConfig({
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       }),
       projectDir,
@@ -445,13 +397,11 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     await generateAll({
       config: baseConfig({
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       }),
       projectDir,
@@ -486,13 +436,11 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     await generateAll({
       config: baseConfig({
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
       }),
       projectDir,
@@ -514,7 +462,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
   // ============================================================
 
   it('应当在单语言模式下从 rootGroups 生成非 i18n 的 sidebar.tabs', async () => {
-    // 单语言模式（无 i18n 配置），使用 dot-parser 扫描 meta.json
+    // 单语言模式（无 i18n 配置）
     await setupContent({
       'guide/meta.json': JSON.stringify({ title: '指南', root: true }),
       'guide/configuration.mdx': '---\ntitle: Configuration\n---\n# Config',
@@ -690,13 +638,11 @@ paths:
     await generateAll({
       config: baseConfig({
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir',
         },
         openapi: { specPath: 'openapi.yaml', groupBy: 'tag', separateTab: false },
       }),

@@ -1,4 +1,4 @@
-import type { LogoConfig, OpenManualConfig } from '../config/schema.js';
+import { isI18nEnabled, type LogoConfig, type OpenManualConfig } from '../config/schema.js';
 
 const IMAGE_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp'];
 
@@ -35,7 +35,7 @@ export function resolveNavLogoProps(logo: LogoConfig | string, alt: string): str
 
 export function generateLayout(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
-  const isI18n = config.i18n?.enabled === true;
+  const isI18n = isI18nEnabled(config);
 
   if (isI18n) {
     return `import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';

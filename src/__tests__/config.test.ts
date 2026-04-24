@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { loadConfig } from '../core/config/loader.js';
 import {
   collectConfiguredSlugs,
-  isDirParser,
   isHeaderEnabled,
   isI18nEnabled,
   isOpenApiEnabled,
@@ -697,44 +696,11 @@ describe('isI18nEnabled', () => {
     expect(isI18nEnabled({ name: 'Test' })).toBe(false);
   });
 
-  it('当 i18n.enabled 为 false 时应当返回 false', () => {
+  it('当配置了 2+ 种语言时应返回 true（无需显式 enabled 字段）', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
         i18n: {
-          enabled: false,
-          languages: [
-            { code: 'zh', name: '中文' },
-            { code: 'en', name: 'English' },
-          ],
-        },
-      })
-    ).toBe(false);
-  });
-
-  it('当启用但只有 1 种语言时应当返回 false', () => {
-    expect(
-      isI18nEnabled({
-        name: 'Test',
-        i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] },
-      })
-    ).toBe(false);
-  });
-
-  it('当启用但 languages 数组为空时应当返回 false', () => {
-    expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true, languages: [] } })).toBe(false);
-  });
-
-  it('当启用但 languages 为 undefined 时应当返回 false', () => {
-    expect(isI18nEnabled({ name: 'Test', i18n: { enabled: true } })).toBe(false);
-  });
-
-  it('当启用且 languages 有 2+ 条目时应当返回 true', () => {
-    expect(
-      isI18nEnabled({
-        name: 'Test',
-        i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -744,12 +710,28 @@ describe('isI18nEnabled', () => {
     ).toBe(true);
   });
 
-  it('当启用且 languages 有 3+ 条目时应当返回 true', () => {
+  it('当只有 1 种语言时应当返回 false', () => {
+    expect(
+      isI18nEnabled({
+        name: 'Test',
+        i18n: { languages: [{ code: 'zh', name: '中文' }] },
+      })
+    ).toBe(false);
+  });
+
+  it('当 languages 数组为空时应当返回 false', () => {
+    expect(isI18nEnabled({ name: 'Test', i18n: { languages: [] } })).toBe(false);
+  });
+
+  it('当 languages 为 undefined 时应当返回 false', () => {
+    expect(isI18nEnabled({ name: 'Test', i18n: {} as any })).toBe(false);
+  });
+
+  it('当 languages 有 3+ 条目时应当返回 true', () => {
     expect(
       isI18nEnabled({
         name: 'Test',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -761,30 +743,11 @@ describe('isI18nEnabled', () => {
   });
 });
 
-describe('isDirParser', () => {
-  it('当 parser 为 "dir" 时应当返回 true', () => {
-    expect(isDirParser({ name: 'T', i18n: { parser: 'dir' } })).toBe(true);
-  });
-
-  it('当 parser 为 "dot" 时应当返回 false', () => {
-    expect(isDirParser({ name: 'T', i18n: { parser: 'dot' } })).toBe(false);
-  });
-
-  it('当 parser 为 undefined 时应当返回 false', () => {
-    expect(isDirParser({ name: 'T', i18n: { enabled: true } })).toBe(false);
-  });
-
-  it('当 i18n 配置为 undefined 时应当返回 false', () => {
-    expect(isDirParser({ name: 'T' })).toBe(false);
-  });
-});
-
 describe('I18nLocaleSchema', () => {
   it('应当接受包含 code 和 name 的有效 locale', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: {
-        enabled: true,
         languages: [{ code: 'en', name: 'English' }],
       },
     });
@@ -813,32 +776,21 @@ describe('I18nConfigSchema', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       i18n: {
-        enabled: true,
-        defaultLanguage: 'zh',
         languages: [
           { code: 'zh', name: '中文' },
           { code: 'en', name: 'English' },
         ],
-        parser: 'dir',
       },
     });
     expect(result.success).toBe(true);
   });
 
-  it('应当接受最小 i18n 配置（仅 enabled）', () => {
+  it('应当接受最小 i18n 配置（仅 languages）', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      i18n: { enabled: true },
+      i18n: { languages: [] },
     });
     expect(result.success).toBe(true);
-  });
-
-  it('应当拒绝无效的 parser 值', () => {
-    const result = OpenManualConfigSchema.safeParse({
-      name: 'Test',
-      i18n: { parser: 'invalid' },
-    });
-    expect(result.success).toBe(false);
   });
 
   it('应当接受 i18n 作为可选字段', () => {
@@ -865,7 +817,6 @@ describe('loadConfig - mergeDefaults i18n', () => {
       JSON.stringify({
         name: 'TestProject',
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -875,9 +826,7 @@ describe('loadConfig - mergeDefaults i18n', () => {
     );
     const config = await loadConfig(tmpDir);
     expect(config.i18n).toBeDefined();
-    expect(config.i18n?.enabled).toBe(true);
     expect(config.i18n?.defaultLanguage).toBe('zh'); // derived from locale
-    expect(config.i18n?.parser).toBe('dot'); // fallback default
     expect(config.i18n?.languages).toHaveLength(2);
   });
 
@@ -889,7 +838,6 @@ describe('loadConfig - mergeDefaults i18n', () => {
         name: 'TestProject',
         locale: 'ja',
         i18n: {
-          enabled: true,
           defaultLanguage: 'en', // 废弃字段，应被忽略
           languages: [{ code: 'en', name: 'English' }],
         },
@@ -900,51 +848,11 @@ describe('loadConfig - mergeDefaults i18n', () => {
     expect(config.i18n?.defaultLanguage).toBe('ja');
   });
 
-  it('应当优先使用提供的 i18n.parser 而非回退值', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(
-      join(tmpDir, 'openmanual.json'),
-      JSON.stringify({
-        name: 'TestProject',
-        i18n: {
-          enabled: true,
-          parser: 'dir',
-          languages: [
-            { code: 'zh', name: '中文' },
-            { code: 'en', name: 'English' },
-          ],
-        },
-      })
-    );
-    const config = await loadConfig(tmpDir);
-    expect(config.i18n?.parser).toBe('dir');
-  });
-
   it('当配置中不含 i18n 时应当将 i18n 设为 undefined', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'TestProject' }));
     const config = await loadConfig(tmpDir);
     expect(config.i18n).toBeUndefined();
-  });
-
-  // 覆盖 loader.ts 行85: i18n.enabled 为 undefined 时 fallback 到 false
-  it('当未提供时 i18n.enabled 应回退到 false', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(
-      join(tmpDir, 'openmanual.json'),
-      JSON.stringify({
-        name: 'TestProject',
-        i18n: {
-          // 不含 enabled 字段
-          languages: [
-            { code: 'zh', name: '中文' },
-            { code: 'en', name: 'English' },
-          ],
-        },
-      })
-    );
-    const config = await loadConfig(tmpDir);
-    expect(config.i18n?.enabled).toBe(false);
   });
 
   // 覆盖 loader.ts：defaultLanguage 从 locale 派生
@@ -956,7 +864,6 @@ describe('loadConfig - mergeDefaults i18n', () => {
         name: 'TestProject',
         locale: 'ja',
         i18n: {
-          enabled: true,
           languages: [{ code: 'ja', name: '日本語' }],
           // 不含 defaultLanguage
         },
@@ -975,7 +882,6 @@ describe('loadConfig - mergeDefaults i18n', () => {
         name: 'TestProject',
         // 不含 locale
         i18n: {
-          enabled: true,
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
@@ -1675,14 +1581,10 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('当 i18n 启用但未指定 languages 时 i18n.languages 默认应为空数组', async () => {
+  it('当 i18n 配置但未指定 languages 时 i18n.languages 默认应为空数组', async () => {
     await mkdir(tmpDir, { recursive: true });
-    await writeFile(
-      join(tmpDir, 'openmanual.json'),
-      JSON.stringify({ name: 'MyApp', i18n: { enabled: true } })
-    );
+    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp', i18n: {} }));
     const config = await loadConfig(tmpDir);
-    expect(config.i18n?.enabled).toBe(true);
     expect(config.i18n?.languages).toEqual([]);
   });
 
@@ -1692,7 +1594,7 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
       join(tmpDir, 'openmanual.json'),
       JSON.stringify({
         name: 'MyApp',
-        i18n: { enabled: true, languages: [{ code: 'zh', name: '中文' }] },
+        i18n: { languages: [{ code: 'zh', name: '中文' }] },
       })
     );
     const config = await loadConfig(tmpDir);

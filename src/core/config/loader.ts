@@ -95,11 +95,9 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
     },
     i18n: config.i18n
       ? {
-          enabled: config.i18n.enabled ?? false,
           // 默认语言统一取自顶层 locale（i18n.defaultLanguage 已废弃）
           defaultLanguage: config.locale ?? DEFAULT_CONFIG.locale ?? 'zh',
           languages: config.i18n.languages ?? [],
-          parser: config.i18n.parser ?? 'dot',
         }
       : undefined,
     openapi: config.openapi

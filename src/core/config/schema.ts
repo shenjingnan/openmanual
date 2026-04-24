@@ -75,9 +75,7 @@ export const I18nLocaleSchema = z.object({
  */
 export const I18nConfigSchema = z
   .object({
-    enabled: z.boolean().optional(),
     languages: z.array(I18nLocaleSchema).optional(),
-    parser: z.enum(['dot', 'dir']).optional(),
   })
   .passthrough();
 
@@ -202,11 +200,7 @@ export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
 }
 
 export function isI18nEnabled(config: OpenManualConfig): boolean {
-  return config.i18n?.enabled === true && (config.i18n.languages?.length ?? 0) > 1;
-}
-
-export function isDirParser(config: OpenManualConfig): boolean {
-  return config.i18n?.parser === 'dir';
+  return (config.i18n?.languages?.length ?? 0) > 1;
 }
 
 export function isOpenApiEnabled(config: OpenManualConfig): boolean {

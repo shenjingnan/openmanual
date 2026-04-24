@@ -21,13 +21,11 @@ const baseCtx = {
 const i18nConfig: OpenManualConfig = {
   name: 'TestI18n',
   i18n: {
-    enabled: true,
     defaultLanguage: 'zh',
     languages: [
       { code: 'zh', name: '中文' },
       { code: 'en', name: 'English' },
     ],
-    parser: 'dot',
   },
 };
 
@@ -1128,13 +1126,11 @@ describe('generateMetaFiles - dir-parser mode', () => {
       config: {
         ...baseConfig,
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir' as const,
         },
         sidebar: [
           {
@@ -1167,13 +1163,11 @@ describe('generateMetaFiles - dir-parser mode', () => {
       config: {
         ...baseConfig,
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
             { code: 'en', name: 'English' },
           ],
-          parser: 'dir' as const,
         },
         sidebar: [
           {
@@ -1239,7 +1233,6 @@ describe('generateSearchRoute - all unsupported languages', () => {
       config: {
         name: 'Test',
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
@@ -1369,7 +1362,6 @@ describe('generateDocsLayout - sidebar collapsible', () => {
       config: {
         ...baseConfig,
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
@@ -1489,7 +1481,6 @@ describe('generateDocsLayout - logo always in header (i18n mode)', () => {
         ...baseConfig,
         logo: { light: '/logo.svg', dark: '/logo-dark.svg' },
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [
             { code: 'zh', name: '中文' },
@@ -1514,7 +1505,6 @@ describe('generateDocsLayout - logo always in header (i18n mode)', () => {
       config: {
         ...baseConfig,
         i18n: {
-          enabled: true,
           defaultLanguage: 'zh',
           languages: [{ code: 'zh', name: '中文' }],
         },
