@@ -1456,7 +1456,7 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('应当接受包含 position 的对象', () => {
+  it('应当接受包含 position 的对象（向后兼容，position 被忽略）', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
       logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
@@ -1464,12 +1464,12 @@ describe('TopLevelLogoSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('应当拒绝无效的 position 值', () => {
+  it('应当接受任意 position 值（向后兼容）', () => {
     const result = OpenManualConfigSchema.safeParse({
       name: 'Test',
-      logo: { light: '/l.svg', dark: '/d.svg', position: 'invalid' },
+      logo: { light: '/l.svg', dark: '/d.svg', position: 'invalid-value' },
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it('应当拒绝缺少 light 字段的对象', () => {
@@ -1490,19 +1490,23 @@ describe('TopLevelLogoSchema', () => {
 });
 
 describe('normalizeTopLevelLogo', () => {
-  it('应当将字符串简写标准化为带 sidebar position 的对象', () => {
+  it('应当将字符串简写标准化为 { light, dark } 对象', () => {
     const result = normalizeTopLevelLogo('/logo.svg');
-    expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg', position: 'sidebar' });
+    expect(result).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
   });
 
-  it('应当将不含 position 的对象标准化为默认 sidebar', () => {
+  it('应当标准化对象形式的 logo', () => {
     const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg' });
-    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'sidebar' });
+    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg' });
   });
 
-  it('应当保留显式指定的 position', () => {
-    const result = normalizeTopLevelLogo({ light: '/l.svg', dark: '/d.svg', position: 'header' });
-    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg', position: 'header' });
+  it('应当忽略 position 字段', () => {
+    const result = normalizeTopLevelLogo({
+      light: '/l.svg',
+      dark: '/d.svg',
+      position: 'header' as string,
+    });
+    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg' });
   });
 });
 
@@ -1515,53 +1519,34 @@ describe('resolveEffectiveLogo', () => {
       header: { logo: '/header-logo.svg' },
     } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toEqual({ light: '/top-light.svg', dark: '/top-dark.svg' });
-    expect(result.position).toBe('sidebar');
+    expect(result).toEqual({ light: '/top-light.svg', dark: '/top-dark.svg' });
   });
 
-  it('应当返回带 header position 的顶层 logo', () => {
-    const config = {
-      name: 'Test',
-      logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
-    } as OpenManualConfig;
-    const result = resolveEffectiveLogo(config);
-    expect(result.source).toEqual({ light: '/l.svg', dark: '/d.svg' });
-    expect(result.position).toBe('header');
-  });
-
-  it('当没有顶层 logo 时应回退到 navbar.logo', () => {
-    const config = {
-      name: 'Test',
-      navbar: { logo: '/nav.svg' },
-    } as OpenManualConfig;
-    const result = resolveEffectiveLogo(config);
-    expect(result.source).toBe('/nav.svg');
-    expect(result.position).toBe('sidebar');
-  });
-
-  it('当没有顶层或 navbar logo 时应回退到 header.logo', () => {
+  it('当没有顶层 logo 时应回退到 header.logo', () => {
     const config = {
       name: 'Test',
       header: { logo: '/hdr.svg', height: '64px' },
     } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toBe('/hdr.svg');
-    expect(result.position).toBe('header');
+    expect(result).toBe('/hdr.svg');
   });
 
   it('当任何位置都未配置 logo 时应当返回 undefined', () => {
     const config = { name: 'Test' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toBeUndefined();
-    expect(result.position).toBe('sidebar');
+    expect(result).toBeUndefined();
   });
 
-  it('应当处理字符串简写形式的顶层 logo', () => {
+  it('应当处理字符串简写形式的顶级 logo（light === dark 时返回字符串）', () => {
     const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    // 字符串简写被 normalizeTopLevelLogo 标准化为 { light, dark } 对象
-    expect(result.source).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
-    expect(result.position).toBe('sidebar');
+    expect(result).toBe('/logo.svg');
+  });
+
+  it('当 light !== dark 时应返回对象形式', () => {
+    const config = { name: 'Test', logo: { light: '/l.svg', dark: '/d.svg' } } as OpenManualConfig;
+    const result = resolveEffectiveLogo(config);
+    expect(result).toEqual({ light: '/l.svg', dark: '/d.svg' });
   });
 });
 
@@ -1572,7 +1557,22 @@ describe('loadConfig - top-level logo propagation', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('应当将 position=sidebar 的顶层 logo 传播到 navbar.logo', async () => {
+  it('应当将顶级 logo 传播到 header.logo', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({
+        name: 'MyApp',
+        logo: { light: '/l.svg', dark: '/d.svg' },
+      })
+    );
+    const config = await loadConfig(tmpDir);
+    expect(config.header?.logo).toEqual({ light: '/l.svg', dark: '/d.svg' });
+    // navbar 应回退到 config.name
+    expect(config.navbar?.logo).toBe('MyApp');
+  });
+
+  it('应当将带 position 的顶级 logo 传播到 header.logo（忽略 position）', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
@@ -1582,34 +1582,18 @@ describe('loadConfig - top-level logo propagation', () => {
       })
     );
     const config = await loadConfig(tmpDir);
-    expect(config.navbar?.logo).toEqual({ light: '/l.svg', dark: '/d.svg' });
-    expect(config.header?.logo).toBeUndefined();
-  });
-
-  it('应当将 position=header 的顶层 logo 传播到 header.logo', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(
-      join(tmpDir, 'openmanual.json'),
-      JSON.stringify({
-        name: 'MyApp',
-        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
-        header: { height: '56px' },
-      })
-    );
-    const config = await loadConfig(tmpDir);
     expect(config.header?.logo).toEqual({ light: '/l.svg', dark: '/d.svg' });
-    // navbar should fallback to config.name (not the top-level logo)
     expect(config.navbar?.logo).toBe('MyApp');
   });
 
-  it('默认应当将字符串简写形式的顶层 logo 传播到 navbar.logo', async () => {
+  it('字符串简写形式的顶级 logo 应当传播到 header.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
       JSON.stringify({ name: 'MyApp', logo: '/logo.svg' })
     );
     const config = await loadConfig(tmpDir);
-    expect(config.navbar?.logo).toBe('/logo.svg');
+    expect(config.header?.logo).toBe('/logo.svg');
   });
 
   it('当没有顶层 logo 时应当保留旧版 navbar.logo', async () => {
@@ -1635,59 +1619,53 @@ describe('loadConfig - top-level logo propagation', () => {
     expect(config.header?.logo).toBe('/legacy-hdr.svg');
   });
 
-  it('应当在合并配置中标准化 position 默认值', async () => {
+  it('应当从合并后的 logo 配置中剥离 position 字段', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
-      JSON.stringify({ name: 'MyApp', logo: { light: '/l.svg', dark: '/d.svg' } })
+      JSON.stringify({
+        name: 'MyApp',
+        logo: { light: '/l.svg', dark: '/d.svg', position: 'header' },
+      })
     );
     const config = await loadConfig(tmpDir);
-    // position 应该被标准化为 'sidebar'
+    // position 应当被剥离
     if (typeof config.logo === 'object' && !Array.isArray(config.logo)) {
-      expect((config.logo as Record<string, unknown>).position).toBe('sidebar');
+      expect((config.logo as Record<string, unknown>).position).toBeUndefined();
     }
   });
 });
 
 describe('resolveEffectiveLogo - full priority chain coverage', () => {
-  it('应当优先使用顶层 logo 而非 navbar 和 header logo', () => {
+  it('应当优先使用顶层 logo 而非 header logo', () => {
     const config = {
       name: 'Test',
       logo: { light: '/top.svg', dark: '/top-dark.svg' },
-      navbar: { logo: '/nav.svg' },
       header: { logo: '/hdr.svg', height: '64px' },
     } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
-    expect(result.position).toBe('sidebar');
+    expect(result).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
   });
 
-  it('当仅存在 header.logo（无顶层或 navbar）时应当返回 header position', () => {
+  it('当仅存在 header.logo（无顶层）时应当返回 header logo', () => {
     const config = {
       name: 'Test',
       header: { logo: '/hdr.svg', height: '64px' },
     } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toBe('/hdr.svg');
-    expect(result.position).toBe('header');
+    expect(result).toBe('/hdr.svg');
   });
 
-  it('即使没有顶层 logo，navbar.logo 也应当返回 sidebar position', () => {
-    const config = {
-      name: 'Test',
-      navbar: { logo: '/nav.svg' },
-    } as OpenManualConfig;
+  it('当任何位置都未配置 logo 时应当返回 undefined', () => {
+    const config = { name: 'Test' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    expect(result.source).toBe('/nav.svg');
-    expect(result.position).toBe('sidebar');
+    expect(result).toBeUndefined();
   });
 
-  it('应当处理顶层字符串简写并进行显式对象比较', () => {
+  it('应当处理顶层字符串简写（light === dark 时返回字符串）', () => {
     const config = { name: 'Test', logo: '/logo.svg' } as OpenManualConfig;
     const result = resolveEffectiveLogo(config);
-    // String shorthand normalized to { light, dark: same }
-    expect(result.source).toEqual({ light: '/logo.svg', dark: '/logo.svg' });
-    expect(result.position).toBe('sidebar');
+    expect(result).toBe('/logo.svg');
   });
 });
 
@@ -1766,21 +1744,21 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     expect(config.search).toEqual({ position: 'sidebar' });
   });
 
-  it('当顶层 logo position=sidebar 时应当保留已有的 header.logo', async () => {
+  it('顶级 logo 不应覆盖用户显式设置的 header.logo', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
       join(tmpDir, 'openmanual.json'),
       JSON.stringify({
         name: 'MyApp',
-        logo: { light: '/top.svg', dark: '/top-dark.svg', position: 'sidebar' },
+        logo: { light: '/top.svg', dark: '/top-dark.svg' },
         header: { height: '56px', logo: '/existing-hdr.svg' },
       })
     );
     const config = await loadConfig(tmpDir);
-    // header.logo should be preserved (not overwritten by sidebar-positioned top-level logo)
+    // 用户显式设置的 header.logo 优先级更高，不被覆盖
     expect(config.header?.logo).toBe('/existing-hdr.svg');
-    // top-level logo should propagate to navbar instead
-    expect(config.navbar?.logo).toEqual({ light: '/top.svg', dark: '/top-dark.svg' });
+    // navbar 应回退到 config.name
+    expect(config.navbar?.logo).toBe('MyApp');
   });
 
   it('当未配置 header 时应提供默认 header（sticky=true, bordered=true）', async () => {

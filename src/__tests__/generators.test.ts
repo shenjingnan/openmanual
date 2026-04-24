@@ -2253,13 +2253,13 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('center=');
   });
 
-  it('应当在顶部栏中使用 position=header 的顶级 logo', () => {
-    // 模拟 mergeDefaults 后的配置：position=header 的顶级 logo 已传播到 header.logo
+  it('应当在顶部栏中使用顶级 logo（已传播到 header.logo）', () => {
+    // 模拟 mergeDefaults 后的配置：顶级 logo 已传播到 header.logo
     const ctx = {
       ...topBarBaseCtx,
       config: {
         name: 'Test',
-        logo: { light: '/tl-light.svg', dark: '/tl-dark.svg', position: 'header' },
+        logo: { light: '/tl-light.svg', dark: '/tl-dark.svg' },
         // mergeDefaults 会将顶级 logo 传播到这里
         header: { height: '56px', logo: { light: '/tl-light.svg', dark: '/tl-dark.svg' } } as any,
       } as any,
@@ -2269,14 +2269,12 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('/tl-dark.svg');
   });
 
-  it('当顶级 logo 的 position=sidebar 时应回退到 config.name', () => {
-    // 模拟 mergeDefaults 后的配置：position=sidebar 时 logo 不传播到 header.logo
+  it('当没有配置 logo 时应回退到 config.name 文本', () => {
+    // 模拟 mergeDefaults 后的配置：无 logo 时 header.logo 为 undefined
     const ctx = {
       ...topBarBaseCtx,
       config: {
         name: 'Test',
-        logo: { light: '/l.svg', dark: '/d.svg', position: 'sidebar' },
-        // mergeDefaults 不会将 sidebar logo 传播到 header
         header: { height: '56px' } as any,
       } as any,
     };
