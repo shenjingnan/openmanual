@@ -31,20 +31,11 @@ openmanual preview
 openmanual preview -p 3000 -d ./out
 ```
 
-## siteUrl の設定（必須）
+## 静的エクスポート
 
-デプロイ前に `openmanual.json` で **必ず** `siteUrl` を設定してください。`siteUrl` が設定されて初めて、OpenManual は Next.js の静的エクスポートモード（`output: 'export'`）を有効にし、デプロイ可能な静的ファイルを生成します。
+OpenManual はデフォルトで **SSG（静的サイトジェネレーション）** モードを使用します。追加の設定なしで `openmanual build` を実行するだけで、デプロイ可能な静的ファイルが生成されます。
 
-**`siteUrl` が設定されていない場合、`openmanual build` は `out/` ディレクトリを生成せず、デプロイ成果物は空になります。**
-
-```json
-{
-  "name": "My Docs",
-  "siteUrl": "https://docs.example.com"
-}
-```
-
-`siteUrl` は正しい sitemap と canonical URL の生成にも使用されます。カスタムドメインを使用している場合は、最終的なドメイン名を設定してください。
+ビルド後、出力は `outputDir` で指定されたディレクトリ（デフォルト: `dist`）に書き込まれます。このディレクトリを任意の静的ホスティングプラットフォームにデプロイできます。
 
 ## Vercel へのデプロイ
 
@@ -181,15 +172,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-このワークフローを使用する場合、`siteUrl` は以下のように設定します：
-
-```json
-{
-  "siteUrl": "https://<username>.github.io/<repo-name>"
-}
-```
-
-カスタムドメインの場合は、あなたのドメインに置き換えてください。
+カスタムドメインの場合は、ホスティングプラットフォームで対応する DNS 解決とドメイン設定を行ってください。
 
 ### 方法 2: 手動デプロイ
 
@@ -213,16 +196,6 @@ git push -f origin gh-pages
 
 ## よくある質問
 
-### ビルド成果物が空の場合
-
-`openmanual.json` で `siteUrl` が設定されているか確認してください。`siteUrl` がない場合、OpenManual は静的エクスポートモードを有効にせず、ビルドでは静的ファイルが生成されません。
-
-```json
-{
-  "siteUrl": "https://docs.example.com"
-}
-```
-
 ### Node.js バージョンの不一致
 
 OpenManual は Node.js >= 24.0.0 を要求します。ビルドが失敗し、構文エラーやモジュールが見つからないエラーが発生した場合は、Node.js のバージョンを確認してください：
@@ -244,9 +217,4 @@ node -v
 カスタムドメインを使用する場合は、以下が必要です：
 
 1. DNS プロバイダーで CNAME レコードを追加し、ホスティングプラットフォームを指すように設定
-2. `openmanual.json` の `siteUrl` をカスタムドメインに設定
-3. ホスティングプラットフォームでドメインを設定（Vercel/Netlify はプロジェクト設定で追加、GitHub Pages はリポジトリ設定で追加）
-
-### デプロイ後のスタイルやリソース読み込み失敗
-
-`siteUrl` 設定が正しいか確認してください。サイトのベースパスがルートパスではない場合（例: GitHub Pages の `/<repo-name>/`）、`siteUrl` に完全なパスを含める必要があります。
+2. ホスティングプラットフォームでドメインを設定（Vercel/Netlify はプロジェクト設定で追加、GitHub Pages はリポジトリ設定で追加）

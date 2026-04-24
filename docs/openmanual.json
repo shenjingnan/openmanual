@@ -2,7 +2,6 @@
   "name": "OpenManual",
   "description": "AI 友好的开源文档系统框架",
   "favicon": "/favicon.svg",
-  "siteUrl": "https://openmanual.shenjingnan.com",
   "logo": {
     "light": "/logo.svg",
     "dark": "/logo-dark.svg"

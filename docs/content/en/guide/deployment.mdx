@@ -31,20 +31,11 @@ Default preview URL is `http://localhost:8080`. You can specify port and directo
 openmanual preview -p 3000 -d ./out
 ```
 
-## Configure siteUrl (Required)
+## Static Export
 
-You **must** configure `siteUrl` in `openmanual.json` before deployment. Only with `siteUrl` configured will OpenManual enable Next.js static export mode (`output: 'export'`) and generate deployable static files.
+OpenManual uses **SSG (Static Site Generation)** mode by default. No additional configuration is needed — running `openmanual build` will produce deployable static files.
 
-**Without `siteUrl`, `openmanual build` will not generate the `out/` directory and the build output will be empty.**
-
-```json
-{
-  "name": "My Docs",
-  "siteUrl": "https://docs.example.com"
-}
-```
-
-`siteUrl` is also used for generating correct sitemaps and canonical URLs. If using a custom domain, set it to the final domain name.
+After building, the output is written to the directory specified by `outputDir` (default: `dist`). You can deploy this directory to any static hosting platform.
 
 ## Deploy to Vercel
 
@@ -181,15 +172,7 @@ jobs:
         uses: actions/deploy-pages@v4
 ```
 
-When using this workflow, `siteUrl` should be configured as:
-
-```json
-{
-  "siteUrl": "https://<username>.github.io/<repo-name>"
-}
-```
-
-For custom domains, replace with your domain name.
+For custom domains, configure the corresponding DNS resolution and domain settings on your hosting platform.
 
 ### Method 2: Manual Deployment
 
@@ -213,16 +196,6 @@ Then select the `gh-pages` branch as the publish source in **Settings** → **Pa
 
 ## Troubleshooting
 
-### Empty Build Output
-
-Check if `siteUrl` is configured in `openmanual.json`. Without it, OpenManual won't enable static export mode and no static files will be generated.
-
-```json
-{
-  "siteUrl": "https://docs.example.com"
-}
-```
-
 ### Node.js Version Mismatch
 
 OpenManual requires Node.js >= 24.0.0. If the build fails with syntax errors or missing modules, check the Node.js version:
@@ -244,5 +217,4 @@ Version configuration methods per platform:
 When using a custom domain, you need to:
 
 1. Add a CNAME record at your DNS provider pointing to the hosting platform
-2. Set `siteUrl` in `openmanual.json` to your custom domain
-3. Configure the domain on the hosting platform (Vercel/Netlify in project settings, GitHub Pages in repo settings)
+2. Configure the domain on the hosting platform (Vercel/Netlify in project settings, GitHub Pages in repo settings)
