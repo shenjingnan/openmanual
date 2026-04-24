@@ -56,18 +56,6 @@ export const SidebarGroupSchema = z.object({
   pages: z.array(SidebarPageSchema),
 });
 
-export const SearchSchema = z.object({
-  /**
-   * 搜索入口位置
-   * - 'sidebar': 放在侧边栏顶部（Fumadocs 风格）
-   * - 'header': 放在 header 中间（Mintlify 风格）
-   *
-   * 默认值: 'sidebar'
-   * 不配置 search 字段则不启用搜索（与 header 的「配置即启用」语义一致）
-   */
-  position: z.enum(['sidebar', 'header']).optional(),
-});
-
 export const MdxSchema = z.object({
   latex: z.boolean().optional(),
 });
@@ -171,7 +159,6 @@ export const OpenManualConfigSchema = z.object({
   footer: FooterSchema.optional(),
   // @deprecated Use meta.json files in content directories instead
   sidebar: z.array(SidebarGroupSchema).optional(),
-  search: SearchSchema.optional(),
   mdx: MdxSchema.optional(),
   pageActions: PageActionsSchema.optional(),
   i18n: I18nConfigSchema.optional(),
