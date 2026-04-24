@@ -57,7 +57,6 @@ describe('OpenManualConfigSchema', () => {
           ],
         },
       ],
-      search: { enabled: true },
       mdx: { latex: true },
     };
     const result = OpenManualConfigSchema.safeParse(config);
@@ -171,7 +170,6 @@ describe('loadConfig', () => {
     expect(config.locale).toBe('zh');
     expect(config.contentPolicy).toBe('strict');
     expect(config.navbar?.logo).toBe('TestProject');
-    expect(config.search).toEqual({ position: 'sidebar' });
   });
 
   it('当提供 contentPolicy 时应保留其值', async () => {
@@ -1676,13 +1674,6 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     await rm(tmpDir, { recursive: true, force: true });
   });
 
-  it('当 search 配置但未指定 position 时 search.position 默认应为 sidebar', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp', search: {} }));
-    const config = await loadConfig(tmpDir);
-    expect(config.search?.position).toBe('sidebar');
-  });
-
   it('当 i18n 启用但未指定 languages 时 i18n.languages 默认应为空数组', async () => {
     await mkdir(tmpDir, { recursive: true });
     await writeFile(
@@ -1735,13 +1726,6 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     );
     const config = await loadConfig(tmpDir);
     expect(config.openapi?.label).toBe('接口文档');
-  });
-
-  it('当 search 字段不存在时不应设置 search', async () => {
-    await mkdir(tmpDir, { recursive: true });
-    await writeFile(join(tmpDir, 'openmanual.json'), JSON.stringify({ name: 'MyApp' }));
-    const config = await loadConfig(tmpDir);
-    expect(config.search).toEqual({ position: 'sidebar' });
   });
 
   it('顶级 logo 不应覆盖用户显式设置的 header.logo', async () => {

@@ -581,22 +581,6 @@ describe('generateProvider', () => {
     expect(result).toContain('enabled: true');
   });
 
-  it('should enable search when search config exists (配置即启用)', () => {
-    const ctx = {
-      config: { ...baseConfig, search: {} },
-    };
-    const result = generateProvider(ctx);
-    expect(result).toContain('enabled: true');
-  });
-
-  it('当 position 为 header 时应当启用搜索', () => {
-    const ctx = {
-      config: { ...baseConfig, search: { position: 'header' as const } },
-    };
-    const result = generateProvider(ctx);
-    expect(result).toContain('enabled: true');
-  });
-
   it('应当从 fumadocs-ui/provider/next 导入 RootProvider', () => {
     const result = generateProvider(baseCtx);
     expect(result).toContain("import { RootProvider } from 'fumadocs-ui/provider/next'");
@@ -1381,12 +1365,6 @@ describe('generateProvider - i18n mode', () => {
   it('i18n 模式下搜索功能默认启用（无需配置 search 字段）', () => {
     // i18n 模式下搜索也始终启用
     const result = generateProvider(i18nCtx);
-    expect(result).toContain('enabled: true');
-  });
-
-  it('在 i18n 模式下当存在搜索配置时应当启用搜索', () => {
-    const ctx = { config: { ...i18nConfig, search: {} } };
-    const result = generateProvider(ctx);
     expect(result).toContain('enabled: true');
   });
 
@@ -2208,27 +2186,12 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('当搜索位置不是 header 时不应在中间渲染搜索触发器', () => {
+  it('应当在中间渲染 TopBarSearchTrigger（搜索始终在 header 中展示）', () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
         name: 'T',
         header: { height: '56px' } as any,
-        search: { position: 'sidebar' as const },
-      },
-    };
-    const result = generateTopBarComponent(ctx);
-    expect(result).not.toContain('TopBarSearchTrigger');
-    expect(result).not.toContain('center=');
-  });
-
-  it('当搜索位置为 header 时应当在中间渲染 TopBarSearchTrigger', () => {
-    const ctx = {
-      ...topBarBaseCtx,
-      config: {
-        name: 'T',
-        header: { height: '56px' } as any,
-        search: { position: 'header' as const },
       },
     };
     const result = generateTopBarComponent(ctx);
@@ -2238,19 +2201,6 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain(
       "import { TopBarSearchTrigger } from 'openmanual/components/top-bar-search-trigger'"
     );
-  });
-
-  it('当搜索不存在时不应渲染搜索触发器', () => {
-    const ctx = {
-      ...topBarBaseCtx,
-      config: {
-        name: 'T',
-        header: { height: '56px' } as any,
-      },
-    };
-    const result = generateTopBarComponent(ctx);
-    expect(result).not.toContain('TopBarSearchTrigger');
-    expect(result).not.toContain('center=');
   });
 
   it('应当在顶部栏中使用顶级 logo（已传播到 header.logo）', () => {

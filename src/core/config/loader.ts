@@ -85,8 +85,6 @@ function mergeDefaults(config: OpenManualConfig): OpenManualConfig {
       ...config.footer,
       text: config.footer?.text ?? `MIT ${new Date().getFullYear()} © ${config.name}.`,
     },
-    // 搜索默认启用，用户可通过 position 控制搜索入口位置
-    search: { position: config.search?.position ?? 'sidebar' },
     mdx: {
       ...DEFAULT_CONFIG.mdx,
       ...config.mdx,

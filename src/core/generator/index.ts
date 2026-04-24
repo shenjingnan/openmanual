@@ -375,7 +375,7 @@ function generateDocsLayout(ctx: GenerateContext): string {
   const isI18n = isI18nEnabled(config);
   const isOApi = isOpenApiEnabled(config);
   const rootGroups = ctx.rootGroups;
-  const isHeaderSearch = config.search?.position === 'header';
+  const isHeaderSearch = true;
 
   // Logo 始终在 header (TopBar) 中展示，侧边栏不再渲染 logo
   const sidebarLogoImport = '';
