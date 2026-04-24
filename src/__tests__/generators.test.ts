@@ -1529,6 +1529,15 @@ describe('generateNextConfig - with openapi', () => {
     expect(result).toContain("['mermaid']");
     expect(result).not.toContain('shiki');
   });
+
+  it('非开发模式下启用 openapi 应同时包含 output export 和 shiki（默认 SSG）', () => {
+    const result = generateNextConfig(openapiCtx);
+    // SSG 默认启用：非 dev 模式应包含 output: 'export'
+    expect(result).toContain("output: 'export'");
+    // OpenAPI 启用：应额外包含 shiki
+    expect(result).toContain("'shiki'");
+    expect(result).toContain("'mermaid'");
+  });
 });
 
 describe('generatePackageJson - with openapi', () => {

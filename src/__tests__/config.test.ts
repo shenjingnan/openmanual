@@ -179,6 +179,15 @@ describe('loadConfig', () => {
     const config = await loadConfig(tmpDir);
     expect(config.contentPolicy).toBe('all');
   });
+
+  it('当配置包含无效字段时应抛出验证错误（含字段路径）', async () => {
+    await mkdir(tmpDir, { recursive: true });
+    await writeFile(
+      join(tmpDir, 'openmanual.json'),
+      JSON.stringify({ name: 'Test', navbar: { github: 'not-a-valid-url' } })
+    );
+    await expect(loadConfig(tmpDir)).rejects.toThrow('navbar.github');
+  });
 });
 
 describe('content scanner', () => {
