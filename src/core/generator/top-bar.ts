@@ -1,4 +1,5 @@
 import type { TopBarConfig } from '../config/schema.js';
+import { isI18nEnabled } from '../config/schema.js';
 import type { GenerateContext } from './index.js';
 import { resolveNavLogoProps } from './layout.js';
 
@@ -29,14 +30,32 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   // 主题切换按钮
   const themeToggleImport = "\nimport { ThemeToggle } from 'openmanual/components/theme-toggle';";
 
+  // 多语言切换按钮（仅 i18n 启用时引入）
+  const isI18n = isI18nEnabled(config);
+  const languageSwitchImport = isI18n
+    ? "\nimport { LanguageSwitch } from 'openmanual/components/language-switch';"
+    : '';
+
   // 将所有复杂 props 提取为变量，避免 Turbopack 解析行内大 JSON/JSX 时报错
   const centerProp = '\n      center={searchCenter}';
+
+  // 条件性构建 right 区域内容
+  const rightJsx = isI18n
+    ? `        <>
+          <NavLinks links={navLinks} />
+          <ThemeToggle />
+          <LanguageSwitch />
+        </>`
+    : `        <>
+          <NavLinks links={navLinks} />
+          <ThemeToggle />
+        </>`;
 
   return `'use client';
 
 import { TopBar } from 'openmanual/components/top-bar';
 import { NavLogo } from 'openmanual/components/nav-layout';
-import { NavLinks } from 'openmanual/components/nav-links';${searchImport}${themeToggleImport}
+import { NavLinks } from 'openmanual/components/nav-links';${searchImport}${themeToggleImport}${languageSwitchImport}
 
 const navLinks = ${linksJson};
 const searchCenter = <TopBarSearchTrigger />;
@@ -49,10 +68,7 @@ export function OmTopBar() {
       bordered={${bordered}}
       left={<NavLogo ${logoProps} />}${centerProp}
       right={
-        <>
-          <NavLinks links={navLinks} />
-          <ThemeToggle />
-        </>
+${rightJsx}
       }
     />
   );
