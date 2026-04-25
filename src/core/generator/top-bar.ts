@@ -26,6 +26,9 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   const searchImport =
     "\nimport { TopBarSearchTrigger } from 'openmanual/components/top-bar-search-trigger';";
 
+  // 主题切换按钮
+  const themeToggleImport = "\nimport { ThemeToggle } from 'openmanual/components/theme-toggle';";
+
   // 将所有复杂 props 提取为变量，避免 Turbopack 解析行内大 JSON/JSX 时报错
   const centerProp = '\n      center={searchCenter}';
 
@@ -33,7 +36,7 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
 
 import { TopBar } from 'openmanual/components/top-bar';
 import { NavLogo } from 'openmanual/components/nav-layout';
-import { NavLinks } from 'openmanual/components/nav-links';${searchImport}
+import { NavLinks } from 'openmanual/components/nav-links';${searchImport}${themeToggleImport}
 
 const navLinks = ${linksJson};
 const searchCenter = <TopBarSearchTrigger />;
@@ -45,7 +48,12 @@ export function OmTopBar() {
       sticky={${sticky}}${backgroundProp}
       bordered={${bordered}}
       left={<NavLogo ${logoProps} />}${centerProp}
-      right={<NavLinks links={navLinks} />}
+      right={
+        <>
+          <NavLinks links={navLinks} />
+          <ThemeToggle />
+        </>
+      }
     />
   );
 }
