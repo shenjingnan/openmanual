@@ -2216,4 +2216,28 @@ describe('generateTopBarComponent', () => {
     const result = generateTopBarComponent(ctx);
     expect(result).toContain('type="text" text="Test"');
   });
+
+  it('应当在右侧包含 ThemeToggle 组件', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: {} as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('<ThemeToggle />');
+    expect(result).toContain("import { ThemeToggle } from 'openmanual/components/theme-toggle'");
+  });
+
+  it('应当将 ThemeToggle 放置在 NavLinks 之后', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: { links: [{ label: 'GitHub', href: 'https://github.com' }] as any },
+      } as any,
+    };
+    const result = generateTopBarComponent(ctx);
+    const navLinksIndex = result.indexOf('<NavLinks');
+    const themeToggleIndex = result.indexOf('<ThemeToggle');
+    expect(themeToggleIndex).toBeGreaterThan(navLinksIndex);
+  });
 });
