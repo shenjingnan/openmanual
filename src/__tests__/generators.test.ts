@@ -2240,4 +2240,67 @@ describe('generateTopBarComponent', () => {
     const themeToggleIndex = result.indexOf('<ThemeToggle');
     expect(themeToggleIndex).toBeGreaterThan(navLinksIndex);
   });
+
+  it('当 i18n 启用时应包含 LanguageSwitch 组件', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {} as any,
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as OpenManualConfig,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).toContain('<LanguageSwitch />');
+    expect(result).toContain(
+      "import { LanguageSwitch } from 'openmanual/components/language-switch'"
+    );
+  });
+
+  it('当 i18n 未启用时不应包含 LanguageSwitch 组件', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: { name: 'T', header: {} as any },
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('LanguageSwitch');
+  });
+
+  it('仅配置一种语言时不包含 LanguageSwitch 组件', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {} as any,
+        i18n: { languages: [{ code: 'zh', name: '中文' }] },
+      } as OpenManualConfig,
+    };
+    const result = generateTopBarComponent(ctx);
+    expect(result).not.toContain('LanguageSwitch');
+  });
+
+  it('应将 LanguageSwitch 放置在 ThemeToggle 之后', () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {} as any,
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+      } as OpenManualConfig,
+    };
+    const result = generateTopBarComponent(ctx);
+    const themeToggleIndex = result.indexOf('<ThemeToggle');
+    const languageSwitchIndex = result.indexOf('<LanguageSwitch');
+    expect(languageSwitchIndex).toBeGreaterThan(themeToggleIndex);
+  });
 });
