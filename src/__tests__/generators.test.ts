@@ -2303,4 +2303,151 @@ describe('generateTopBarComponent', () => {
     const languageSwitchIndex = result.indexOf('<LanguageSwitch');
     expect(languageSwitchIndex).toBeGreaterThan(themeToggleIndex);
   });
+
+  // ============================================================
+  // SVG 图标内嵌测试（__svgContent 注入）
+  // ============================================================
+
+  it('当 icon 为 .svg 路径且文件存在时应注入 __svgContent', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2z"/></svg>'
+    );
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/github.svg', href: 'https://github.com/test' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 应包含 __svgContent 字段
+    expect(result).toContain('__svgContent');
+    // 应包含净化后的 SVG 内容（注意 JSON 转义后双引号变为 \"）
+    expect(result).toContain('fill=\\"currentColor\\"');
+    // 原始 icon 路径仍保留（用于降级）
+    expect(result).toContain('"/icons/github.svg"');
+
+    spy.mockRestore();
+  });
+
+  it('当 .svg 文件不存在时不应注入 __svgContent（降级为 img）', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(null);
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/missing.svg', href: 'https://example.com' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 不应包含 __svgContent
+    expect(result).not.toContain('__svgContent');
+    // 原始路径保留，运行时会走 <img> 分支
+    expect(result).toContain('"/icons/missing.svg"');
+
+    spy.mockRestore();
+  });
+
+  it('非 .svg 图标不应触发 SVG 内嵌逻辑', async () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [
+            { icon: 'Github', href: 'https://github.com' },
+            { icon: '/icons/logo.png', href: 'https://example.com' },
+          ] as any[],
+          sticky: true,
+          bordered: true,
+        },
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 不应包含 __svgContent
+    expect(result).not.toContain('__svgContent');
+    // lucide 图标名和 png 路径原样保留
+    expect(result).toContain('"icon":"Github"');
+    expect(result).toContain('"/icons/logo.png"');
+  });
+
+  it('混合链接中仅对 .svg 图标注入 __svgContent', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy
+      .mockResolvedValueOnce('<svg><path d="M0 0"/></svg>') // github.svg
+      .mockResolvedValueOnce(null); // missing.svg 不存在
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [
+            { icon: '/icons/github.svg', label: 'GitHub', href: 'https://github.com' } as any,
+            { icon: '/icons/missing.svg', label: 'Missing', href: 'https://example.com' } as any,
+            { icon: 'Twitter', label: 'Twitter', href: 'https://twitter.com' } as any,
+            { label: 'Docs', href: '/docs' } as any,
+          ],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // github.svg 成功读取 → 有 __svgContent
+    expect(result).toMatch(/"icon":"\/icons\/github\.svg"[^}]*"__svgContent"/);
+    // missing.svg 读取失败 → 无 __svgContent
+    expect(result).not.toMatch(/"icon":"\/icons\/missing\.svg"[^}]*"__svgContent"/);
+    // Twitter 是 lucide 图标 → 无 __svgContent
+    expect(result).not.toMatch(/"icon":"Twitter"[^}]*"__svgContent"/);
+    // Docs 无 icon → 无 __svgContent
+    expect(result).not.toMatch(/"label":"Docs"[^}]*"__svgContent"/);
+
+    spy.mockRestore();
+  });
+
+  it('SVG 内嵌内容应通过 JSON.stringify 正确转义', async () => {
+    const svgWithSpecialChars =
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 22h20L12 2z"/></svg>';
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(svgWithSpecialChars);
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/test.svg', href: 'https://test.com' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 生成的代码应当是合法的 JS（可被 JSON.parse 解析 navLinks 赋值）
+    const navLinksMatch = result.match(/const navLinks = (.*?);/s);
+    expect(navLinksMatch).not.toBeNull();
+    const navLinksJson = navLinksMatch![1]!;
+    // 确保生成的 JSON 可解析
+    const parsed = JSON.parse(navLinksJson) as Array<Record<string, unknown>>;
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]!).toHaveProperty('__svgContent');
+    expect(parsed[0]!.__svgContent!).toContain('<svg');
+    expect(parsed[0]!.__svgContent!).toContain('</svg>');
+
+    spy.mockRestore();
+  });
 });
