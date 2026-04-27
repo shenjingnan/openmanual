@@ -1926,7 +1926,7 @@ describe('generateTopBarComponent', () => {
     contentDir: 'content',
   };
 
-  it('应当生成带有配置高度的组件', () => {
+  it('应当生成带有配置高度的组件', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -1937,34 +1937,34 @@ describe('generateTopBarComponent', () => {
         },
       } as OpenManualConfig,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain("height='56px'");
     expect(result).toContain('Console');
     expect(result).toContain('/console');
   });
 
-  it('应当包含 --fd-banner-height 样式注入', () => {
+  it('应当包含 --fd-banner-height 样式注入', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: { height: '64px' } as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // --fd-banner-height is injected by the TopBar component itself, not the generated wrapper
     // The generated wrapper passes height prop to TopBar which handles CSS injection
     expect(result).toContain("height='64px'");
     expect(result).toContain('<TopBar');
   });
 
-  it('未指定时应当使用默认高度 64px', () => {
+  it('未指定时应当使用默认高度 64px', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain("height='64px'");
   });
 
-  it('默认应当使用 target="_blank" 渲染链接', () => {
+  it('默认应当使用 target="_blank" 渲染链接', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -1977,7 +1977,7 @@ describe('generateTopBarComponent', () => {
         } as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // Links are serialized as JSON props to NavLinks component
     expect(result).toContain('NavLinks');
     expect(result).toContain('"label":"Pricing"');
@@ -1987,7 +1987,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('"external":false');
   });
 
-  it('当提供了 header.logo 时应当使用它', () => {
+  it('当提供了 header.logo 时应当使用它', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -1997,11 +1997,11 @@ describe('generateTopBarComponent', () => {
         } as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('/custom-logo.svg');
   });
 
-  it('当未提供 header.logo 时应回退到 config.name（无 navbar 回退）', () => {
+  it('当未提供 header.logo 时应回退到 config.name（无 navbar 回退）', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2010,22 +2010,22 @@ describe('generateTopBarComponent', () => {
         header: {} as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // 不再回退到 navbar.logo，而是直接使用 config.name 作为文本
     expect(result).toContain('type="text" text="Test"');
     expect(result).not.toContain('/nav-logo.svg');
   });
 
-  it('当任何地方都没有提供 logo 时应回退到 config.name', () => {
+  it('当任何地方都没有提供 logo 时应回退到 config.name', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'MyProduct', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('MyProduct');
   });
 
-  it('配置后应当包含 background 属性', () => {
+  it('配置后应当包含 background 属性', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2033,20 +2033,20 @@ describe('generateTopBarComponent', () => {
         header: { background: '#1a1a2e' } as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('#1a1a2e');
   });
 
-  it('未配置时不应包含 background 属性', () => {
+  it('未配置时不应包含 background 属性', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).not.toContain('background=');
   });
 
-  it('应当处理带有 light/dark 变体的对象 logo', () => {
+  it('应当处理带有 light/dark 变体的对象 logo', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2058,23 +2058,23 @@ describe('generateTopBarComponent', () => {
         } as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('/light.svg');
     expect(result).toContain('/dark.svg');
   });
 
-  it('当未配置链接时应当生成空的右侧导航', () => {
+  it('当未配置链接时应当生成空的右侧导航', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // NavLinks component receives empty array via extracted variable
     expect(result).toContain('NavLinks');
     expect(result).toContain('navLinks = []');
   });
 
-  it('应当生成仅带 label 的链接（向后兼容）', () => {
+  it('应当生成仅带 label 的链接（向后兼容）', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2082,13 +2082,13 @@ describe('generateTopBarComponent', () => {
         header: { links: [{ label: 'Docs', href: '/docs' }] } as any,
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('Docs');
     expect(result).not.toContain('DynamicIcon');
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('应当使用 DynamicIcon 生成仅带图标的链接', () => {
+  it('应当使用 DynamicIcon 生成仅带图标的链接', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2098,7 +2098,7 @@ describe('generateTopBarComponent', () => {
         } as any,
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // Icon links are serialized as JSON props to NavLinks (DynamicIcon is inside NavLinks)
     expect(result).toContain('NavLinks');
     expect(result).toContain('"icon":"Github"');
@@ -2107,7 +2107,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('应当生成同时带有图标和标签的链接', () => {
+  it('应当生成同时带有图标和标签的链接', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2117,7 +2117,7 @@ describe('generateTopBarComponent', () => {
         },
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // Icon+label links are serialized as JSON props to NavLinks
     expect(result).toContain('NavLinks');
     expect(result).toContain('"icon":"Github"');
@@ -2125,7 +2125,7 @@ describe('generateTopBarComponent', () => {
     expect(result).toContain('"href":"https://github.com/test"');
   });
 
-  it('当未使用图标时不应导入 DynamicIcon', () => {
+  it('当未使用图标时不应导入 DynamicIcon', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2138,12 +2138,12 @@ describe('generateTopBarComponent', () => {
         },
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).not.toContain('DynamicIcon');
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('应当混合仅图标、仅标签和图标+标签链接', () => {
+  it('应当混合仅图标、仅标签和图标+标签链接', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2157,7 +2157,7 @@ describe('generateTopBarComponent', () => {
         },
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     // All links are serialized as JSON to NavLinks component
     expect(result).toContain('NavLinks');
     // icon+label mode
@@ -2171,7 +2171,7 @@ describe('generateTopBarComponent', () => {
     expect(result).not.toContain('lucide-react/dynamic');
   });
 
-  it('应当在中间渲染 TopBarSearchTrigger（搜索始终在 header 中展示）', () => {
+  it('应当在中间渲染 TopBarSearchTrigger（搜索始终在 header 中展示）', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2179,7 +2179,7 @@ describe('generateTopBarComponent', () => {
         header: { height: '56px' } as any,
       },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('TopBarSearchTrigger');
     expect(result).toContain('center={searchCenter}');
     expect(result).toContain('const searchCenter = <TopBarSearchTrigger />');
@@ -2188,7 +2188,7 @@ describe('generateTopBarComponent', () => {
     );
   });
 
-  it('应当在顶部栏中使用顶级 logo（已传播到 header.logo）', () => {
+  it('应当在顶部栏中使用顶级 logo（已传播到 header.logo）', async () => {
     // 模拟 mergeDefaults 后的配置：顶级 logo 已传播到 header.logo
     const ctx = {
       ...topBarBaseCtx,
@@ -2199,12 +2199,12 @@ describe('generateTopBarComponent', () => {
         header: { height: '56px', logo: { light: '/tl-light.svg', dark: '/tl-dark.svg' } } as any,
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('/tl-light.svg');
     expect(result).toContain('/tl-dark.svg');
   });
 
-  it('当没有配置 logo 时应回退到 config.name 文本', () => {
+  it('当没有配置 logo 时应回退到 config.name 文本', async () => {
     // 模拟 mergeDefaults 后的配置：无 logo 时 header.logo 为 undefined
     const ctx = {
       ...topBarBaseCtx,
@@ -2213,21 +2213,21 @@ describe('generateTopBarComponent', () => {
         header: { height: '56px' } as any,
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('type="text" text="Test"');
   });
 
-  it('应当在右侧包含 ThemeToggle 组件', () => {
+  it('应当在右侧包含 ThemeToggle 组件', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('<ThemeToggle />');
     expect(result).toContain("import { ThemeToggle } from 'openmanual/components/theme-toggle'");
   });
 
-  it('应当将 ThemeToggle 放置在 NavLinks 之后', () => {
+  it('应当将 ThemeToggle 放置在 NavLinks 之后', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2235,13 +2235,13 @@ describe('generateTopBarComponent', () => {
         header: { links: [{ label: 'GitHub', href: 'https://github.com' }] as any },
       } as any,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     const navLinksIndex = result.indexOf('<NavLinks');
     const themeToggleIndex = result.indexOf('<ThemeToggle');
     expect(themeToggleIndex).toBeGreaterThan(navLinksIndex);
   });
 
-  it('当 i18n 启用时应包含 LanguageSwitch 组件', () => {
+  it('当 i18n 启用时应包含 LanguageSwitch 组件', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2255,23 +2255,23 @@ describe('generateTopBarComponent', () => {
         },
       } as OpenManualConfig,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).toContain('<LanguageSwitch />');
     expect(result).toContain(
       "import { LanguageSwitch } from 'openmanual/components/language-switch'"
     );
   });
 
-  it('当 i18n 未启用时不应包含 LanguageSwitch 组件', () => {
+  it('当 i18n 未启用时不应包含 LanguageSwitch 组件', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: { name: 'T', header: {} as any },
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).not.toContain('LanguageSwitch');
   });
 
-  it('仅配置一种语言时不包含 LanguageSwitch 组件', () => {
+  it('仅配置一种语言时不包含 LanguageSwitch 组件', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2280,11 +2280,11 @@ describe('generateTopBarComponent', () => {
         i18n: { languages: [{ code: 'zh', name: '中文' }] },
       } as OpenManualConfig,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     expect(result).not.toContain('LanguageSwitch');
   });
 
-  it('应将 LanguageSwitch 放置在 ThemeToggle 之后', () => {
+  it('应将 LanguageSwitch 放置在 ThemeToggle 之后', async () => {
     const ctx = {
       ...topBarBaseCtx,
       config: {
@@ -2298,9 +2298,156 @@ describe('generateTopBarComponent', () => {
         },
       } as OpenManualConfig,
     };
-    const result = generateTopBarComponent(ctx);
+    const result = await generateTopBarComponent(ctx);
     const themeToggleIndex = result.indexOf('<ThemeToggle');
     const languageSwitchIndex = result.indexOf('<LanguageSwitch');
     expect(languageSwitchIndex).toBeGreaterThan(themeToggleIndex);
+  });
+
+  // ============================================================
+  // SVG 图标内嵌测试（__svgContent 注入）
+  // ============================================================
+
+  it('当 icon 为 .svg 路径且文件存在时应注入 __svgContent', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2z"/></svg>'
+    );
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/github.svg', href: 'https://github.com/test' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 应包含 __svgContent 字段
+    expect(result).toContain('__svgContent');
+    // 应包含净化后的 SVG 内容（注意 JSON 转义后双引号变为 \"）
+    expect(result).toContain('fill=\\"currentColor\\"');
+    // 原始 icon 路径仍保留（用于降级）
+    expect(result).toContain('"/icons/github.svg"');
+
+    spy.mockRestore();
+  });
+
+  it('当 .svg 文件不存在时不应注入 __svgContent（降级为 img）', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(null);
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/missing.svg', href: 'https://example.com' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 不应包含 __svgContent
+    expect(result).not.toContain('__svgContent');
+    // 原始路径保留，运行时会走 <img> 分支
+    expect(result).toContain('"/icons/missing.svg"');
+
+    spy.mockRestore();
+  });
+
+  it('非 .svg 图标不应触发 SVG 内嵌逻辑', async () => {
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [
+            { icon: 'Github', href: 'https://github.com' },
+            { icon: '/icons/logo.png', href: 'https://example.com' },
+          ] as any[],
+          sticky: true,
+          bordered: true,
+        },
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 不应包含 __svgContent
+    expect(result).not.toContain('__svgContent');
+    // lucide 图标名和 png 路径原样保留
+    expect(result).toContain('"icon":"Github"');
+    expect(result).toContain('"/icons/logo.png"');
+  });
+
+  it('混合链接中仅对 .svg 图标注入 __svgContent', async () => {
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy
+      .mockResolvedValueOnce('<svg><path d="M0 0"/></svg>') // github.svg
+      .mockResolvedValueOnce(null); // missing.svg 不存在
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [
+            { icon: '/icons/github.svg', label: 'GitHub', href: 'https://github.com' } as any,
+            { icon: '/icons/missing.svg', label: 'Missing', href: 'https://example.com' } as any,
+            { icon: 'Twitter', label: 'Twitter', href: 'https://twitter.com' } as any,
+            { label: 'Docs', href: '/docs' } as any,
+          ],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // github.svg 成功读取 → 有 __svgContent
+    expect(result).toMatch(/"icon":"\/icons\/github\.svg"[^}]*"__svgContent"/);
+    // missing.svg 读取失败 → 无 __svgContent
+    expect(result).not.toMatch(/"icon":"\/icons\/missing\.svg"[^}]*"__svgContent"/);
+    // Twitter 是 lucide 图标 → 无 __svgContent
+    expect(result).not.toMatch(/"icon":"Twitter"[^}]*"__svgContent"/);
+    // Docs 无 icon → 无 __svgContent
+    expect(result).not.toMatch(/"label":"Docs"[^}]*"__svgContent"/);
+
+    spy.mockRestore();
+  });
+
+  it('SVG 内嵌内容应通过 JSON.stringify 正确转义', async () => {
+    const svgWithSpecialChars =
+      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 22h20L12 2z"/></svg>';
+    const codeUtils = await import('../core/generator/code-utils.js');
+    const spy = vi.spyOn(codeUtils, 'readAndSanitizeSvg');
+    spy.mockResolvedValueOnce(svgWithSpecialChars);
+
+    const ctx = {
+      ...topBarBaseCtx,
+      config: {
+        name: 'T',
+        header: {
+          links: [{ icon: '/icons/test.svg', href: 'https://test.com' }],
+        } as any,
+      },
+    };
+    const result = await generateTopBarComponent(ctx);
+
+    // 生成的代码应当是合法的 JS（可被 JSON.parse 解析 navLinks 赋值）
+    const navLinksMatch = result.match(/const navLinks = (.*?);/s);
+    expect(navLinksMatch).not.toBeNull();
+    const navLinksJson = navLinksMatch![1]!;
+    // 确保生成的 JSON 可解析
+    const parsed = JSON.parse(navLinksJson) as Array<Record<string, unknown>>;
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0]!).toHaveProperty('__svgContent');
+    expect(parsed[0]!.__svgContent!).toContain('<svg');
+    expect(parsed[0]!.__svgContent!).toContain('</svg>');
+
+    spy.mockRestore();
   });
 });
