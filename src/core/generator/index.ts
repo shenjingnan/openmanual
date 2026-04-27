@@ -455,6 +455,7 @@ ${
       configDesc ? '\n    description: siteDescription,' : ''
     }${isHeaderSearch ? '\n    searchToggle: { enabled: false },' : ''}
     nav: {${navTitleLine} },
+    slots: { languageSelect: false, themeSwitch: false } as const,
     sidebar: { collapsible: false
     },
   };
@@ -485,6 +486,7 @@ const docsOptions = {
     isHeaderSearch ? '\n  searchToggle: { enabled: false },' : ''
   }
   nav: {${navTitleLine} },
+  slots: { languageSelect: false, themeSwitch: false } as const,
   sidebar: { collapsible: false
   },
 };
