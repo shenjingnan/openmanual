@@ -22,6 +22,12 @@ export interface NavLinkItem {
   icon?: string;
   /** 是否在新窗口打开（默认 true） */
   external?: boolean;
+  /**
+   * @internal 生成器注入的内联 SVG 内容。
+   * 当 icon 为 .svg 路径且文件读取成功时由生成器注入，
+   * 存在时优先以内联 SVG 方式渲染（支持 currentColor 继承）。
+   */
+  __svgContent?: string;
 }
 
 export interface NavLinksProps extends Omit<ComponentProps<'nav'>, 'children'> {
@@ -31,13 +37,19 @@ export interface NavLinksProps extends Omit<ComponentProps<'nav'>, 'children'> {
   className?: string;
 }
 
+/** 内联 SVG 渲染组件 — 渲染生成器注入并净化的 SVG 内容 */
+function InlineSvg({ content, className }: { content: string; className?: string }) {
+  return <span className={className} dangerouslySetInnerHTML={{ __html: content }} />;
+}
+
 /**
  * 导航链接组 — 渲染顶部横条右侧的图标/文本链接
  *
- * 支持三种模式：
- * - icon + label：图标带文字
- * - 仅 icon：仅图标按钮（带 aria-label 无障碍）
- * - 仅 label：纯文字链接
+ * 支持四种模式：
+ * - 内联 SVG + label：内联 SVG 图标带文字（支持 currentColor）
+ * - 仅内联 SVG：仅内联 SVG 图标按钮
+ * - icon + label：图标（img/lucide）带文字
+ * - 仅 icon / 仅 label
  */
 export function NavLinks({ links, className = '', ...props }: NavLinksProps) {
   if (links.length === 0) return null;
@@ -51,13 +63,41 @@ export function NavLinks({ links, className = '', ...props }: NavLinksProps) {
   );
 }
 
-function NavLinkItemRender({ href, label, icon, external = true }: NavLinkItem) {
+function NavLinkItemRender({ href, label, icon, external = true, __svgContent }: NavLinkItem) {
   const externalAttrs =
     external !== false ? ({ target: '_blank', rel: 'noopener noreferrer' } as const) : {};
 
   const hasIcon = !!icon;
   const hasLabel = !!label;
   const isImage = hasIcon && isImagePath(icon!);
+
+  // 内联 SVG 模式（优先于 <img>，支持 currentColor 继承）
+  if (__svgContent) {
+    // 仅内联 SVG 模式
+    if (!hasLabel) {
+      return (
+        <a
+          href={href}
+          {...externalAttrs}
+          className="inline-flex items-center justify-center text-fd-muted-foreground hover:text-fd-foreground transition-colors"
+          aria-label={label || icon}
+        >
+          <InlineSvg content={__svgContent} className="size-5 inline-flex items-center" />
+        </a>
+      );
+    }
+    // 内联 SVG + label 模式
+    return (
+      <a
+        href={href}
+        {...externalAttrs}
+        className="inline-flex items-center gap-1.5 text-md text-fd-muted-foreground hover:text-fd-foreground transition-colors whitespace-nowrap"
+      >
+        <InlineSvg content={__svgContent} className="size-5 inline-flex items-center" />
+        {label}
+      </a>
+    );
+  }
 
   // 图片路径 + label 模式
   if (isImage && hasLabel) {

@@ -67,7 +67,8 @@
     "sess",
     "sessionstorage",
     "timedout",
-    "TTFB"
+    "TTFB",
+    "xlink"
   ],
   "ignorePaths": [
     "node_modules",

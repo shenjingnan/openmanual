@@ -1,9 +1,10 @@
 import type { TopBarConfig } from '../config/schema.js';
 import { isI18nEnabled } from '../config/schema.js';
+import { isSvgPath, readAndSanitizeSvg } from './code-utils.js';
 import type { GenerateContext } from './index.js';
 import { resolveNavLogoProps } from './layout.js';
 
-export function generateTopBarComponent(ctx: GenerateContext): string {
+export async function generateTopBarComponent(ctx: GenerateContext): Promise<string> {
   const { config } = ctx;
   const header: Partial<TopBarConfig> = config.header ?? {};
   const height = header.height ?? '64px';
@@ -18,8 +19,17 @@ export function generateTopBarComponent(ctx: GenerateContext): string {
   const logoSource = header.logo ?? config.name;
   const logoProps = resolveNavLogoProps(logoSource, config.name);
 
-  // 处理链接 — 序列化为 JSON 传给 NavLinks 组件
-  const linksJson = JSON.stringify(header.links ?? []);
+  // 处理链接 — 对 .svg 图标读取文件内容并内嵌，支持 currentColor 继承
+  const rawLinks = header.links ?? [];
+  const enrichedLinks = await Promise.all(
+    rawLinks.map(async (link) => {
+      if (!link.icon || !isSvgPath(link.icon)) return link;
+      const svgContent = await readAndSanitizeSvg(ctx.projectDir, link.icon);
+      if (!svgContent) return link;
+      return { ...link, __svgContent: svgContent };
+    })
+  );
+  const linksJson = JSON.stringify(enrichedLinks);
 
   const backgroundProp = background ? `\n    background='${background}',` : '';
 

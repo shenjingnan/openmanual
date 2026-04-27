@@ -196,7 +196,12 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
         content: generateSearchDialog(ctx),
       },
       ...(headerEnabled
-        ? [{ path: 'app/[lang]/components/top-bar.tsx', content: generateTopBarComponent(ctx) }]
+        ? [
+            {
+              path: 'app/[lang]/components/top-bar.tsx',
+              content: await generateTopBarComponent(ctx),
+            },
+          ]
         : []),
       {
         path: 'app/[lang]/[[...slug]]/layout.tsx',
@@ -232,7 +237,7 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
         content: generateSearchDialog(ctx),
       },
       ...(headerEnabled
-        ? [{ path: 'app/components/top-bar.tsx', content: generateTopBarComponent(ctx) }]
+        ? [{ path: 'app/components/top-bar.tsx', content: await generateTopBarComponent(ctx) }]
         : []),
       {
         path: 'app/[[...slug]]/layout.tsx',
