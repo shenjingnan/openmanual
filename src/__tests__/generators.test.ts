@@ -14,6 +14,7 @@ import {
 import { generateLibSource } from '../core/generator/lib-source.js';
 import { generateMermaidComponent } from '../core/generator/mermaid-component.js';
 import { generateMiddleware } from '../core/generator/middleware.js';
+import { generateNavBarComponent } from '../core/generator/nav-bar.js';
 import { generateNextConfig } from '../core/generator/next-config.js';
 import {
   generateApiClientComponent,
@@ -2449,5 +2450,231 @@ describe('generateTopBarComponent', () => {
     expect(parsed[0]!.__svgContent!).toContain('</svg>');
 
     spy.mockRestore();
+  });
+});
+
+// ============================================================
+// generateNavBarComponent — 覆盖 nav-bar.ts 全部行
+// ============================================================
+
+describe('generateNavBarComponent', () => {
+  it('当 items 为空数组时应当返回 null 组件', () => {
+    const ctx = {
+      config: { name: 'T', navbar: { items: [] } },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+    expect(result).toContain("'use client'");
+    expect(result).toContain('export function OmNavBar()');
+    expect(result).toContain('return null');
+    // 不应导入 NavBar
+    expect(result).not.toContain("from 'openmanual/components/nav-bar'");
+  });
+
+  it('当 navbar.items 为 undefined 时应当返回 null 组件', () => {
+    const ctx = {
+      config: { name: 'T' },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+    expect(result).toContain("'use client'");
+    expect(result).toContain('export function OmNavBar()');
+    expect(result).toContain('return null');
+    // 空 items 不应导入 NavBar 组件（直接返回 null）
+    expect(result).not.toContain("from 'openmanual/components/nav-bar'");
+  });
+
+  it('单语言模式 + 有 items 应当生成标准 OmNavBar 组件', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        navbar: {
+          items: [
+            { label: '快速开始', href: '/quickstart' },
+            { label: '指南', href: '/guide' },
+          ],
+        },
+      },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+
+    expect(result).toContain("'use client'");
+    expect(result).toContain("import { NavBar } from 'openmanual/components/nav-bar'");
+    expect(result).toContain('export function OmNavBar()');
+    expect(result).toContain('<NavBar items={navItems} />');
+    // 不应包含 lang 参数（非 i18n 模式）
+    expect(result).not.toContain('{ lang }');
+    // 不应包含 rawNavItems / 路径拼接逻辑
+    expect(result).not.toContain('rawNavItems');
+    // navItems 常量应包含序列化后的 JSON
+    expect(result).toContain('const navItems = ');
+    expect(result).toContain('"快速开始"');
+    expect(result).toContain('"/quickstart"');
+    expect(result).toContain('"指南"');
+    expect(result).toContain('"/guide"');
+  });
+
+  it('i18n 模式 + 有 items 应当生成带 lang 参数的组件', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+        navbar: {
+          items: [
+            { label: '快速开始', href: '/quickstart' },
+            { label: 'GitHub', href: 'https://github.com', external: true },
+          ],
+        },
+      },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+
+    expect(result).toContain("'use client'");
+    expect(result).toContain("import { NavBar } from 'openmanual/components/nav-bar'");
+    expect(result).toContain('export function OmNavBar({ lang }: { lang: string })');
+    // i18n 模式使用 rawNavItems + map 转换
+    expect(result).toContain('const rawNavItems = ');
+    expect(result).toContain('rawNavItems.map((item) => ({');
+    // 外部链接不应拼接 lang 前缀
+    expect(result).toContain('item.external ? item.href');
+    // 内部链接应拼接 /${lang} 前缀
+    expect(result).toContain('${lang}');
+    expect(result).toContain('<NavBar items={items} />');
+    // external 字段应保留
+    expect(result).toContain('"external":true');
+  });
+
+  it('应当正确序列化含 external 标记的导航项', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        navbar: {
+          items: [
+            { label: '外部链接', href: 'https://example.com', external: true },
+            { label: '内部页面', href: '/about' },
+          ],
+        },
+      },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+
+    // JSON 中应保留 external 字段
+    expect(result).toContain('"external":true');
+    expect(result).toContain('"外部链接"');
+    expect(result).toContain('"https://example.com"');
+    expect(result).toContain('"内部页面"');
+    expect(result).toContain('"/about"');
+  });
+
+  it('单个导航项也应正确生成', () => {
+    const ctx = {
+      config: {
+        name: 'T',
+        navbar: { items: [{ label: '首页', href: '/' }] },
+      },
+      projectDir: '/tmp/test',
+      appDir: '/tmp/test/.cache/app',
+      contentDir: 'content',
+    };
+    const result = generateNavBarComponent(ctx as any);
+
+    expect(result).toContain('"首页"');
+    expect(result).toContain('"/"');
+    expect(result).toContain('<NavBar items={navItems} />');
+    expect(result).not.toContain('return null');
+  });
+});
+
+// ============================================================
+// generateGlobalCss — NavBar 分支覆盖（行 82-158）
+// ============================================================
+
+describe('generateGlobalCss - NavBar enabled', () => {
+  const navBarCtx = {
+    config: {
+      name: 'T',
+      navbar: {
+        items: [
+          { label: '指南', href: '/guide' },
+          { label: 'API', href: '/api' },
+        ],
+      },
+    } as any,
+  };
+
+  it('当 NavBar 启用时应当包含 --fd-docs-row-* 偏移变量', () => {
+    const result = generateGlobalCss(navBarCtx);
+    expect(result).toContain('--fd-docs-row-1:');
+    expect(result).toContain('--fd-docs-row-2:');
+    expect(result).toContain('calc(var(--fd-banner-height, 64px) + 44px)');
+  });
+
+  it('当 NavBar 启用时应当包含 sticky 元素 top 偏移样式', () => {
+    const result = generateGlobalCss(navBarCtx);
+    // sidebar 和 toc 的 grid-area 选择器
+    expect(result).toContain('[class*="grid-area:sidebar"]');
+    expect(result).toContain('[class*="grid-area:toc"]');
+    expect(result).toContain('[class*="grid-area:header"]');
+    expect(result).toContain('[class*="grid-area:toc-popover"]');
+    // 使用 !important 覆盖内联样式
+    expect(result).toContain('!important');
+    // top 值应为 banner-height + 44px
+    expect(result).toContain('top: calc(var(--fd-banner-height, 64px) + 44px)');
+  });
+
+  it('始终包含 .scrollbar-hide 样式（无论 NavBar 是否启用）', () => {
+    const result = generateGlobalCss(navBarCtx);
+    expect(result).toContain('.scrollbar-hide');
+    expect(result).toContain('scrollbar-width: none');
+    expect(result).toContain('-webkit-scrollbar');
+    expect(result).toContain('display: none');
+  });
+});
+
+describe('generateGlobalCss - NavBar disabled', () => {
+  it('当 NavBar 未启用时不应包含 --fd-docs-row-* 偏移变量', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).not.toContain('--fd-docs-row-1:');
+    expect(result).not.toContain('--fd-docs-row-2:');
+    expect(result).not.toContain('calc(var(--fd-banner-height, 64px) + 44px)');
+  });
+
+  it('当 NavBar 未启用时不应包含 sticky 元素 top 偏移样式', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).not.toContain('[class*="grid-area:sidebar"]');
+    expect(result).not.toContain('[class*="grid-area:toc"]');
+    expect(result).not.toContain('grid-area:header"]');
+    expect(result).not.toContain('grid-area:toc-popover"]');
+  });
+
+  it('即使 NavBar 未启用也应包含 .scrollbar-hide 样式', () => {
+    const result = generateGlobalCss(baseCtx);
+    expect(result).toContain('.scrollbar-hide');
+    expect(result).toContain('scrollbar-width: none');
+  });
+
+  it('当 navbar.items 为空数组时应视为未启用', () => {
+    const ctx = { config: { name: 'T', navbar: { items: [] } } as any };
+    const result = generateGlobalCss(ctx);
+    expect(result).not.toContain('--fd-docs-row-1:');
+    expect(result).not.toContain('[class*="grid-area:sidebar"]');
   });
 });

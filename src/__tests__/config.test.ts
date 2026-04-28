@@ -6,6 +6,7 @@ import {
   collectConfiguredSlugs,
   isHeaderEnabled,
   isI18nEnabled,
+  isNavBarEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
   normalizeTopLevelLogo,
@@ -1754,5 +1755,132 @@ describe('loadConfig - mergeDefaults branch coverage', () => {
     const config = await loadConfig(tmpDir);
     // "" ?? 'zh' 返回 ""（?? 不回退空串）
     expect(config.i18n?.defaultLanguage).toBe('');
+  });
+});
+
+// ============================================================
+// isNavBarEnabled — 覆盖 schema.ts:274-276
+// ============================================================
+
+describe('isNavBarEnabled', () => {
+  it('当 navbar.items 为非空数组时应当返回 true', () => {
+    expect(
+      isNavBarEnabled({
+        name: 'T',
+        navbar: { items: [{ label: 'Guide', href: '/guide' }] },
+      } as any)
+    ).toBe(true);
+  });
+
+  it('当 navbar.items 包含多个项时应当返回 true', () => {
+    expect(
+      isNavBarEnabled({
+        name: 'T',
+        navbar: {
+          items: [
+            { label: '快速开始', href: '/quickstart' },
+            { label: '指南', href: '/guide' },
+            { label: '社区', href: '/community', external: true },
+          ],
+        },
+      } as any)
+    ).toBe(true);
+  });
+
+  it('当 navbar.items 为空数组时应当返回 false', () => {
+    expect(isNavBarEnabled({ name: 'T', navbar: { items: [] } } as any)).toBe(false);
+  });
+
+  it('当 navbar.items 为 undefined 时应当返回 false', () => {
+    expect(isNavBarEnabled({ name: 'T', navbar: {} as any })).toBe(false);
+  });
+
+  it('当 navbar 为 undefined 时应当返回 false', () => {
+    expect(isNavBarEnabled({ name: 'T' })).toBe(false);
+  });
+
+  it('当 navbar 存在但无 items 字段时应当返回 false', () => {
+    expect(isNavBarEnabled({ name: 'T', navbar: { logo: 'Test' } as any })).toBe(false);
+  });
+});
+
+// ============================================================
+// NavBarItemSchema / NavbarSchema — 覆盖 schema.ts:26-54
+// ============================================================
+
+describe('NavBarItemSchema', () => {
+  it('应当接受包含 label 和 href 的有效导航项', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ label: '指南', href: '/guide' }] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('应当拒绝缺少 label 的导航项', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ href: '/guide' }] },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('应当拒绝空 label（min(1) 约束）', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ label: '', href: '/guide' }] },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('应当拒绝缺少 href 的导航项', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ label: '指南' }] },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('应当接受带 external: true 的导航项', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ label: 'GitHub', href: 'https://github.com', external: true }] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('external 字段默认应为 false', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { items: [{ label: '指南', href: '/guide' }] },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.navbar?.items?.[0]?.external).toBe(false);
+    }
+  });
+
+  it('应当接受完整的 navbar 配置（含 items 和废弃字段）', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: {
+        logo: 'Test',
+        links: [{ label: 'Blog', href: 'https://blog.example.com' }],
+        items: [
+          { label: '快速开始', href: '/quickstart' },
+          { label: '指南', href: '/guide' },
+          { label: 'GitHub', href: 'https://github.com', external: true },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('items 字段应当是可选的', () => {
+    const result = OpenManualConfigSchema.safeParse({
+      name: 'T',
+      navbar: { logo: 'Test' },
+    });
+    expect(result.success).toBe(true);
   });
 });
