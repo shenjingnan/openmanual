@@ -2747,4 +2747,61 @@ describe('generateFooterComponent', () => {
     expect(result).toContain('rawFooterColumns');
     expect(result).toContain('/${lang}');
   });
+
+  it('当 footer 仅有 text 无 columns 时应当返回 null 组件（向后兼容）', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: { name: 'T', footer: { text: 'MIT © T' } },
+    };
+    const result = generateFooterComponent(ctx as any);
+    // 无 columns 配置时返回 null 组件，不导入 SiteFooter
+    expect(result).toContain('return null');
+    expect(result).not.toContain("from 'openmanual/components/site-footer'");
+  });
+
+  it('i18n 模式下外部链接不应添加 lang 前缀', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'T',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+        footer: {
+          columns: {
+            groups: [
+              {
+                title: '外部',
+                links: [{ label: 'GitHub', href: 'https://github.com/test', external: true }],
+              },
+            ],
+            social: [],
+          },
+        },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    // 外部链接保持原 URL（JSON.stringify 输出双引号），不拼接 /zh 前缀
+    expect(result).toContain('"https://github.com/test"');
+    // 内部链接会拼接前缀
+    expect(result).toContain('/${lang}');
+  });
+
+  it('空 groups 和空 social 应当正常生成组件', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'EmptyApp',
+        footer: { columns: { groups: [], social: [], copyright: '© Empty' } },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    expect(result).toContain('SiteFooter');
+    expect(result).toContain('footerColumns');
+    expect(result).toContain('EmptyApp');
+    expect(result).toContain('© Empty');
+  });
 });
