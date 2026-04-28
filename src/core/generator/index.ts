@@ -4,6 +4,7 @@ import type { OpenManualConfig } from '../config/schema.js';
 import {
   isHeaderEnabled,
   isI18nEnabled,
+  isNavBarEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
   resolveOpenApiSpecPaths,
@@ -24,6 +25,7 @@ import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
 import { generateMiddleware } from './middleware.js';
+import { generateNavBarComponent } from './nav-bar.js';
 import { generateNextConfig } from './next-config.js';
 import {
   generateApiClientComponent,
@@ -203,6 +205,14 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
             },
           ]
         : []),
+      ...(isNavBarEnabled(ctx.config)
+        ? [
+            {
+              path: 'app/[lang]/components/nav-bar.tsx',
+              content: generateNavBarComponent(ctx),
+            },
+          ]
+        : []),
       {
         path: 'app/[lang]/[[...slug]]/layout.tsx',
         content: generateDocsLayout(ctx),
@@ -238,6 +248,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
       },
       ...(headerEnabled
         ? [{ path: 'app/components/top-bar.tsx', content: await generateTopBarComponent(ctx) }]
+        : []),
+      ...(isNavBarEnabled(ctx.config)
+        ? [{ path: 'app/components/nav-bar.tsx', content: generateNavBarComponent(ctx) }]
         : []),
       {
         path: 'app/[[...slug]]/layout.tsx',
@@ -288,6 +301,7 @@ function generateRootLayout(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
   const headerEnabled = isHeaderEnabled(config);
+  const navBarEnabled = isNavBarEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -302,10 +316,12 @@ export const metadata: Metadata = {
     : '';
 
   const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
+  const navBarImport = navBarEnabled ? "import { OmNavBar } from './components/nav-bar';\n" : '';
 
   const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
+  const navBarJsx = navBarEnabled ? '<OmNavBar />\n      ' : '';
 
-  return `${metadataExport}${topBarImport}import { AppLayout } from 'openmanual/components/app-layout';
+  return `${metadataExport}${topBarImport}${navBarImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
 import '../global.css';
@@ -313,7 +329,7 @@ import '../global.css';
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <AppLayout>
-      <AppProvider>${topBarJsx}{children}</AppProvider>
+      <AppProvider>${topBarJsx}${navBarJsx}{children}</AppProvider>
     </AppLayout>
   );
 }
@@ -332,6 +348,7 @@ function generateRootLayoutI18n(ctx: GenerateContext): string {
   const { config } = ctx;
   const favicon = config.favicon;
   const headerEnabled = isHeaderEnabled(config);
+  const navBarEnabled = isNavBarEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -346,10 +363,12 @@ export const metadata: Metadata = {
     : '';
 
   const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
+  const navBarImport = navBarEnabled ? "import { OmNavBar } from './components/nav-bar';\n" : '';
 
   const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
+  const navBarJsx = navBarEnabled ? '<OmNavBar lang={lang} />\n      ' : '';
 
-  return `${metadataExport}${topBarImport}import { AppLayout } from 'openmanual/components/app-layout';
+  return `${metadataExport}${topBarImport}${navBarImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
 import '../../global.css';
@@ -365,7 +384,7 @@ export default async function RootLayout({
 
   return (
     <AppLayout lang={lang}>
-      <AppProvider lang={lang}>${topBarJsx}{children}</AppProvider>
+      <AppProvider lang={lang}>${topBarJsx}${navBarJsx}{children}</AppProvider>
     </AppLayout>
   );
 }

@@ -12,6 +12,15 @@
       { "icon": "/icons/github-fill.svg", "href": "https://github.com/shenjingnan/openmanual" }
     ]
   },
+  "navbar": {
+    "items": [
+      { "label": "快速开始", "href": "/quickstart" },
+      { "label": "指南", "href": "/guide" },
+      { "label": "进阶", "href": "/advanced" },
+      { "label": "组件", "href": "/components" },
+      { "label": "社区", "href": "/community" }
+    ]
+  },
   "i18n": {
     "languages": [
       { "code": "zh", "name": "中文" },
