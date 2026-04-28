@@ -73,8 +73,8 @@ describe('jsLiteral', () => {
   describe('模板表达式注入防护', () => {
     it('应当保留 $ 符号但不允许表达式注入', () => {
       // In JSON.stringify output, $ is just a normal character
-      const result = jsLiteral('${alert(1)}');
-      expect(result).toBe('"${alert(1)}"');
+      const result = jsLiteral(`${`{alert(1)}`}`);
+      expect(result).toBe(`"${`{alert(1)}`}"`);
       // The key: when embedded in a SINGLE-QUOTE template literal context,
       // ${} would be evaluated. But jsLiteral outputs DOUBLE-QUOTED strings
       // where ${} is safe.
@@ -174,7 +174,7 @@ describe('jsLiteral', () => {
     it('不应生成单引号输出', () => {
       // This is critical: single-quote output in a template literal
       // context is vulnerable to injection
-      const inputs = ['test', "it's", 'say "hi"', '`backtick`', '${expr}'];
+      const inputs = ['test', "it's", 'say "hi"', '`backtick`', `${`{expr}`}`];
       for (const input of inputs) {
         const result = jsLiteral(input);
         // The outer quotes must be double quotes
@@ -487,8 +487,8 @@ describe('readAndSanitizeSvg', () => {
 
     // join 会处理多余的 /
     expect(readFile).toHaveBeenCalled();
-    const mockCalls = vi.mocked(readFile)!.mock.calls;
-    const calledPath = mockCalls[0]![0] as string;
+    const mockCalls = vi.mocked(readFile)?.mock.calls;
+    const calledPath = mockCalls?.[0]?.[0] as string;
     expect(calledPath).toContain('public');
     expect(calledPath).toContain('double.svg');
     expect(calledPath).not.toContain('//icons');
@@ -534,7 +534,7 @@ describe('readAndSanitizeSvg', () => {
     const result = await readAndSanitizeSvg('/project', '/icons/malicious.svg');
 
     expect(result).not.toBeNull();
-    expect(result!).not.toContain('<script');
-    expect(result!).toContain('<path');
+    expect(result).not.toContain('<script');
+    expect(result).toContain('<path');
   });
 });

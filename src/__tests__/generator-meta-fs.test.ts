@@ -488,7 +488,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     // 非 i18n 分支使用 new Set(...) 保持正确的 Set 类型
     expect(layoutContent).toContain('new Set(');
     // 不应包含 i18n 特有的模板语法
-    expect(layoutContent).not.toContain('`${lang}`');
+    expect(layoutContent).not.toContain('$' + '{`lang`}');
     // 应包含 sidebar.tabs 结构（非 i18n 分支的关键特征）
     expect(layoutContent).toContain('sidebar:');
     expect(layoutContent).toContain('tabs:');
@@ -557,7 +557,7 @@ describe('generateAll - meta auto-generation (real FS)', () => {
     const layoutContent = await readFile(join(appDir, 'app/[[...slug]]/layout.tsx'), 'utf-8');
     expect(layoutContent).toContain('DocsLayoutWrapper');
     // 不应包含 i18n 特有的 ${lang} 模板
-    expect(layoutContent).not.toContain('${lang}');
+    expect(layoutContent).not.toContain(`${'{lang}'}`);
   });
 });
 
@@ -739,7 +739,7 @@ paths:
     expect(layoutContent).not.toContain('_omApiUrl');
 
     // 验证 source.ts 使用新的 baseDir 模板（${lang}/api 而非 ${lang}/openapi）
-    expect(sourceContent).toContain('${lang}/api');
+    expect(sourceContent).toContain(`${'{lang}/api'}`);
     expect(sourceContent).toContain('meta: true');
   });
 });

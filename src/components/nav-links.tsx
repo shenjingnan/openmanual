@@ -69,7 +69,7 @@ function NavLinkItemRender({ href, label, icon, external = true, __svgContent }:
 
   const hasIcon = !!icon;
   const hasLabel = !!label;
-  const isImage = hasIcon && isImagePath(icon!);
+  const isImage = hasIcon && icon != null && isImagePath(icon);
 
   // 内联 SVG 模式（优先于 <img>，支持 currentColor 继承）
   if (__svgContent) {

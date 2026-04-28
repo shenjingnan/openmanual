@@ -1,5 +1,5 @@
 import type { OpenManualConfig } from '../config/schema.js';
-import { isOpenApiEnabled, isNavBarEnabled } from '../config/schema.js';
+import { isNavBarEnabled, isOpenApiEnabled } from '../config/schema.js';
 
 export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
   const { config } = ctx;
@@ -78,10 +78,12 @@ export function generateGlobalCss(ctx: { config: OpenManualConfig }): string {
 :root {
   /* 当 NavBar 启用时，将 fumadocs 布局的第一行高度偏移量增加 NavBar 高度（44px），
      使侧边栏、TOC 等 sticky 元素定位在 NavBar 下方而非与其重叠 */
-${navBarEnabled
+${
+  navBarEnabled
     ? `  --fd-docs-row-1: calc(var(--fd-banner-height, 64px) + 44px);
   --fd-docs-row-2: calc(var(--fd-banner-height, 64px) + 44px);`
-    : ''}
+    : ''
+}
   /* 护眼暖色阅读背景 */
   --color-fd-background: hsl(40, 22%, 96.5%);     /* #faf9f6 纸张白 */
   --color-fd-foreground: hsl(0, 0%, 17.3%);        /* #2c2c2c 柔黑 */
@@ -152,7 +154,9 @@ figure.shiki > div {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-${navBarEnabled ? `
+${
+  navBarEnabled
+    ? `
 /* NavBar 启用时，将 fumadocs 布局中 sticky 元素的 top 偏移量增加 NavBar 高度（44px），
    使侧边栏、TOC 等定位在 NavBar 下方而非与其重叠。
    注意：fumadocs DocsLayout 通过内联样式设置 --fd-docs-row-* 变量，
@@ -166,6 +170,8 @@ ${navBarEnabled ? `
 }
 [class*="grid-area:toc-popover"] {
   top: calc(var(--fd-banner-height, 64px) + 44px) !important;
-}` : ''}
+}`
+    : ''
+}
 `;
 }
