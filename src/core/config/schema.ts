@@ -22,11 +22,22 @@ export const TopLevelLogoSchema = z.union([
 
 export const FaviconSchema = z.string();
 
+/** 水平导航栏单项配置（TopBar 下方的 NavBar） */
+export const NavBarItemSchema = z.object({
+  /** 显示文本 */
+  label: z.string().min(1),
+  /** 目标路径（相对路径如 "/guide"，或完整 URL） */
+  href: z.string(),
+  /** 是否外部链接（默认 false） */
+  external: z.boolean().optional().default(false),
+});
+
 export const NavbarSchema = z.object({
   /** @deprecated 使用顶级 `logo` 字段代替 */
   logo: LogoSchema.optional(),
   /** @deprecated 使用 header.links 配置替代，例如 { "icon": "Github", "href": "https://github.com/..." } */
   github: z.url().optional(),
+  /** @deprecated 使用 header.links 配置替代 */
   links: z
     .array(
       z.object({
@@ -35,6 +46,12 @@ export const NavbarSchema = z.object({
       })
     )
     .optional(),
+  /**
+   * TopBar 下方的水平导航栏项。
+   * 每项渲染为文字链接，当前路由匹配时显示下划线高亮。
+   * 为空或不填时隐藏整行导航栏。
+   */
+  items: z.array(NavBarItemSchema).optional(),
 });
 
 export const FooterSchema = z.object({
@@ -180,6 +197,7 @@ export type OpenApiConfig = z.infer<typeof OpenApiSchema>;
 export type TopBarConfig = z.infer<typeof TopBarSchema>;
 export type TopBarLink = z.infer<typeof TopBarLinkSchema>;
 export type TopLevelLogoConfig = z.infer<typeof TopLevelLogoSchema>;
+export type NavBarItem = z.infer<typeof NavBarItemSchema>;
 
 // @deprecated Use collectSlugsFromMeta from meta-scanner instead
 export function collectConfiguredSlugs(config: OpenManualConfig): Set<string> {
@@ -246,6 +264,15 @@ export function isSeparateTabMode(config: OpenManualConfig): boolean {
  */
 export function isHeaderEnabled(_config: OpenManualConfig): boolean {
   return true;
+}
+
+/**
+ * 判断是否启用了水平导航栏（NavBar）
+ *
+ * 当 config.navbar.items 存在且非空时返回 true。
+ */
+export function isNavBarEnabled(config: OpenManualConfig): boolean {
+  return (config.navbar?.items?.length ?? 0) > 0;
 }
 
 /**
