@@ -136,6 +136,116 @@ describe('generateAll', () => {
     expect((layoutCall as unknown[])[1]).toContain("Test's Project");
   });
 
+  it('配置 footer.columns 时应当生成 footer 组件文件', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        footer: {
+          columns: {
+            groups: [{ title: '产品', links: [{ label: '功能', href: '/features' }] }],
+            social: [{ platform: 'github', url: 'https://github.com/test' }],
+            copyright: 'MIT © Test',
+          },
+        },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const footerCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('components/footer.tsx')
+    );
+    expect(footerCall).toBeDefined();
+    expect((footerCall as unknown[])[1]).toContain('OmSiteFooter');
+    expect((footerCall as unknown[])[1]).toContain('SiteFooter');
+  });
+
+  it('配置 footer.columns 时根布局应当包含 OmSiteFooter', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        footer: {
+          columns: {
+            brand: { name: 'TestApp' },
+            groups: [],
+            social: [],
+          },
+        },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const layoutCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).endsWith('app/layout.tsx') &&
+        !(c[0] as string).includes('[lang]')
+    );
+    expect(layoutCall).toBeDefined();
+    const content = (layoutCall as unknown[])[1] as string;
+    expect(content).toContain("import { OmSiteFooter } from './components/footer'");
+    expect(content).toContain('<OmSiteFooter />');
+  });
+
+  it('未配置 footer.columns 时不应生成 footer 文件', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const footerCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).endsWith('components/footer.tsx')
+    );
+    expect(footerCall).toBeUndefined();
+  });
+
+  it('未配置 footer.columns 时根布局不应包含 OmSiteFooter', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    await generateAll(baseCtx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const layoutCall = calls.find(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' &&
+        (c[0] as string).endsWith('app/layout.tsx') &&
+        !(c[0] as string).includes('[lang]')
+    );
+    expect(layoutCall).toBeDefined();
+    expect((layoutCall as unknown[])[1]).not.toContain('OmSiteFooter');
+  });
+
+  it('i18n 模式 + footer.columns 应当在 i18n 布局中包含 OmSiteFooter lang prop', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const ctx = {
+      ...baseCtx,
+      config: {
+        ...baseConfig,
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+        footer: {
+          columns: {
+            groups: [{ title: '资源', links: [] }],
+            social: [],
+          },
+        },
+      } as any,
+    };
+    await generateAll(ctx);
+    const calls = (writeFile as ReturnType<typeof vi.fn>).mock.calls;
+    const i18nLayoutCall = calls.find(
+      (c: unknown[]) => typeof c[0] === 'string' && (c[0] as string).includes('[lang]/layout.tsx')
+    );
+    expect(i18nLayoutCall).toBeDefined();
+    const content = (i18nLayoutCall as unknown[])[1] as string;
+    expect(content).toContain('<OmSiteFooter lang={lang} />');
+  });
+
   it('未配置时不应包含 github', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);

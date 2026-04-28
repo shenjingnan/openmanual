@@ -4,6 +4,7 @@ import type { OpenManualConfig } from '../config/schema.js';
 import {
   isHeaderEnabled,
   isI18nEnabled,
+  isMultiColumnFooterEnabled,
   isNavBarEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
@@ -18,6 +19,7 @@ import { type ContentFile, scanContentDir } from '../content/scanner.js';
 import { formatTitle } from '../content/tree.js';
 import { generateCalloutComponent } from './callout-component.js';
 import { jsLiteral } from './code-utils.js';
+import { generateFooterComponent } from './footer.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
@@ -213,6 +215,14 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
             },
           ]
         : []),
+      ...(isMultiColumnFooterEnabled(ctx.config)
+        ? [
+            {
+              path: 'app/[lang]/components/footer.tsx',
+              content: generateFooterComponent(ctx),
+            },
+          ]
+        : []),
       {
         path: 'app/[lang]/[[...slug]]/layout.tsx',
         content: generateDocsLayout(ctx),
@@ -251,6 +261,9 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
         : []),
       ...(isNavBarEnabled(ctx.config)
         ? [{ path: 'app/components/nav-bar.tsx', content: generateNavBarComponent(ctx) }]
+        : []),
+      ...(isMultiColumnFooterEnabled(ctx.config)
+        ? [{ path: 'app/components/footer.tsx', content: generateFooterComponent(ctx) }]
         : []),
       {
         path: 'app/[[...slug]]/layout.tsx',
@@ -302,6 +315,7 @@ function generateRootLayout(ctx: GenerateContext): string {
   const favicon = config.favicon;
   const headerEnabled = isHeaderEnabled(config);
   const navBarEnabled = isNavBarEnabled(config);
+  const footerEnabled = isMultiColumnFooterEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -317,11 +331,13 @@ export const metadata: Metadata = {
 
   const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
   const navBarImport = navBarEnabled ? "import { OmNavBar } from './components/nav-bar';\n" : '';
+  const footerImport = footerEnabled ? "import { OmSiteFooter } from './components/footer';\n" : '';
 
   const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
   const navBarJsx = navBarEnabled ? '<OmNavBar />\n      ' : '';
+  const footerJsx = footerEnabled ? '\n      <OmSiteFooter />' : '';
 
-  return `${metadataExport}${topBarImport}${navBarImport}import { AppLayout } from 'openmanual/components/app-layout';
+  return `${metadataExport}${topBarImport}${navBarImport}${footerImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
 import '../global.css';
@@ -329,7 +345,7 @@ import '../global.css';
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <AppLayout>
-      <AppProvider>${topBarJsx}${navBarJsx}{children}</AppProvider>
+      <AppProvider>${topBarJsx}${navBarJsx}{children}${footerJsx}</AppProvider>
     </AppLayout>
   );
 }
@@ -349,6 +365,7 @@ function generateRootLayoutI18n(ctx: GenerateContext): string {
   const favicon = config.favicon;
   const headerEnabled = isHeaderEnabled(config);
   const navBarEnabled = isNavBarEnabled(config);
+  const footerEnabled = isMultiColumnFooterEnabled(config);
 
   const metadataExport = favicon
     ? `import type { Metadata } from 'next';
@@ -364,11 +381,13 @@ export const metadata: Metadata = {
 
   const topBarImport = headerEnabled ? "import { OmTopBar } from './components/top-bar';\n" : '';
   const navBarImport = navBarEnabled ? "import { OmNavBar } from './components/nav-bar';\n" : '';
+  const footerImport = footerEnabled ? "import { OmSiteFooter } from './components/footer';\n" : '';
 
   const topBarJsx = headerEnabled ? '<OmTopBar />\n      ' : '';
   const navBarJsx = navBarEnabled ? '<OmNavBar lang={lang} />\n      ' : '';
+  const footerJsx = footerEnabled ? '\n      <OmSiteFooter lang={lang} />' : '';
 
-  return `${metadataExport}${topBarImport}${navBarImport}import { AppLayout } from 'openmanual/components/app-layout';
+  return `${metadataExport}${topBarImport}${navBarImport}${footerImport}import { AppLayout } from 'openmanual/components/app-layout';
 import { AppProvider } from './provider';
 import type { ReactNode } from 'react';
 import '../../global.css';
@@ -384,7 +403,7 @@ export default async function RootLayout({
 
   return (
     <AppLayout lang={lang}>
-      <AppProvider lang={lang}>${topBarJsx}${navBarJsx}{children}</AppProvider>
+      <AppProvider lang={lang}>${topBarJsx}${navBarJsx}{children}${footerJsx}</AppProvider>
     </AppLayout>
   );
 }

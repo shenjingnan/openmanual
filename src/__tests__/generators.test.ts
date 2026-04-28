@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { OpenManualConfig } from '../core/config/schema.js';
 import { isOpenApiEnabled } from '../core/config/schema.js';
 import { generateCalloutComponent } from '../core/generator/callout-component.js';
+import { generateFooterComponent } from '../core/generator/footer.js';
 import { generateGlobalCss } from '../core/generator/global-css.js';
 import { generateI18nConfig } from '../core/generator/i18n-config.js';
 import { generateI18nUI } from '../core/generator/i18n-ui.js';
@@ -2676,5 +2677,131 @@ describe('generateGlobalCss - NavBar disabled', () => {
     const result = generateGlobalCss(ctx);
     expect(result).not.toContain('--fd-docs-row-1:');
     expect(result).not.toContain('[class*="grid-area:sidebar"]');
+  });
+});
+
+describe('generateFooterComponent', () => {
+  const baseFooterCtx = {
+    projectDir: '/tmp/test',
+    appDir: '/tmp/test/.cache/app',
+    contentDir: 'content',
+  };
+
+  it('当 footer.columns 未配置时应当返回 null 组件', () => {
+    const ctx = { ...baseFooterCtx, config: { name: 'T' } };
+    const result = generateFooterComponent(ctx as any);
+    expect(result).toContain("'use client'");
+    expect(result).toContain('export function OmSiteFooter()');
+    expect(result).toContain('return null');
+    expect(result).not.toContain("from 'openmanual/components/site-footer'");
+  });
+
+  it('单语言模式 + 有 columns 应当生成标准 OmSiteFooter 组件', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'TestApp',
+        footer: {
+          columns: {
+            brand: { name: 'TestApp', description: '测试描述' },
+            groups: [{ title: '产品', links: [{ label: '功能', href: '/features' }] }],
+            social: [{ platform: 'github', url: 'https://github.com/test' }],
+            copyright: 'MIT 2026 © TestApp.',
+          },
+        },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    expect(result).toContain("'use client'");
+    expect(result).toContain('export function OmSiteFooter()');
+    expect(result).toContain("from 'openmanual/components/site-footer'");
+    expect(result).toContain('SiteFooter');
+    expect(result).toContain('footerColumns');
+    expect(result).toContain('TestApp');
+    expect(result).not.toContain('lang');
+  });
+
+  it('i18n 模式 + 有 columns 应当生成带 lang prop 的组件', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'TestI18n',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+        footer: {
+          columns: {
+            groups: [{ title: '资源', links: [{ label: '文档', href: '/docs' }] }],
+          },
+        },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    expect(result).toContain("'use client'");
+    expect(result).toContain('export function OmSiteFooter({ lang }');
+    expect(result).toContain("from 'openmanual/components/site-footer'");
+    // i18n 模式应包含路径前缀拼接逻辑
+    expect(result).toContain('rawFooterColumns');
+    expect(result).toContain('/${lang}');
+  });
+
+  it('当 footer 仅有 text 无 columns 时应当返回 null 组件（向后兼容）', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: { name: 'T', footer: { text: 'MIT © T' } },
+    };
+    const result = generateFooterComponent(ctx as any);
+    // 无 columns 配置时返回 null 组件，不导入 SiteFooter
+    expect(result).toContain('return null');
+    expect(result).not.toContain("from 'openmanual/components/site-footer'");
+  });
+
+  it('i18n 模式下外部链接不应添加 lang 前缀', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'T',
+        i18n: {
+          languages: [
+            { code: 'zh', name: '中文' },
+            { code: 'en', name: 'English' },
+          ],
+        },
+        footer: {
+          columns: {
+            groups: [
+              {
+                title: '外部',
+                links: [{ label: 'GitHub', href: 'https://github.com/test', external: true }],
+              },
+            ],
+            social: [],
+          },
+        },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    // 外部链接保持原 URL（JSON.stringify 输出双引号），不拼接 /zh 前缀
+    expect(result).toContain('"https://github.com/test"');
+    // 内部链接会拼接前缀
+    expect(result).toContain('/${lang}');
+  });
+
+  it('空 groups 和空 social 应当正常生成组件', () => {
+    const ctx = {
+      ...baseFooterCtx,
+      config: {
+        name: 'EmptyApp',
+        footer: { columns: { groups: [], social: [], copyright: '© Empty' } },
+      },
+    };
+    const result = generateFooterComponent(ctx as any);
+    expect(result).toContain('SiteFooter');
+    expect(result).toContain('footerColumns');
+    expect(result).toContain('EmptyApp');
+    expect(result).toContain('© Empty');
   });
 });

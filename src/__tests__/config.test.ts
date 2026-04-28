@@ -6,6 +6,7 @@ import {
   collectConfiguredSlugs,
   isHeaderEnabled,
   isI18nEnabled,
+  isMultiColumnFooterEnabled,
   isNavBarEnabled,
   isOpenApiEnabled,
   isSeparateTabMode,
@@ -1801,6 +1802,49 @@ describe('isNavBarEnabled', () => {
 
   it('当 navbar 存在但无 items 字段时应当返回 false', () => {
     expect(isNavBarEnabled({ name: 'T', navbar: { logo: 'Test' } as any })).toBe(false);
+  });
+});
+
+// ============================================================
+// isMultiColumnFooterEnabled — 覆盖 schema.ts:334-338
+// ============================================================
+
+describe('isMultiColumnFooterEnabled', () => {
+  it('当 footer.columns 存在时应当返回 true', () => {
+    expect(
+      isMultiColumnFooterEnabled({
+        name: 'T',
+        footer: { columns: { groups: [] } },
+      } as any)
+    ).toBe(true);
+  });
+
+  it('当 footer.columns 有完整配置时应当返回 true', () => {
+    expect(
+      isMultiColumnFooterEnabled({
+        name: 'T',
+        footer: {
+          columns: {
+            brand: { name: 'Test' },
+            groups: [{ title: '产品', links: [] }],
+            social: [],
+            copyright: 'MIT',
+          },
+        },
+      } as any)
+    ).toBe(true);
+  });
+
+  it('当 footer.columns 为 undefined 时应当返回 false', () => {
+    expect(isMultiColumnFooterEnabled({ name: 'T' })).toBe(false);
+  });
+
+  it('当 footer 仅有 text 字段时应当返回 false', () => {
+    expect(isMultiColumnFooterEnabled({ name: 'T', footer: { text: 'MIT © Test' } })).toBe(false);
+  });
+
+  it('当 footer 为空对象时应当返回 false', () => {
+    expect(isMultiColumnFooterEnabled({ name: 'T', footer: {} })).toBe(false);
   });
 });
 
