@@ -54,8 +54,63 @@ export const NavbarSchema = z.object({
   items: z.array(NavBarItemSchema).optional(),
 });
 
+/** Footer 链接项 */
+export const FooterLinkSchema = z.object({
+  /** 显示文本 */
+  label: z.string().min(1),
+  /** 目标路径（相对路径如 "/about"，或完整 URL） */
+  href: z.string(),
+  /** 是否外部链接（默认 false） */
+  external: z.boolean().optional().default(false),
+});
+
+/** 多列布局中的单列配置 */
+export const FooterColumnSchema = z.object({
+  /** 列标题 */
+  title: z.string().min(1),
+  /** 链接列表 */
+  links: z.array(FooterLinkSchema).default([]),
+});
+
+/** 社交媒体图标项 */
+export const SocialLinkSchema = z.object({
+  /** 平台标识：'x' | 'github' | 'linkedin' | 'youtube' 等 */
+  platform: z.string().min(1),
+  /** 链接地址 */
+  url: z.string().url(),
+  /** 自定义 SVG 图标路径（优先于 platform 默认图标） */
+  icon: z.string().optional(),
+});
+
+/** 品牌区域配置（Footer 左侧） */
+export const FooterBrandSchema = z.object({
+  /** 品牌名称（默认使用 config.name） */
+  name: z.string().optional(),
+  /** 品牌描述文本（显示在 logo/name 下方） */
+  description: z.string().optional(),
+  /** Logo 路径（不填则使用文字品牌名） */
+  logo: z.union([z.string(), z.object({ light: z.string(), dark: z.string() })]).optional(),
+});
+
 export const FooterSchema = z.object({
+  /** 简单文本模式（向后兼容，渲染为页面底部版权信息） */
   text: z.string().optional(),
+  /**
+   * 多列模式：启用后渲染完整的多列 Site Footer 组件。
+   * 一旦配置 columns，将生成独立的站点级 Footer。
+   */
+  columns: z
+    .object({
+      /** 左侧品牌区域 */
+      brand: FooterBrandSchema.optional(),
+      /** 中间多列链接分组 */
+      groups: z.array(FooterColumnSchema).default([]),
+      /** 底部社交媒体图标 */
+      social: z.array(SocialLinkSchema).default([]),
+      /** 底部版权文本（默认 "MIT {year} © {name}"） */
+      copyright: z.string().optional(),
+    })
+    .optional(),
 });
 
 // @deprecated Use meta.json files in content directories instead
@@ -187,6 +242,10 @@ export const OpenManualConfigSchema = z.object({
 export type OpenManualConfig = z.infer<typeof OpenManualConfigSchema>;
 export type NavbarConfig = z.infer<typeof NavbarSchema>;
 export type FooterConfig = z.infer<typeof FooterSchema>;
+export type FooterLink = z.infer<typeof FooterLinkSchema>;
+export type FooterColumn = z.infer<typeof FooterColumnSchema>;
+export type SocialLink = z.infer<typeof SocialLinkSchema>;
+export type FooterBrand = z.infer<typeof FooterBrandSchema>;
 export type SidebarGroup = z.infer<typeof SidebarGroupSchema>;
 export type SidebarPage = z.infer<typeof SidebarPageSchema>;
 export type LogoConfig = z.infer<typeof LogoSchema>;
@@ -273,6 +332,15 @@ export function isHeaderEnabled(_config: OpenManualConfig): boolean {
  */
 export function isNavBarEnabled(config: OpenManualConfig): boolean {
   return (config.navbar?.items?.length ?? 0) > 0;
+}
+
+/**
+ * 判断是否启用了多列 Footer（Site Footer 模式）
+ *
+ * 当 config.footer.columns 存在时返回 true。
+ */
+export function isMultiColumnFooterEnabled(config: OpenManualConfig): boolean {
+  return config.footer?.columns !== undefined;
 }
 
 /**

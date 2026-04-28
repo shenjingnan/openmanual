@@ -31,5 +31,48 @@
   },
   "openapi": {
     "specPath": "openapi.yaml"
+  },
+  "footer": {
+    "columns": {
+      "brand": {
+        "name": "OpenManual",
+        "description": "AI 驱动的下一代文档系统框架"
+      },
+      "groups": [
+        {
+          "title": "产品",
+          "links": [
+            { "label": "功能特性", "href": "/guide" },
+            { "label": "快速开始", "href": "/quickstart" },
+            { "label": "进阶指南", "href": "/advanced" },
+            { "label": "组件", "href": "/components" }
+          ]
+        },
+        {
+          "title": "社区",
+          "links": [
+            {
+              "label": "GitHub",
+              "href": "https://github.com/shenjingnan/openmanual",
+              "external": true
+            },
+            { "label": "贡献指南", "href": "/community" }
+          ]
+        },
+        {
+          "title": "资源",
+          "links": [
+            { "label": "API 文档", "href": "/openapi" },
+            {
+              "label": "更新日志",
+              "href": "https://github.com/shenjingnan/openmanual/releases",
+              "external": true
+            }
+          ]
+        }
+      ],
+      "social": [{ "platform": "github", "url": "https://github.com/shenjingnan/openmanual" }],
+      "copyright": "MIT 2026 © OpenManual."
+    }
   }
 }
