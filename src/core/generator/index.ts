@@ -23,6 +23,7 @@ import { generateFooterComponent } from './footer.js';
 import { generateGlobalCss } from './global-css.js';
 import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
+import { generateImageZoomComponent } from './image-zoom-component.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
 import { generateMermaidComponent } from './mermaid-component.js';
@@ -157,6 +158,10 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     {
       path: 'components/mermaid.tsx',
       content: generateMermaidComponent(),
+    },
+    {
+      path: 'components/image-zoom.tsx',
+      content: generateImageZoomComponent(),
     },
     {
       path: 'components/page-actions.tsx',

@@ -41,16 +41,16 @@ describe('generateAll', () => {
     vi.clearAllMocks();
   });
 
-  it('应当在开发模式下写入 19 个文件', async () => {
+  it('应当在开发模式下写入 20 个文件', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll({ ...baseCtx, dev: true });
-    expect(writeFile).toHaveBeenCalledTimes(19);
+    expect(writeFile).toHaveBeenCalledTimes(20);
   });
 
-  it('应当在非开发模式下写入 18 个文件', async () => {
+  it('应当在非开发模式下写入 19 个文件', async () => {
     const { writeFile } = await import('node:fs/promises');
     await generateAll(baseCtx);
-    expect(writeFile).toHaveBeenCalledTimes(18);
+    expect(writeFile).toHaveBeenCalledTimes(19);
   });
 
   it('应当递归创建目录', async () => {
