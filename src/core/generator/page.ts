@@ -110,7 +110,8 @@ import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { Mermaid } from '@/components/mermaid';
-import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}${apiPageImport}
+import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';
+import { ImageZoom } from '@/components/image-zoom';${pageActionsImport}${apiPageImport}
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
@@ -132,7 +133,7 @@ ${openapiBranch}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription, img: (props) => <ImageZoom {...(props as any)} /> }} />
       </DocsBody>
     </DocsPage>
   );
@@ -251,7 +252,8 @@ import { Files, File, Folder } from 'fumadocs-ui/components/files';
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
 import { Mermaid } from '@/components/mermaid';
-import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';${pageActionsImport}${apiPageImport}
+import { Callout, CalloutTitle, CalloutDescription } from '@/components/callout';
+import { ImageZoom } from '@/components/image-zoom';${pageActionsImport}${apiPageImport}
 ${allowedSlugsSnippet}
 export default async function Page({ params }: { params: Promise<{ slug?: string[]; lang: string }> }) {
   const { slug, lang } = await params;
@@ -273,7 +275,7 @@ ${openapiBranch}
     <DocsPage toc={page.data.toc}>
 ${pageTitleArea}
       <DocsBody data-content-area>
-        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription }} />
+        <MDX components={{ ...defaultMdxComponents, Steps, Step, Tabs, Tab, 'Tabs.Tab': Tab, Files, File, Folder, Accordion, Accordions, TypeTable, Mermaid, Callout, CalloutTitle, CalloutDescription, img: (props) => <ImageZoom {...(props as any)} /> }} />
       </DocsBody>
     </DocsPage>
   );

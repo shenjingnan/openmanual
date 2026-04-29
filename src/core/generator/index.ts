@@ -25,6 +25,7 @@ import { generateI18nConfig } from './i18n-config.js';
 import { generateI18nUI } from './i18n-ui.js';
 import { generateLayout, isImagePath, resolveLogoPaths } from './layout.js';
 import { generateLibSource } from './lib-source.js';
+import { generateImageZoomComponent } from './image-zoom-component.js';
 import { generateMermaidComponent } from './mermaid-component.js';
 import { generateMiddleware } from './middleware.js';
 import { generateNavBarComponent } from './nav-bar.js';
@@ -157,6 +158,10 @@ export async function generateAll(ctx: GenerateContext): Promise<void> {
     {
       path: 'components/mermaid.tsx',
       content: generateMermaidComponent(),
+    },
+    {
+      path: 'components/image-zoom.tsx',
+      content: generateImageZoomComponent(),
     },
     {
       path: 'components/page-actions.tsx',
