@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Panzoom from '@panzoom/panzoom';
 import { LocateFixed, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
 import type { StaticImageData } from 'next/image';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
@@ -147,8 +147,10 @@ export function ImageZoom({ src, alt }: ImageZoomProps) {
   }, [dialogState, handleClose]);
 
   // 从 StaticImageData 中提取尺寸（如果可用）
-  const imgWidth = typeof src === 'object' && 'width' in src ? (src as StaticImageData).width : undefined;
-  const imgHeight = typeof src === 'object' && 'height' in src ? (src as StaticImageData).height : undefined;
+  const imgWidth =
+    typeof src === 'object' && 'width' in src ? (src as StaticImageData).width : undefined;
+  const imgHeight =
+    typeof src === 'object' && 'height' in src ? (src as StaticImageData).height : undefined;
 
   return (
     <>
