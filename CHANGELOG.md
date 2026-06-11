@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.17.0](https://github.com/shenjingnan/openmanual/compare/v0.16.1...v0.17.0) (2026-06-11)
+
+### Features
+
+* **config:** header 默认启用，未配置时也展示顶部导航栏 ([#144](https://github.com/shenjingnan/openmanual/issues/144)) ([39607d6](https://github.com/shenjingnan/openmanual/commit/39607d6f344d51a9882a34fd52ddaf788b5cb8e9))
+* **docs:** 添加 header 配置和搜索位置设置 ([#142](https://github.com/shenjingnan/openmanual/issues/142)) ([804b39f](https://github.com/shenjingnan/openmanual/commit/804b39f7d83e93b0fdb7010ee60902897e5bdefa))
+* **footer:** 新增多列站点级 Footer 组件支持 ([#160](https://github.com/shenjingnan/openmanual/issues/160)) ([d330eb2](https://github.com/shenjingnan/openmanual/commit/d330eb263ecb1b344c511a7fb2d0379e97870d60))
+* **header:** 添加主题切换按钮（Sun/Moon 图标） ([#152](https://github.com/shenjingnan/openmanual/issues/152)) ([e0048a0](https://github.com/shenjingnan/openmanual/commit/e0048a08015d2f3e5b1ae9303c97d77289caafd3))
+* **header:** 添加多语言切换按钮（LanguageSwitch） ([#153](https://github.com/shenjingnan/openmanual/issues/153)) ([cc24949](https://github.com/shenjingnan/openmanual/commit/cc249493f30cc23997cfeb8d322f4dd43cbccd55))
+* **image-zoom:** 为 MDX 图片添加点击放大与滚轮缩放功能 ([#163](https://github.com/shenjingnan/openmanual/issues/163)) ([cda0168](https://github.com/shenjingnan/openmanual/commit/cda01680d7bb79ba23a3d40ed14c7b37f6d55464))
+* **navbar:** 在 Header 下方添加水平导航栏（NavBar） ([#159](https://github.com/shenjingnan/openmanual/issues/159)) ([ea761e7](https://github.com/shenjingnan/openmanual/commit/ea761e798e03872bbeb9a231651431f295479206))
+* **search:** 搜索功能默认启用，移除 search.enabled 配置项 ([#140](https://github.com/shenjingnan/openmanual/issues/140)) ([d8ae6e8](https://github.com/shenjingnan/openmanual/commit/d8ae6e8e5693b04847afb22b28fcdc1bc1e07f81))
+* **sidebar:** 隐藏侧边栏底部的语言选择器和主题切换器 ([#154](https://github.com/shenjingnan/openmanual/issues/154)) ([c362aab](https://github.com/shenjingnan/openmanual/commit/c362aab826f06aea47e1d72a4f1e1cd11c1843a4))
+
+### Bug Fixes
+
+* **generator:** 用 jsLiteral() 替代手动字符串拼接提升代码生成安全性 ([#135](https://github.com/shenjingnan/openmanual/issues/135)) ([964ea20](https://github.com/shenjingnan/openmanual/commit/964ea203150eead3fc7f59947d88873a2edef82b))
+* **i18n-ui:** 修复 i18n UI 生成代码的缩进层级问题 ([#186](https://github.com/shenjingnan/openmanual/issues/186)) ([3f963bd](https://github.com/shenjingnan/openmanual/commit/3f963bde56ff240de03803db5af372fc6a49dacb))
+* **i18n:** 将站点描述从韩文翻译为中文 ([#137](https://github.com/shenjingnan/openmanual/issues/137)) ([496c429](https://github.com/shenjingnan/openmanual/commit/496c429a0a40fe47df0897e33848bbe201f5a728))
+
+### Code Refactoring
+
+* **config:** 废弃 navbar.github 配置项，改用 header.links 替代 ([#143](https://github.com/shenjingnan/openmanual/issues/143)) ([5145ae6](https://github.com/shenjingnan/openmanual/commit/5145ae627cba9361831acb7b850654757efdbd78))
+* **config:** 移除 i18n.enabled 和 i18n.parser 配置项 ([#149](https://github.com/shenjingnan/openmanual/issues/149)) ([384a263](https://github.com/shenjingnan/openmanual/commit/384a263336efba471dc4fcfbaf72f455ee20a04a))
+* **config:** 移除 logo.position 配置，logo 始终展示在 header 中 ([#146](https://github.com/shenjingnan/openmanual/issues/146)) ([9125207](https://github.com/shenjingnan/openmanual/commit/9125207b0abfe542afbd612c5d4fbb48dd5d8052))
+* **config:** 移除 openmanual.json 中与默认值重复的 contentDir 和 outputDir 配置 ([#138](https://github.com/shenjingnan/openmanual/issues/138)) ([2e89f0b](https://github.com/shenjingnan/openmanual/commit/2e89f0bfb7ca1ed9826f9d05e8ca5f50fa721a5c))
+* **config:** 移除 openmanual.json 中与默认值重复的 mdx.latex 配置 ([#139](https://github.com/shenjingnan/openmanual/issues/139)) ([5997d5e](https://github.com/shenjingnan/openmanual/commit/5997d5e1f4bb599085a3aa4f7e0184063acc7187))
+* **config:** 移除 search 配置项，搜索默认启用且固定在 header 中展示 ([#147](https://github.com/shenjingnan/openmanual/issues/147)) ([e6421de](https://github.com/shenjingnan/openmanual/commit/e6421def5a16695e3029c88387c82953f45efa50))
+* **config:** 移除 siteUrl 字段，默认启用 SSG 静态导出 ([#151](https://github.com/shenjingnan/openmanual/issues/151)) ([4934e15](https://github.com/shenjingnan/openmanual/commit/4934e1517736a3b7e37e6c08e8f4c6500a035609))
+* **config:** 移除已废弃的 i18n.defaultLanguage，统一使用顶层 locale ([#148](https://github.com/shenjingnan/openmanual/issues/148)) ([b1949cc](https://github.com/shenjingnan/openmanual/commit/b1949cc4307f4e65e5a216775b13c9c65bfbb213))
+* **config:** 移除未生效的 theme.primaryHue 和 theme.darkMode 配置项 ([#141](https://github.com/shenjingnan/openmanual/issues/141)) ([eb2e92d](https://github.com/shenjingnan/openmanual/commit/eb2e92d1f7fd42c54b8049dba0b7a16b24bc7025))
+* 将 commit-push-pr 命令迁移为 skill 格式 ([#150](https://github.com/shenjingnan/openmanual/issues/150)) ([7a69683](https://github.com/shenjingnan/openmanual/commit/7a69683222b7e78e6725d69c2ebb1bb0f4fcbbb1))
+
+### Documentation
+
+* 清理 docs 目录中不再使用的资源文件 ([#161](https://github.com/shenjingnan/openmanual/issues/161)) ([0e768f5](https://github.com/shenjingnan/openmanual/commit/0e768f5911d68aca1b0aafd70c7a63f0d2d9d058))
+
+### Tests
+
+* 将所有单测用例的 it/describe 描述翻译为中文 ([#136](https://github.com/shenjingnan/openmanual/issues/136)) ([cea365c](https://github.com/shenjingnan/openmanual/commit/cea365ca30f62f4310a39d476a0cdbc2d78279a8))
+* 补充 SVG 内联渲染功能的单元测试覆盖率 ([#158](https://github.com/shenjingnan/openmanual/issues/158)) ([2acb73c](https://github.com/shenjingnan/openmanual/commit/2acb73cff4eb49c8d4303b62b0f60b0cd7ef95d0))
+
 ## [0.16.1](https://github.com/shenjingnan/openmanual/compare/v0.16.0...v0.16.1) (2026-04-23)
 
 ### Bug Fixes
