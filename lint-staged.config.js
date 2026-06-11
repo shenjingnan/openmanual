@@ -3,7 +3,7 @@ export default {
     'biome check --write',
     'cspell --no-gitignore',
     'sh -c "pnpm run typecheck"',
-    'vitest run',
+    () => 'vitest run',
   ],
   '*.js': ['biome check --write'],
   '*.json': ['biome check --write'],

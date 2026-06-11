@@ -46,9 +46,9 @@ export function generatePackageJson(ctx: {
     dependencies: {
       '@orama/orama': '^3.1.0',
       '@tailwindcss/postcss': '^4.1.15',
-      'fumadocs-core': '^16.7.7',
+      'fumadocs-core': '~16.9.0',
       'fumadocs-mdx': '^14.2.11',
-      'fumadocs-ui': '^16.7.7',
+      'fumadocs-ui': '~16.9.0',
       'lucide-react': '^1.7.0',
       mermaid: '^11.4.0',
       next: '^16.2.1',
