@@ -14,7 +14,7 @@ export function generateI18nUI(_ctx: { config: OpenManualConfig }): string {
 
   const langEntries = i18nCfg.languages
     .map(
-      (lang) => `    ${jsLiteral(lang.code)}: {
+      (lang) => `  ${jsLiteral(lang.code)}: {
       displayName: ${jsLiteral(lang.name)},
     }`
     )
@@ -24,9 +24,7 @@ export function generateI18nUI(_ctx: { config: OpenManualConfig }): string {
 import { i18n } from '@/lib/i18n';
 
 export const i18nUI = defineI18nUI(i18n, {
-  translations: {
-${langEntries}
-  },
+${langEntries},
 });
 `;
 }
